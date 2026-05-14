@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import {
   Card, Table, Typography, Tag, Space, Button, Modal, Form,
   Input, InputNumber, Select, message, Popconfirm, Divider, Row, Col,
@@ -13,10 +13,10 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
-const S = { card:{ background:'#0d1a2d', border:'1px solid #1a2d45', borderRadius:12 } };
+const S = { card:{ background:'#ffffff', border:'1px solid #e8edf3', borderRadius:12 } };
 
 const TYPE_CONFIG = {
-  auto:       { color:'#3b82f6', icon:<CarOutlined /> },
+  auto:       { color:'#22c55e', icon:<CarOutlined /> },
   home:       { color:'#10b981', icon:<HomeOutlined /> },
   life:       { color:'#8b5cf6', icon:<HeartOutlined /> },
   health:     { color:'#ef4444', icon:<MedicineBoxOutlined /> },
@@ -87,14 +87,14 @@ export default function AdminProducts() {
     {
       title: 'Product',
       render: (_, r) => {
-        const cfg = TYPE_CONFIG[r.type] || { color:'#4f6272', icon:<SafetyOutlined /> };
+        const cfg = TYPE_CONFIG[r.type] || { color:'#9ca3af', icon:<SafetyOutlined /> };
         return (
           <div style={{ display:'flex', gap:12, alignItems:'center' }}>
             <div style={{ width:38, height:38, borderRadius:10, background:`${cfg.color}18`, border:`1px solid ${cfg.color}33`, display:'flex', alignItems:'center', justifyContent:'center', color:cfg.color, fontSize:17, flexShrink:0 }}>
               {cfg.icon}
             </div>
             <div>
-              <Text style={{ color:'#e2e8f0', fontWeight:600, fontSize:13 }}>{r.name}</Text>
+              <Text style={{ color:'#111827', fontWeight:600, fontSize:13 }}>{r.name}</Text>
               <div>
                 <Tag style={{ background:`${cfg.color}18`, color:cfg.color, border:`1px solid ${cfg.color}33`, fontSize:10, marginTop:2 }}>
                   {r.type?.toUpperCase()}
@@ -107,11 +107,11 @@ export default function AdminProducts() {
     },
     {
       title: 'Base Premium', width: 140,
-      render: (_, r) => <Text style={{ color:'#3b82f6', fontWeight:700 }}>${r.baseMonthlyPremium}/mo</Text>,
+      render: (_, r) => <Text style={{ color:'#22c55e', fontWeight:700 }}>${r.baseMonthlyPremium}/mo</Text>,
     },
     {
       title: 'Coverage Options', width: 140,
-      render: (_, r) => <Text style={{ color:'#8b9ab0', fontSize:12 }}>{r.coverageOptions?.length||0} options</Text>,
+      render: (_, r) => <Text style={{ color:'#6b7280', fontSize:12 }}>{r.coverageOptions?.length||0} options</Text>,
     },
     {
       title: 'Status', width: 100,
@@ -125,7 +125,7 @@ export default function AdminProducts() {
       title: 'Actions', width: 160,
       render: (_, r) => (
         <Space>
-          <Button size="small" icon={<EditOutlined />} style={{ background:'#122036', border:'1px solid #1a2d45', color:'#e2e8f0' }}
+          <Button size="small" icon={<EditOutlined />} style={{ background:'#f0f4f8', border:'1px solid #e8edf3', color:'#111827' }}
             onClick={() => openEdit(r)}>Edit</Button>
           <Popconfirm title={`${r.isActive ? 'Deactivate' : 'Activate'} this product?`} onConfirm={() => handleToggle(r)}>
             <Button size="small" danger={r.isActive} icon={<PoweroffOutlined />}
@@ -142,8 +142,8 @@ export default function AdminProducts() {
     <div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
         <div>
-          <Title level={4} style={{ color:'#e2e8f0', margin:0 }}>Insurance Products</Title>
-          <Text style={{ color:'#4f6272' }}>{products.length} products configured</Text>
+          <Title level={4} style={{ color:'#111827', margin:0 }}>Insurance Products</Title>
+          <Text style={{ color:'#9ca3af' }}>{products.length} products configured</Text>
         </div>
         <Button type="primary" icon={<PlusOutlined />} size="large" style={{ height:42, fontWeight:600 }} onClick={openCreate}>
           Add Product
@@ -152,16 +152,16 @@ export default function AdminProducts() {
 
       <Card style={S.card}>
         <Table dataSource={products} columns={columns} rowKey="_id" loading={loading}
-          pagination={false} style={{ background:'#0d1a2d' }} />
+          pagination={false} style={{ background:'#ffffff' }} />
       </Card>
 
       {/* Product modal */}
       <Modal
-        title={<Text style={{ color:'#e2e8f0', fontWeight:700 }}>{modal.editing ? 'Edit Product' : 'Create Product'}</Text>}
+        title={<Text style={{ color:'#111827', fontWeight:700 }}>{modal.editing ? 'Edit Product' : 'Create Product'}</Text>}
         open={modal.open} onCancel={() => setModal({ open:false, editing:null })}
         onOk={() => form.submit()} confirmLoading={saving}
         okText={modal.editing ? 'Save Changes' : 'Create Product'} width={720}
-        styles={{ content:{ background:'#0d1a2d' }, header:{ background:'#0d1a2d', borderBottom:'1px solid #1a2d45' }, footer:{ background:'#0d1a2d', borderTop:'1px solid #1a2d45' } }}
+        styles={{ content:{ background:'#ffffff' }, header:{ background:'#ffffff', borderBottom:'1px solid #e8edf3' }, footer:{ background:'#ffffff', borderTop:'1px solid #e8edf3' } }}
       >
         <Form form={form} onFinish={handleSave} layout="vertical" style={{ marginTop:16 }}>
           <Row gutter={12}>
@@ -196,14 +196,14 @@ export default function AdminProducts() {
             </Col>
           </Row>
 
-          <Divider style={{ borderColor:'#1a2d45', margin:'8px 0 16px' }}>
-            <Text style={{ color:'#4f6272', fontSize:12 }}>Coverage Options</Text>
+          <Divider style={{ borderColor:'#e8edf3', margin:'8px 0 16px' }}>
+            <Text style={{ color:'#9ca3af', fontSize:12 }}>Coverage Options</Text>
           </Divider>
 
           {coverageOptions.map((opt, i) => (
-            <div key={i} style={{ background:'#060e1a', border:'1px solid #1a2d45', borderRadius:10, padding:14, marginBottom:12 }}>
+            <div key={i} style={{ background:'#f8f9fc', border:'1px solid #e8edf3', borderRadius:10, padding:14, marginBottom:12 }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-                <Text style={{ color:'#4f6272', fontSize:12, fontWeight:600 }}>OPTION {i+1}</Text>
+                <Text style={{ color:'#9ca3af', fontSize:12, fontWeight:600 }}>OPTION {i+1}</Text>
                 <Button size="small" danger onClick={() => setOpts(prev => prev.filter((_,idx)=>idx!==i))}>Remove</Button>
               </div>
               <Row gutter={[8,8]}>
@@ -223,7 +223,7 @@ export default function AdminProducts() {
             </div>
           ))}
           <Button block onClick={() => setOpts(prev => [...prev, { name:'', description:'', basePrice:0, maxCoverage:null }])}
-            style={{ borderStyle:'dashed', borderColor:'#1a2d45', color:'#4f6272', background:'#060e1a' }}>
+            style={{ borderStyle:'dashed', borderColor:'#e8edf3', color:'#9ca3af', background:'#f8f9fc' }}>
             + Add Coverage Option
           </Button>
         </Form>

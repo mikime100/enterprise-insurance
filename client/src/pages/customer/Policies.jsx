@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import {
   Card, Tag, Typography, Space, Spin, Empty, Button, Modal,
   Descriptions, Timeline, Row, Col, Divider, Form, Input, message, Progress,
@@ -13,8 +13,8 @@ import dayjs from 'dayjs';
 const { Title, Text } = Typography;
 
 const S = {
-  card: { background:'#0d1a2d', border:'1px solid #1a2d45', borderRadius:12 },
-  inner: { background:'#060e1a', border:'1px solid #1a2d45', borderRadius:10 },
+  card: { background:'#ffffff', border:'1px solid #e8edf3', borderRadius:12 },
+  inner: { background:'#f8f9fc', border:'1px solid #e8edf3', borderRadius:10 },
 };
 
 const STATUS_CONFIG = {
@@ -22,12 +22,12 @@ const STATUS_CONFIG = {
   pending:         { color:'#f59e0b', label:'Pending' },
   suspended:       { color:'#f97316', label:'Suspended' },
   cancelled:       { color:'#ef4444', label:'Cancelled' },
-  expired:         { color:'#4f6272', label:'Expired' },
-  pending_renewal: { color:'#3b82f6', label:'Pending Renewal' },
+  expired:         { color:'#9ca3af', label:'Expired' },
+  pending_renewal: { color:'#22c55e', label:'Pending Renewal' },
 };
 
 function StatusTag({ status }) {
-  const cfg = STATUS_CONFIG[status] || { color:'#4f6272', label:status };
+  const cfg = STATUS_CONFIG[status] || { color:'#9ca3af', label:status };
   return (
     <Tag style={{ background:`${cfg.color}18`, color:cfg.color, border:`1px solid ${cfg.color}33`, fontSize:11, fontWeight:500 }}>
       {cfg.label}
@@ -79,8 +79,8 @@ export default function CustomerPolicies() {
     <div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24 }}>
         <div>
-          <Title level={4} style={{ color:'#e2e8f0', margin:0 }}>My Policies</Title>
-          <Text style={{ color:'#4f6272' }}>{policies.length} {policies.length===1?'policy':'policies'} in your portfolio</Text>
+          <Title level={4} style={{ color:'#111827', margin:0 }}>My Policies</Title>
+          <Text style={{ color:'#9ca3af' }}>{policies.length} {policies.length===1?'policy':'policies'} in your portfolio</Text>
         </div>
       </div>
 
@@ -88,19 +88,19 @@ export default function CustomerPolicies() {
       {policies.length > 0 && (
         <Row gutter={[14, 14]} style={{ marginBottom:24 }}>
           {[
-            { label:'Total Policies',    value:policies.length,                               color:'#3b82f6', icon:<SafetyOutlined /> },
+            { label:'Total Policies',    value:policies.length,                               color:'#22c55e', icon:<SafetyOutlined /> },
             { label:'Active',            value:active.length,                                 color:'#10b981', icon:<CheckCircleOutlined /> },
             { label:'Total Coverage',    value:`$${(totalCoverage/1000).toFixed(0)}K`,        color:'#8b5cf6', icon:<DollarOutlined /> },
             { label:'Monthly Premiums',  value:`$${active.reduce((s,p)=>s+(p.premium?.amount||0),0)}`, color:'#f59e0b', icon:<CreditCardOutlined /> },
           ].map(s => (
             <Col xs={12} sm={6} key={s.label}>
-              <div style={{ background:'#0d1a2d', border:'1px solid #1a2d45', borderRadius:12, padding:'16px 18px', display:'flex', gap:12, alignItems:'center' }}>
+              <div style={{ background:'#ffffff', border:'1px solid #e8edf3', borderRadius:12, padding:'16px 18px', display:'flex', gap:12, alignItems:'center' }}>
                 <div style={{ width:38, height:38, borderRadius:10, background:`${s.color}18`, border:`1px solid ${s.color}33`, display:'flex', alignItems:'center', justifyContent:'center', color:s.color, fontSize:16, flexShrink:0 }}>
                   {s.icon}
                 </div>
                 <div>
-                  <div style={{ color:'#4f6272', fontSize:11, textTransform:'uppercase', letterSpacing:'0.06em' }}>{s.label}</div>
-                  <div style={{ color:'#e2e8f0', fontSize:18, fontWeight:800 }}>{s.value}</div>
+                  <div style={{ color:'#9ca3af', fontSize:11, textTransform:'uppercase', letterSpacing:'0.06em' }}>{s.label}</div>
+                  <div style={{ color:'#111827', fontSize:18, fontWeight:800 }}>{s.value}</div>
                 </div>
               </div>
             </Col>
@@ -110,7 +110,7 @@ export default function CustomerPolicies() {
 
       {policies.length === 0 ? (
         <Card style={S.card}>
-          <Empty description={<Text style={{ color:'#4f6272' }}>No policies yet — get a quote to get started</Text>} image={Empty.PRESENTED_IMAGE_SIMPLE} />
+          <Empty description={<Text style={{ color:'#9ca3af' }}>No policies yet — get a quote to get started</Text>} image={Empty.PRESENTED_IMAGE_SIMPLE} />
         </Card>
       ) : (
         <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
@@ -120,17 +120,17 @@ export default function CustomerPolicies() {
             const pct       = Math.max(0, Math.min(100, Math.round((daysLeft / totalDays) * 100)));
             const expiring  = daysLeft > 0 && daysLeft < 60;
             return (
-              <Card key={p._id} style={{ ...S.card, borderColor: expiring ? '#f59e0b33' : '#1a2d45' }} styles={{ body:{ padding:22 } }}>
+              <Card key={p._id} style={{ ...S.card, borderColor: expiring ? '#f59e0b33' : '#e8edf3' }} styles={{ body:{ padding:22 } }}>
                 <Row align="middle" justify="space-between" gutter={[16,16]} wrap>
                   <Col flex="auto">
                     <div style={{ display:'flex', gap:14, alignItems:'center' }}>
-                      <div style={{ width:46, height:46, borderRadius:12, background:'#3b82f618', border:'1px solid #3b82f633', display:'flex', alignItems:'center', justifyContent:'center', color:'#3b82f6', fontSize:20, flexShrink:0 }}>
+                      <div style={{ width:46, height:46, borderRadius:12, background:'#22c55e18', border:'1px solid #22c55e33', display:'flex', alignItems:'center', justifyContent:'center', color:'#22c55e', fontSize:20, flexShrink:0 }}>
                         <SafetyOutlined />
                       </div>
                       <div>
-                        <Text style={{ color:'#e2e8f0', fontWeight:700, fontSize:15 }}>{p.product?.name}</Text>
+                        <Text style={{ color:'#111827', fontWeight:700, fontSize:15 }}>{p.product?.name}</Text>
                         <div style={{ display:'flex', gap:8, alignItems:'center', marginTop:4, flexWrap:'wrap' }}>
-                          <Text style={{ color:'#4f6272', fontSize:12, fontFamily:'monospace' }}>{p.policyNumber}</Text>
+                          <Text style={{ color:'#9ca3af', fontSize:12, fontFamily:'monospace' }}>{p.policyNumber}</Text>
                           <StatusTag status={p.status} />
                         </div>
                       </div>
@@ -140,18 +140,18 @@ export default function CustomerPolicies() {
                   <Col>
                     <Row gutter={[24, 8]}>
                       <Col style={{ textAlign:'center' }}>
-                        <div style={{ color:'#4f6272', fontSize:11, textTransform:'uppercase', letterSpacing:'0.05em' }}>Premium</div>
-                        <Text style={{ color:'#3b82f6', fontWeight:700, fontSize:16 }}>
-                          ${p.premium?.amount}<span style={{ color:'#4f6272', fontSize:11 }}>/{p.premium?.frequency?.slice(0,2)}</span>
+                        <div style={{ color:'#9ca3af', fontSize:11, textTransform:'uppercase', letterSpacing:'0.05em' }}>Premium</div>
+                        <Text style={{ color:'#22c55e', fontWeight:700, fontSize:16 }}>
+                          ${p.premium?.amount}<span style={{ color:'#9ca3af', fontSize:11 }}>/{p.premium?.frequency?.slice(0,2)}</span>
                         </Text>
                       </Col>
                       <Col style={{ textAlign:'center' }}>
-                        <div style={{ color:'#4f6272', fontSize:11, textTransform:'uppercase', letterSpacing:'0.05em' }}>Coverage</div>
-                        <Text style={{ color:'#e2e8f0', fontWeight:600 }}>${p.coverageDetails?.coverageAmount?.toLocaleString()}</Text>
+                        <div style={{ color:'#9ca3af', fontSize:11, textTransform:'uppercase', letterSpacing:'0.05em' }}>Coverage</div>
+                        <Text style={{ color:'#111827', fontWeight:600 }}>${p.coverageDetails?.coverageAmount?.toLocaleString()}</Text>
                       </Col>
                       <Col style={{ textAlign:'center' }}>
-                        <div style={{ color:'#4f6272', fontSize:11, textTransform:'uppercase', letterSpacing:'0.05em' }}>Expires</div>
-                        <Text style={{ color: expiring ? '#f59e0b' : '#e2e8f0', fontWeight:600, fontSize:13 }}>
+                        <div style={{ color:'#9ca3af', fontSize:11, textTransform:'uppercase', letterSpacing:'0.05em' }}>Expires</div>
+                        <Text style={{ color: expiring ? '#f59e0b' : '#111827', fontWeight:600, fontSize:13 }}>
                           {daysLeft > 0 ? `${daysLeft}d left` : 'Expired'}
                         </Text>
                       </Col>
@@ -160,7 +160,7 @@ export default function CustomerPolicies() {
 
                   <Col>
                     <Space>
-                      <Button size="small" icon={<EyeOutlined />} style={{ background:'#122036', border:'1px solid #1a2d45', color:'#e2e8f0' }}
+                      <Button size="small" icon={<EyeOutlined />} style={{ background:'#f0f4f8', border:'1px solid #e8edf3', color:'#111827' }}
                         onClick={() => openDetail(p)}>Details</Button>
                       {p.status === 'active' && (
                         <Button type="primary" size="small" icon={<CreditCardOutlined />}
@@ -172,21 +172,21 @@ export default function CustomerPolicies() {
 
                 <div style={{ marginTop:16 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
-                    <Text style={{ color:'#4f6272', fontSize:11 }}>Coverage period</Text>
-                    <Text style={{ color: expiring ? '#f59e0b' : '#4f6272', fontSize:11 }}>
+                    <Text style={{ color:'#9ca3af', fontSize:11 }}>Coverage period</Text>
+                    <Text style={{ color: expiring ? '#f59e0b' : '#9ca3af', fontSize:11 }}>
                       <ClockCircleOutlined style={{ marginRight:4 }} />
                       {dayjs(p.startDate).format('MMM D, YYYY')} → {dayjs(p.endDate).format('MMM D, YYYY')}
                     </Text>
                   </div>
                   <Progress percent={pct} size={['100%', 5]} showInfo={false}
-                    strokeColor={expiring ? '#f59e0b' : '#10b981'} trailColor="#1a2d45" />
+                    strokeColor={expiring ? '#f59e0b' : '#10b981'} trailColor="#e8edf3" />
                 </div>
 
                 {p.coverageDetails?.selectedOptions?.length > 0 && (
-                  <div style={{ marginTop:12, paddingTop:12, borderTop:'1px solid #1a2d45', display:'flex', gap:6, flexWrap:'wrap' }}>
-                    <Text style={{ color:'#4f6272', fontSize:12 }}>Add-ons:</Text>
+                  <div style={{ marginTop:12, paddingTop:12, borderTop:'1px solid #e8edf3', display:'flex', gap:6, flexWrap:'wrap' }}>
+                    <Text style={{ color:'#9ca3af', fontSize:12 }}>Add-ons:</Text>
                     {p.coverageDetails.selectedOptions.map(o => (
-                      <Tag key={o} style={{ background:'#3b82f618', color:'#8b9ab0', border:'1px solid #1a2d45', fontSize:11 }}>{o}</Tag>
+                      <Tag key={o} style={{ background:'#22c55e18', color:'#6b7280', border:'1px solid #e8edf3', fontSize:11 }}>{o}</Tag>
                     ))}
                   </div>
                 )}
@@ -198,15 +198,15 @@ export default function CustomerPolicies() {
 
       {/* Policy detail modal */}
       <Modal
-        title={<Text style={{ color:'#e2e8f0', fontWeight:700 }}>{selected?.product?.name} — Policy Details</Text>}
+        title={<Text style={{ color:'#111827', fontWeight:700 }}>{selected?.product?.name} — Policy Details</Text>}
         open={detailOpen} onCancel={() => setDetail(false)} footer={null} width={700}
-        styles={{ content:{ background:'#0d1a2d' }, header:{ background:'#0d1a2d', borderBottom:'1px solid #1a2d45' } }}
+        styles={{ content:{ background:'#ffffff' }, header:{ background:'#ffffff', borderBottom:'1px solid #e8edf3' } }}
       >
         {selected && (
           <>
-            <Descriptions column={2} size="small" labelStyle={{ color:'#4f6272', width:130 }} contentStyle={{ color:'#e2e8f0' }}>
+            <Descriptions column={2} size="small" labelStyle={{ color:'#9ca3af', width:130 }} contentStyle={{ color:'#111827' }}>
               <Descriptions.Item label="Policy Number" span={2}>
-                <Text style={{ fontFamily:'monospace', color:'#3b82f6' }}>{selected.policyNumber}</Text>
+                <Text style={{ fontFamily:'monospace', color:'#22c55e' }}>{selected.policyNumber}</Text>
               </Descriptions.Item>
               <Descriptions.Item label="Status"><StatusTag status={selected.status} /></Descriptions.Item>
               <Descriptions.Item label="Agent">{selected.agent ? `${selected.agent.firstName} ${selected.agent.lastName}` : '—'}</Descriptions.Item>
@@ -221,14 +221,14 @@ export default function CustomerPolicies() {
 
             {selected.paymentHistory?.length > 0 && (
               <>
-                <Divider style={{ borderColor:'#1a2d45', margin:'16px 0' }}>Payment History</Divider>
+                <Divider style={{ borderColor:'#e8edf3', margin:'16px 0' }}>Payment History</Divider>
                 <Timeline items={selected.paymentHistory.slice(-6).reverse().map(ph => ({
                   color: ph.status === 'completed' ? '#10b981' : '#ef4444',
                   children: (
                     <div>
-                      <Text style={{ color:'#e2e8f0', fontWeight:600 }}>${ph.amount}</Text>
-                      <span style={{ color:'#4f6272', fontSize:12, marginLeft:8 }}>{ph.method?.replace(/_/g,' ')}</span>
-                      <div style={{ color:'#4f6272', fontSize:11 }}>
+                      <Text style={{ color:'#111827', fontWeight:600 }}>${ph.amount}</Text>
+                      <span style={{ color:'#9ca3af', fontSize:12, marginLeft:8 }}>{ph.method?.replace(/_/g,' ')}</span>
+                      <div style={{ color:'#9ca3af', fontSize:11 }}>
                         {dayjs(ph.date).format('MMM D, YYYY')} · {ph.transactionId}
                       </div>
                     </div>
@@ -242,31 +242,31 @@ export default function CustomerPolicies() {
 
       {/* Payment modal */}
       <Modal
-        title={<Text style={{ color:'#e2e8f0', fontWeight:700 }}>Pay Premium</Text>}
+        title={<Text style={{ color:'#111827', fontWeight:700 }}>Pay Premium</Text>}
         open={payOpen} onCancel={() => setPay(false)} onOk={handlePayment}
         confirmLoading={paying} okText="Confirm Payment"
-        styles={{ content:{ background:'#0d1a2d' }, header:{ background:'#0d1a2d', borderBottom:'1px solid #1a2d45' }, footer:{ background:'#0d1a2d', borderTop:'1px solid #1a2d45' } }}
+        styles={{ content:{ background:'#ffffff' }, header:{ background:'#ffffff', borderBottom:'1px solid #e8edf3' }, footer:{ background:'#ffffff', borderTop:'1px solid #e8edf3' } }}
       >
-        <div style={{ background:'#060e1a', border:'1px solid #1a2d45', borderRadius:10, padding:'14px 18px', marginBottom:20 }}>
-          <Text style={{ color:'#4f6272', fontSize:13 }}>Amount due</Text>
-          <div style={{ color:'#3b82f6', fontSize:24, fontWeight:800, marginTop:2 }}>${selected?.premium?.amount}</div>
+        <div style={{ background:'#f8f9fc', border:'1px solid #e8edf3', borderRadius:10, padding:'14px 18px', marginBottom:20 }}>
+          <Text style={{ color:'#9ca3af', fontSize:13 }}>Amount due</Text>
+          <div style={{ color:'#22c55e', fontSize:24, fontWeight:800, marginTop:2 }}>${selected?.premium?.amount}</div>
         </div>
         <Alert message="Simulated payment — no real charges will be made." type="info" showIcon
           style={{ marginBottom:16, borderRadius:8, background:'#0a2040', border:'1px solid #1a3a60' }} />
         <Form form={payForm} layout="vertical">
           <Form.Item name="card" label="Card Number" rules={[{ required:true, len:16, message:'Enter 16 digits' }]}>
-            <Input prefix={<CreditCardOutlined style={{ color:'#4f6272' }} />} maxLength={16} placeholder="1234 5678 9012 3456"
-              style={{ background:'#060e1a', borderColor:'#1a2d45' }} />
+            <Input prefix={<CreditCardOutlined style={{ color:'#9ca3af' }} />} maxLength={16} placeholder="1234 5678 9012 3456"
+              style={{ background:'#f8f9fc', borderColor:'#e8edf3' }} />
           </Form.Item>
           <Row gutter={12}>
             <Col span={12}>
               <Form.Item name="exp" label="Expiry" rules={[{ required:true }]}>
-                <Input placeholder="MM/YY" maxLength={5} style={{ background:'#060e1a', borderColor:'#1a2d45' }} />
+                <Input placeholder="MM/YY" maxLength={5} style={{ background:'#f8f9fc', borderColor:'#e8edf3' }} />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item name="cvv" label="CVV" rules={[{ required:true }]}>
-                <Input.Password maxLength={4} placeholder="•••" style={{ background:'#060e1a', borderColor:'#1a2d45' }} />
+                <Input.Password maxLength={4} placeholder="•••" style={{ background:'#f8f9fc', borderColor:'#e8edf3' }} />
               </Form.Item>
             </Col>
           </Row>

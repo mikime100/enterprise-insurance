@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import {
   Card, Table, Typography, Tag, Space, Button, Select, Input, Modal,
   Form, Avatar, message, Popconfirm, Descriptions, Divider, Row, Col,
@@ -13,16 +13,16 @@ import dayjs from 'dayjs';
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-const S = { card:{ background:'#0d1a2d', border:'1px solid #1a2d45', borderRadius:12 } };
+const S = { card:{ background:'#ffffff', border:'1px solid #e8edf3', borderRadius:12 } };
 
 const ROLE_CONFIG = {
-  customer: { color:'#3b82f6', label:'Customer' },
+  customer: { color:'#22c55e', label:'Customer' },
   agent:    { color:'#8b5cf6', label:'Agent' },
   admin:    { color:'#ec4899', label:'Admin' },
 };
 
 function RoleBadge({ role }) {
-  const cfg = ROLE_CONFIG[role] || { color:'#4f6272', label:role };
+  const cfg = ROLE_CONFIG[role] || { color:'#9ca3af', label:role };
   return (
     <Tag style={{ background:`${cfg.color}18`, color:cfg.color, border:`1px solid ${cfg.color}33`, fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.05em' }}>
       {cfg.label}
@@ -95,12 +95,12 @@ export default function AdminUsers() {
       title: 'User', width: 240,
       render: (_, r) => (
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <Avatar size={36} style={{ background:`${ROLE_CONFIG[r.role]?.color || '#4f6272'}18`, color:ROLE_CONFIG[r.role]?.color || '#4f6272', fontWeight:700, fontSize:12, border:`1px solid ${ROLE_CONFIG[r.role]?.color || '#4f6272'}33`, flexShrink:0 }}>
+          <Avatar size={36} style={{ background:`${ROLE_CONFIG[r.role]?.color || '#9ca3af'}18`, color:ROLE_CONFIG[r.role]?.color || '#9ca3af', fontWeight:700, fontSize:12, border:`1px solid ${ROLE_CONFIG[r.role]?.color || '#9ca3af'}33`, flexShrink:0 }}>
             {r.firstName?.[0]}{r.lastName?.[0]}
           </Avatar>
           <div>
-            <Text style={{ color:'#e2e8f0', fontWeight:600, fontSize:13 }}>{r.firstName} {r.lastName}</Text>
-            <div style={{ color:'#4f6272', fontSize:11 }}>{r.email}</div>
+            <Text style={{ color:'#111827', fontWeight:600, fontSize:13 }}>{r.firstName} {r.lastName}</Text>
+            <div style={{ color:'#9ca3af', fontSize:11 }}>{r.email}</div>
           </div>
         </div>
       ),
@@ -111,13 +111,13 @@ export default function AdminUsers() {
     },
     {
       title: 'Phone', width: 130,
-      render: (_, r) => <Text style={{ color:'#8b9ab0', fontSize:12 }}>{r.phone || '—'}</Text>,
+      render: (_, r) => <Text style={{ color:'#6b7280', fontSize:12 }}>{r.phone || '—'}</Text>,
     },
     {
       title: 'Agent', width: 160,
       render: (_, r) => r.role === 'customer'
-        ? <Text style={{ color:'#8b9ab0', fontSize:12 }}>{r.assignedAgent ? `${r.assignedAgent.firstName} ${r.assignedAgent.lastName}` : 'Unassigned'}</Text>
-        : <Text style={{ color:'#1a2d45', fontSize:12 }}>—</Text>,
+        ? <Text style={{ color:'#6b7280', fontSize:12 }}>{r.assignedAgent ? `${r.assignedAgent.firstName} ${r.assignedAgent.lastName}` : 'Unassigned'}</Text>
+        : <Text style={{ color:'#e8edf3', fontSize:12 }}>—</Text>,
     },
     {
       title: 'Status', width: 100,
@@ -129,16 +129,16 @@ export default function AdminUsers() {
     },
     {
       title: 'Joined', width: 110,
-      render: (_, r) => <Text style={{ color:'#4f6272', fontSize:11 }}>{dayjs(r.createdAt).format('MMM D, YYYY')}</Text>,
+      render: (_, r) => <Text style={{ color:'#9ca3af', fontSize:11 }}>{dayjs(r.createdAt).format('MMM D, YYYY')}</Text>,
     },
     {
       title: 'Actions', width: 140,
       render: (_, r) => (
         <Space size={4}>
-          <Button size="small" icon={<EyeOutlined />} style={{ background:'#122036', border:'1px solid #1a2d45', color:'#e2e8f0' }}
+          <Button size="small" icon={<EyeOutlined />} style={{ background:'#f0f4f8', border:'1px solid #e8edf3', color:'#111827' }}
             onClick={() => { setSelected(r); setDetail(true); }} />
           {r.role === 'customer' && (
-            <Button size="small" icon={<SwapOutlined />} style={{ background:'#122036', border:'1px solid #1a2d45', color:'#8b9ab0' }}
+            <Button size="small" icon={<SwapOutlined />} style={{ background:'#f0f4f8', border:'1px solid #e8edf3', color:'#6b7280' }}
               onClick={() => { setSelected(r); setAssign(true); }}>
               Assign
             </Button>
@@ -156,8 +156,8 @@ export default function AdminUsers() {
     <div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
         <div>
-          <Title level={4} style={{ color:'#e2e8f0', margin:0 }}>User Management</Title>
-          <Text style={{ color:'#4f6272' }}>{total} total users across all roles</Text>
+          <Title level={4} style={{ color:'#111827', margin:0 }}>User Management</Title>
+          <Text style={{ color:'#9ca3af' }}>{total} total users across all roles</Text>
         </div>
         <Button type="primary" icon={<PlusOutlined />} size="large" style={{ height:42, fontWeight:600 }}
           onClick={() => { createForm.resetFields(); setCreate(true); }}>
@@ -168,10 +168,10 @@ export default function AdminUsers() {
       <Card style={S.card}>
         <Space style={{ marginBottom:16 }} wrap>
           <Input
-            prefix={<SearchOutlined style={{ color:'#4f6272' }} />}
+            prefix={<SearchOutlined style={{ color:'#9ca3af' }} />}
             placeholder="Search by name or email..."
             value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
-            style={{ width:280, background:'#060e1a', borderColor:'#1a2d45' }} allowClear
+            style={{ width:280, background:'#f8f9fc', borderColor:'#e8edf3' }} allowClear
           />
           <Select placeholder="All roles" allowClear value={roleFilter||undefined}
             onChange={v => { setRoleFilter(v||''); setPage(1); }} style={{ width:160 }}
@@ -182,22 +182,22 @@ export default function AdminUsers() {
         <Table
           dataSource={users} columns={columns} rowKey="_id" loading={loading}
           pagination={{ current:page, pageSize:15, total, onChange:setPage, showTotal:t=>`${t} users` }}
-          style={{ background:'#0d1a2d' }}
+          style={{ background:'#ffffff' }}
         />
       </Card>
 
       {/* Create user modal */}
       <Modal
-        title={<Text style={{ color:'#e2e8f0', fontWeight:700 }}>Create New User</Text>}
+        title={<Text style={{ color:'#111827', fontWeight:700 }}>Create New User</Text>}
         open={createModal} onCancel={() => setCreate(false)}
         onOk={() => createForm.submit()} confirmLoading={creating} okText="Create User"
-        styles={{ content:{ background:'#0d1a2d' }, header:{ background:'#0d1a2d', borderBottom:'1px solid #1a2d45' }, footer:{ background:'#0d1a2d', borderTop:'1px solid #1a2d45' } }}
+        styles={{ content:{ background:'#ffffff' }, header:{ background:'#ffffff', borderBottom:'1px solid #e8edf3' }, footer:{ background:'#ffffff', borderTop:'1px solid #e8edf3' } }}
       >
         <Form form={createForm} onFinish={handleCreate} layout="vertical" style={{ marginTop:16 }}>
           <Row gutter={12}>
             <Col span={12}>
               <Form.Item name="firstName" label="First Name" rules={[{ required:true }]}>
-                <Input prefix={<UserOutlined style={{ color:'#4f6272' }} />} />
+                <Input prefix={<UserOutlined style={{ color:'#9ca3af' }} />} />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -231,17 +231,17 @@ export default function AdminUsers() {
       <Modal
         title={
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <Avatar size={36} style={{ background:`${ROLE_CONFIG[selected?.role]?.color || '#4f6272'}18`, color:ROLE_CONFIG[selected?.role]?.color || '#4f6272', fontWeight:700 }}>
+            <Avatar size={36} style={{ background:`${ROLE_CONFIG[selected?.role]?.color || '#9ca3af'}18`, color:ROLE_CONFIG[selected?.role]?.color || '#9ca3af', fontWeight:700 }}>
               {selected?.firstName?.[0]}{selected?.lastName?.[0]}
             </Avatar>
-            <Text style={{ color:'#e2e8f0', fontWeight:700 }}>{selected?.firstName} {selected?.lastName}</Text>
+            <Text style={{ color:'#111827', fontWeight:700 }}>{selected?.firstName} {selected?.lastName}</Text>
           </div>
         }
         open={detailModal} onCancel={() => setDetail(false)} footer={null}
-        styles={{ content:{ background:'#0d1a2d' }, header:{ background:'#0d1a2d', borderBottom:'1px solid #1a2d45' } }}
+        styles={{ content:{ background:'#ffffff' }, header:{ background:'#ffffff', borderBottom:'1px solid #e8edf3' } }}
       >
         {selected && (
-          <Descriptions column={1} size="small" labelStyle={{ color:'#4f6272', width:140 }} contentStyle={{ color:'#e2e8f0' }} style={{ marginTop:8 }}>
+          <Descriptions column={1} size="small" labelStyle={{ color:'#9ca3af', width:140 }} contentStyle={{ color:'#111827' }} style={{ marginTop:8 }}>
             <Descriptions.Item label="Email">{selected.email}</Descriptions.Item>
             <Descriptions.Item label="Role"><RoleBadge role={selected.role} /></Descriptions.Item>
             <Descriptions.Item label="Phone">{selected.phone || '—'}</Descriptions.Item>
@@ -267,11 +267,11 @@ export default function AdminUsers() {
 
       {/* Assign agent modal */}
       <Modal
-        title={<Text style={{ color:'#e2e8f0', fontWeight:700 }}>Assign Agent — {selected?.firstName}</Text>}
+        title={<Text style={{ color:'#111827', fontWeight:700 }}>Assign Agent — {selected?.firstName}</Text>}
         open={assignModal} onCancel={() => setAssign(false)} footer={null}
-        styles={{ content:{ background:'#0d1a2d' }, header:{ background:'#0d1a2d', borderBottom:'1px solid #1a2d45' } }}
+        styles={{ content:{ background:'#ffffff' }, header:{ background:'#ffffff', borderBottom:'1px solid #e8edf3' } }}
       >
-        <Text style={{ color:'#4f6272', fontSize:13, display:'block', marginBottom:14 }}>
+        <Text style={{ color:'#9ca3af', fontSize:13, display:'block', marginBottom:14 }}>
           Select an agent to manage this customer:
         </Text>
         <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:12 }}>
@@ -279,8 +279,8 @@ export default function AdminUsers() {
             const isCurrentAgent = selected?.assignedAgent?._id === a._id;
             return (
               <div key={a._id} onClick={() => handleAssignAgent(a._id)} style={{
-                background: isCurrentAgent ? '#0a2040' : '#060e1a',
-                border:`1px solid ${isCurrentAgent ? '#3b82f6' : '#1a2d45'}`,
+                background: isCurrentAgent ? '#0a2040' : '#f8f9fc',
+                border:`1px solid ${isCurrentAgent ? '#22c55e' : '#e8edf3'}`,
                 borderRadius:10, padding:'12px 16px', cursor:'pointer',
                 display:'flex', justifyContent:'space-between', alignItems:'center',
                 transition:'all 0.15s',
@@ -290,8 +290,8 @@ export default function AdminUsers() {
                     {a.firstName?.[0]}{a.lastName?.[0]}
                   </Avatar>
                   <div>
-                    <Text style={{ color:'#e2e8f0', fontWeight:600, fontSize:13 }}>{a.firstName} {a.lastName}</Text>
-                    <div style={{ color:'#4f6272', fontSize:11 }}>{a.email}</div>
+                    <Text style={{ color:'#111827', fontWeight:600, fontSize:13 }}>{a.firstName} {a.lastName}</Text>
+                    <div style={{ color:'#9ca3af', fontSize:11 }}>{a.email}</div>
                   </div>
                 </div>
                 {isCurrentAgent && <Tag style={{ background:'#10b98118', color:'#10b981', border:'1px solid #10b98133', fontSize:11 }}>Current</Tag>}

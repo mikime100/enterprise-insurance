@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import {
   Card, Tag, Typography, Space, Spin, Empty, Button, Modal,
   Form, Input, InputNumber, Select, DatePicker, Descriptions,
@@ -15,15 +15,15 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
-const S = { card:{ background:'#0d1a2d', border:'1px solid #1a2d45', borderRadius:12 } };
+const S = { card:{ background:'#ffffff', border:'1px solid #e8edf3', borderRadius:12 } };
 
 const STATUS_COLORS = {
-  submitted:'#3b82f6', acknowledged:'#06b6d4', under_review:'#f59e0b',
+  submitted:'#22c55e', acknowledged:'#06b6d4', under_review:'#f59e0b',
   documentation_requested:'#8b5cf6', investigation:'#6366f1', assessment:'#eab308',
   approved:'#10b981', partially_approved:'#84cc16', denied:'#ef4444',
-  settled:'#10b981', closed:'#4f6272',
+  settled:'#10b981', closed:'#9ca3af',
 };
-const PRIORITY_COLORS = { low:'#4f6272', medium:'#3b82f6', high:'#f97316', urgent:'#ef4444' };
+const PRIORITY_COLORS = { low:'#9ca3af', medium:'#22c55e', high:'#f97316', urgent:'#ef4444' };
 
 const CLAIM_TYPES = {
   auto:       ['accident','theft','property_damage','liability','other'],
@@ -38,7 +38,7 @@ const CLAIM_TYPES = {
 };
 
 function StatusBadge({ status }) {
-  const c = STATUS_COLORS[status] || '#4f6272';
+  const c = STATUS_COLORS[status] || '#9ca3af';
   return (
     <Tag style={{ background:`${c}18`, color:c, border:`1px solid ${c}33`, fontSize:11, fontWeight:500 }}>
       {status?.replace(/_/g,' ').replace(/\b\w/g, l=>l.toUpperCase())}
@@ -47,7 +47,7 @@ function StatusBadge({ status }) {
 }
 
 function PriorityBadge({ priority }) {
-  const c = PRIORITY_COLORS[priority] || '#4f6272';
+  const c = PRIORITY_COLORS[priority] || '#9ca3af';
   return <Tag style={{ background:`${c}18`, color:c, border:`1px solid ${c}33`, fontSize:11 }}>{priority}</Tag>;
 }
 
@@ -105,8 +105,8 @@ export default function CustomerClaims() {
       {/* Header */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24 }}>
         <div>
-          <Title level={4} style={{ color:'#e2e8f0', margin:0 }}>My Claims</Title>
-          <Text style={{ color:'#4f6272' }}>{claims.length} total · {open.length} open · {closed.length} resolved</Text>
+          <Title level={4} style={{ color:'#111827', margin:0 }}>My Claims</Title>
+          <Text style={{ color:'#9ca3af' }}>{claims.length} total · {open.length} open · {closed.length} resolved</Text>
         </div>
         <Button type="primary" icon={<PlusOutlined />} size="large"
           onClick={() => { form.resetFields(); setNewModal(true); }}
@@ -123,8 +123,8 @@ export default function CustomerClaims() {
 
       {claims.length === 0 ? (
         <Card style={S.card} styles={{ body:{ padding:48, textAlign:'center' } }}>
-          <FileTextOutlined style={{ fontSize:48, color:'#1a2d45', display:'block', marginBottom:16 }} />
-          <Text style={{ color:'#4f6272', display:'block', fontSize:15, marginBottom:20 }}>No claims filed yet</Text>
+          <FileTextOutlined style={{ fontSize:48, color:'#e8edf3', display:'block', marginBottom:16 }} />
+          <Text style={{ color:'#9ca3af', display:'block', fontSize:15, marginBottom:20 }}>No claims filed yet</Text>
           <Button type="primary" icon={<PlusOutlined />} disabled={policies.length===0}
             onClick={() => { form.resetFields(); setNewModal(true); }}>
             File Your First Claim
@@ -133,10 +133,10 @@ export default function CustomerClaims() {
       ) : (
         <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
           {claims.map(c => {
-            const sc = STATUS_COLORS[c.status] || '#4f6272';
-            const pc = PRIORITY_COLORS[c.priority] || '#4f6272';
+            const sc = STATUS_COLORS[c.status] || '#9ca3af';
+            const pc = PRIORITY_COLORS[c.priority] || '#9ca3af';
             return (
-              <Card key={c._id} style={{ ...S.card, borderColor: ['submitted','under_review','documentation_requested'].includes(c.status) ? `${sc}33` : '#1a2d45' }}
+              <Card key={c._id} style={{ ...S.card, borderColor: ['submitted','under_review','documentation_requested'].includes(c.status) ? `${sc}33` : '#e8edf3' }}
                 styles={{ body:{ padding:18 } }}>
                 <Row align="middle" justify="space-between" gutter={[12,12]} wrap>
                   <Col flex="auto">
@@ -145,13 +145,13 @@ export default function CustomerClaims() {
                         <AlertOutlined style={{ color:sc, fontSize:18 }} />
                       </div>
                       <div>
-                        <Text style={{ color:'#e2e8f0', fontWeight:700, fontSize:14 }}>
+                        <Text style={{ color:'#111827', fontWeight:700, fontSize:14 }}>
                           {c.type?.replace(/_/g,' ').replace(/\b\w/g, l=>l.toUpperCase())}
                         </Text>
                         <div style={{ display:'flex', gap:8, alignItems:'center', marginTop:4, flexWrap:'wrap' }}>
-                          <Text style={{ color:'#4f6272', fontSize:11, fontFamily:'monospace' }}>{c.claimNumber}</Text>
-                          <Text style={{ color:'#4f6272', fontSize:11 }}>·</Text>
-                          <Text style={{ color:'#4f6272', fontSize:11 }}>
+                          <Text style={{ color:'#9ca3af', fontSize:11, fontFamily:'monospace' }}>{c.claimNumber}</Text>
+                          <Text style={{ color:'#9ca3af', fontSize:11 }}>·</Text>
+                          <Text style={{ color:'#9ca3af', fontSize:11 }}>
                             <ClockCircleOutlined style={{ marginRight:3 }} />
                             Incident: {dayjs(c.incidentDate).format('MMM D, YYYY')}
                           </Text>
@@ -163,12 +163,12 @@ export default function CustomerClaims() {
                   <Col>
                     <Space size={16} wrap>
                       <div style={{ textAlign:'right' }}>
-                        <div style={{ color:'#4f6272', fontSize:11 }}>Claimed</div>
+                        <div style={{ color:'#9ca3af', fontSize:11 }}>Claimed</div>
                         <Text style={{ color:'#f59e0b', fontWeight:700, fontSize:15 }}>${c.claimedAmount?.toLocaleString()}</Text>
                       </div>
                       {c.approvedAmount != null && (
                         <div style={{ textAlign:'right' }}>
-                          <div style={{ color:'#4f6272', fontSize:11 }}>Approved</div>
+                          <div style={{ color:'#9ca3af', fontSize:11 }}>Approved</div>
                           <Text style={{ color:'#10b981', fontWeight:700, fontSize:15 }}>${c.approvedAmount?.toLocaleString()}</Text>
                         </div>
                       )}
@@ -178,7 +178,7 @@ export default function CustomerClaims() {
                           <PriorityBadge priority={c.priority} />
                         </Space>
                         <Button size="small" icon={<EyeOutlined />} onClick={() => openDetail(c)}
-                          style={{ background:'#122036', border:'1px solid #1a2d45', color:'#e2e8f0' }}>
+                          style={{ background:'#f0f4f8', border:'1px solid #e8edf3', color:'#111827' }}>
                           View Details
                         </Button>
                       </Space>
@@ -193,10 +193,10 @@ export default function CustomerClaims() {
 
       {/* File claim modal */}
       <Modal
-        title={<Text style={{ color:'#e2e8f0', fontWeight:700 }}>File a New Claim</Text>}
+        title={<Text style={{ color:'#111827', fontWeight:700 }}>File a New Claim</Text>}
         open={newModal} onCancel={() => setNewModal(false)}
         onOk={() => form.submit()} confirmLoading={submitting} okText="Submit Claim" width={560}
-        styles={{ content:{ background:'#0d1a2d' }, header:{ background:'#0d1a2d', borderBottom:'1px solid #1a2d45' }, footer:{ background:'#0d1a2d', borderTop:'1px solid #1a2d45' } }}
+        styles={{ content:{ background:'#ffffff' }, header:{ background:'#ffffff', borderBottom:'1px solid #e8edf3' }, footer:{ background:'#ffffff', borderTop:'1px solid #e8edf3' } }}
       >
         <Form form={form} onFinish={handleSubmit} layout="vertical" style={{ marginTop:16 }}>
           <Form.Item name="policyId" label="Policy" rules={[{ required:true, message:'Select a policy' }]}>
@@ -244,13 +244,13 @@ export default function CustomerClaims() {
 
       {/* Claim detail modal */}
       <Modal
-        title={<Text style={{ color:'#e2e8f0', fontWeight:700 }}>Claim — {selected?.claimNumber}</Text>}
+        title={<Text style={{ color:'#111827', fontWeight:700 }}>Claim — {selected?.claimNumber}</Text>}
         open={detailModal} onCancel={() => setDetailModal(false)} footer={null} width={680}
-        styles={{ content:{ background:'#0d1a2d' }, header:{ background:'#0d1a2d', borderBottom:'1px solid #1a2d45' } }}
+        styles={{ content:{ background:'#ffffff' }, header:{ background:'#ffffff', borderBottom:'1px solid #e8edf3' } }}
       >
         {selected && (
           <>
-            <Descriptions column={2} size="small" labelStyle={{ color:'#4f6272', width:130 }} contentStyle={{ color:'#e2e8f0' }}>
+            <Descriptions column={2} size="small" labelStyle={{ color:'#9ca3af', width:130 }} contentStyle={{ color:'#111827' }}>
               <Descriptions.Item label="Status"><StatusBadge status={selected.status} /></Descriptions.Item>
               <Descriptions.Item label="Priority"><PriorityBadge priority={selected.priority} /></Descriptions.Item>
               <Descriptions.Item label="Type">{selected.type?.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())}</Descriptions.Item>
@@ -260,36 +260,36 @@ export default function CustomerClaims() {
               {selected.settlementAmount != null && <Descriptions.Item label="Settlement">${selected.settlementAmount?.toLocaleString()}</Descriptions.Item>}
             </Descriptions>
 
-            <Divider style={{ borderColor:'#1a2d45', margin:'16px 0' }}>Description</Divider>
-            <div style={{ background:'#060e1a', borderRadius:8, padding:14, border:'1px solid #1a2d45', marginBottom:4 }}>
-              <Text style={{ color:'#8b9ab0', fontSize:13, lineHeight:1.6 }}>{selected.description}</Text>
+            <Divider style={{ borderColor:'#e8edf3', margin:'16px 0' }}>Description</Divider>
+            <div style={{ background:'#f8f9fc', borderRadius:8, padding:14, border:'1px solid #e8edf3', marginBottom:4 }}>
+              <Text style={{ color:'#6b7280', fontSize:13, lineHeight:1.6 }}>{selected.description}</Text>
             </div>
 
             {selected.resolution && (
               <Alert message={selected.resolution} type="success" showIcon style={{ marginTop:12, borderRadius:8 }} />
             )}
 
-            <Divider style={{ borderColor:'#1a2d45', margin:'16px 0' }}>Status Timeline</Divider>
+            <Divider style={{ borderColor:'#e8edf3', margin:'16px 0' }}>Status Timeline</Divider>
             <Timeline items={[...(selected.statusHistory||[])].reverse().map(h => ({
-              color: STATUS_COLORS[h.status] || '#4f6272',
+              color: STATUS_COLORS[h.status] || '#9ca3af',
               children: (
                 <div>
-                  <Text style={{ color:'#e2e8f0', fontWeight:600, fontSize:13 }}>
+                  <Text style={{ color:'#111827', fontWeight:600, fontSize:13 }}>
                     {h.status?.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())}
                   </Text>
-                  {h.reason && <div style={{ color:'#4f6272', fontSize:12, marginTop:2 }}>{h.reason}</div>}
-                  <div style={{ color:'#2a4060', fontSize:11, marginTop:2 }}>{dayjs(h.timestamp).format('MMM D, YYYY h:mm A')}</div>
+                  {h.reason && <div style={{ color:'#9ca3af', fontSize:12, marginTop:2 }}>{h.reason}</div>}
+                  <div style={{ color:'#c7d3e3', fontSize:11, marginTop:2 }}>{dayjs(h.timestamp).format('MMM D, YYYY h:mm A')}</div>
                 </div>
               ),
             }))} />
 
             {selected.notes?.filter(n => !n.isInternal).length > 0 && (
               <>
-                <Divider style={{ borderColor:'#1a2d45', margin:'16px 0' }}>Agent Notes</Divider>
+                <Divider style={{ borderColor:'#e8edf3', margin:'16px 0' }}>Agent Notes</Divider>
                 {selected.notes.filter(n => !n.isInternal).map((note, i) => (
-                  <div key={i} style={{ background:'#060e1a', borderRadius:8, padding:'10px 14px', marginBottom:8, border:'1px solid #1a2d45' }}>
-                    <Text style={{ color:'#e2e8f0', fontSize:13 }}>{note.content}</Text>
-                    <div style={{ color:'#4f6272', fontSize:11, marginTop:4 }}>
+                  <div key={i} style={{ background:'#f8f9fc', borderRadius:8, padding:'10px 14px', marginBottom:8, border:'1px solid #e8edf3' }}>
+                    <Text style={{ color:'#111827', fontSize:13 }}>{note.content}</Text>
+                    <div style={{ color:'#9ca3af', fontSize:11, marginTop:4 }}>
                       {note.author?.firstName} {note.author?.lastName} · {dayjs(note.createdAt).format('MMM D, YYYY')}
                     </div>
                   </div>

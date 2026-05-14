@@ -37,9 +37,9 @@ const NAV = {
 };
 
 const ROLE_META = {
-  customer:  { label: 'Customer',      color: '#3b82f6', bg: 'rgba(59,130,246,0.15)'  },
-  agent:     { label: 'Agent',         color: '#8b5cf6', bg: 'rgba(139,92,246,0.15)'  },
-  admin:     { label: 'Administrator', color: '#ec4899', bg: 'rgba(236,72,153,0.15)'  },
+  customer:  { label: 'Customer',      color: '#3b82f6', bg: 'rgba(59,130,246,0.12)'  },
+  agent:     { label: 'Agent',         color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)'  },
+  admin:     { label: 'Administrator', color: '#ec4899', bg: 'rgba(236,72,153,0.12)'  },
 };
 
 export default function AppLayout() {
@@ -67,14 +67,14 @@ export default function AppLayout() {
   const siderWidth = 260;
 
   return (
-    <Layout style={{ minHeight: '100vh', background: '#09111e' }}>
+    <Layout style={{ minHeight: '100vh', background: '#f5f6fa' }}>
       {/* ─── Sidebar ─── */}
       <Sider
         collapsible collapsed={collapsed} trigger={null}
         width={siderWidth} collapsedWidth={72}
         style={{
-          background: '#060e1a',
-          borderRight: '1px solid #1a2d45',
+          background: '#111417',
+          borderRight: '1px solid #1e2730',
           position: 'fixed', left: 0, top: 0, bottom: 0,
           zIndex: 200, overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
@@ -83,43 +83,43 @@ export default function AppLayout() {
         {/* Logo */}
         <div style={{
           padding: collapsed ? '20px 0' : '20px 20px',
-          borderBottom: '1px solid #1a2d45',
+          borderBottom: '1px solid #1e2730',
           display: 'flex', alignItems: 'center',
           gap: 10, cursor: 'pointer', justifyContent: collapsed ? 'center' : 'flex-start',
           minHeight: 72,
         }} onClick={() => navigate('/')}>
           <div style={{
             width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 16px rgba(59,130,246,0.4)',
+            boxShadow: '0 4px 16px rgba(34,197,94,0.35)',
           }}>
             <SecurityScanOutlined style={{ color: '#fff', fontSize: 18 }} />
           </div>
           {!collapsed && (
             <div style={{ lineHeight: 1.2, overflow: 'hidden' }}>
-              <div style={{ color: '#e2e8f0', fontSize: 15, fontWeight: 700, whiteSpace: 'nowrap' }}>Enterprise</div>
-              <div style={{ color: '#3b82f6', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Insurance</div>
+              <div style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 700, whiteSpace: 'nowrap' }}>Enterprise</div>
+              <div style={{ color: '#22c55e', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Insurance</div>
             </div>
           )}
         </div>
 
         {/* User card */}
         {!collapsed ? (
-          <div style={{ padding: '14px 16px', borderBottom: '1px solid #1a2d45' }}>
+          <div style={{ padding: '14px 16px', borderBottom: '1px solid #1e2730' }}>
             <div style={{
-              background: 'rgba(255,255,255,0.04)', borderRadius: 10,
-              border: '1px solid #1a2d45', padding: '12px 14px',
+              background: 'rgba(255,255,255,0.05)', borderRadius: 10,
+              border: '1px solid #1e2730', padding: '12px 14px',
               display: 'flex', alignItems: 'center', gap: 10,
             }}>
               <Avatar size={38} style={{ background: meta.color, fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
                 {user?.firstName?.[0]}{user?.lastName?.[0]}
               </Avatar>
               <div style={{ overflow: 'hidden', flex: 1 }}>
-                <div style={{ color: '#e2e8f0', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {user?.firstName} {user?.lastName}
                 </div>
-                <div style={{ color: '#4f6272', fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ color: '#64748b', fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {user?.email}
                 </div>
                 <div style={{
@@ -127,7 +127,7 @@ export default function AppLayout() {
                   background: meta.bg, color: meta.color,
                   fontSize: 9, fontWeight: 700, letterSpacing: '0.08em',
                   textTransform: 'uppercase', padding: '2px 7px', borderRadius: 20,
-                  border: `1px solid ${meta.color}33`,
+                  border: `1px solid ${meta.color}44`,
                 }}>
                   {meta.label}
                 </div>
@@ -135,7 +135,7 @@ export default function AppLayout() {
             </div>
           </div>
         ) : (
-          <div style={{ padding: '12px 0', borderBottom: '1px solid #1a2d45', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ padding: '12px 0', borderBottom: '1px solid #1e2730', display: 'flex', justifyContent: 'center' }}>
             <Avatar size={36} style={{ background: meta.color, fontWeight: 700, fontSize: 13 }}>
               {user?.firstName?.[0]}{user?.lastName?.[0]}
             </Avatar>
@@ -145,7 +145,7 @@ export default function AppLayout() {
         {/* Navigation */}
         <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '8px 0' }}>
           {!collapsed && (
-            <div style={{ padding: '12px 20px 6px', color: '#2a4060', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <div style={{ padding: '12px 20px 6px', color: '#374151', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               Navigation
             </div>
           )}
@@ -159,7 +159,7 @@ export default function AppLayout() {
               icon: (
                 <span style={{
                   fontSize: 16,
-                  color: activeKey === item.key ? '#3b82f6' : '#4f6272',
+                  color: activeKey === item.key ? '#22c55e' : '#64748b',
                   transition: 'color 0.2s',
                 }}>
                   {item.icon}
@@ -167,7 +167,7 @@ export default function AppLayout() {
               ),
               label: (
                 <span style={{
-                  color: activeKey === item.key ? '#e2e8f0' : '#8b9ab0',
+                  color: activeKey === item.key ? '#ffffff' : '#94a3b8',
                   fontWeight: activeKey === item.key ? 600 : 400,
                   fontSize: 14,
                   transition: 'color 0.2s',
@@ -182,9 +182,9 @@ export default function AppLayout() {
                 lineHeight: '42px',
                 paddingLeft: collapsed ? undefined : 12,
                 background: activeKey === item.key
-                  ? 'linear-gradient(90deg, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0.05) 100%)'
+                  ? 'rgba(34,197,94,0.15)'
                   : 'transparent',
-                borderLeft: activeKey === item.key ? '2px solid #3b82f6' : '2px solid transparent',
+                borderLeft: activeKey === item.key ? '2px solid #22c55e' : '2px solid transparent',
                 transition: 'all 0.2s',
               },
             }))}
@@ -192,13 +192,13 @@ export default function AppLayout() {
         </div>
 
         {/* Bottom links */}
-        <div style={{ padding: '8px 8px 12px', borderTop: '1px solid #1a2d45' }}>
+        <div style={{ padding: '8px 8px 12px', borderTop: '1px solid #1e2730' }}>
           {!collapsed ? (
             <Space direction="vertical" style={{ width: '100%' }} size={2}>
               <div
-                style={{ padding: '8px 12px', borderRadius: 8, cursor: 'pointer', color: '#4f6272', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.color = '#8b9ab0'}
-                onMouseLeave={e => e.currentTarget.style.color = '#4f6272'}
+                style={{ padding: '8px 12px', borderRadius: 8, cursor: 'pointer', color: '#64748b', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'}
+                onMouseLeave={e => e.currentTarget.style.color = '#64748b'}
               >
                 <QuestionCircleOutlined /> Help & Support
               </div>
@@ -214,7 +214,7 @@ export default function AppLayout() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
               <Tooltip title="Help" placement="right">
-                <Button type="text" icon={<QuestionCircleOutlined />} style={{ color: '#4f6272' }} />
+                <Button type="text" icon={<QuestionCircleOutlined />} style={{ color: '#64748b' }} />
               </Tooltip>
               <Tooltip title="Sign Out" placement="right">
                 <Button type="text" icon={<LogoutOutlined />} style={{ color: '#ef444466' }}
@@ -226,41 +226,41 @@ export default function AppLayout() {
       </Sider>
 
       {/* ─── Main area ─── */}
-      <Layout style={{ marginLeft: collapsed ? 72 : siderWidth, transition: 'margin 0.2s ease', background: '#09111e' }}>
+      <Layout style={{ marginLeft: collapsed ? 72 : siderWidth, transition: 'margin 0.2s ease', background: '#f5f6fa' }}>
         {/* Header */}
         <Header style={{
-          background: '#0d1a2d', borderBottom: '1px solid #1a2d45',
+          background: '#ffffff', borderBottom: '1px solid #e8edf3',
           padding: '0 24px', height: 64,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           position: 'sticky', top: 0, zIndex: 100,
-          boxShadow: '0 2px 16px rgba(0,0,0,0.3)',
+          boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
         }}>
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed(!collapsed)}
-            style={{ color: '#4f6272', fontSize: 17, width: 40, height: 40 }}
+            style={{ color: '#6b7280', fontSize: 17, width: 40, height: 40 }}
           />
 
           <Space size={8}>
             <Tooltip title="Notifications">
               <Badge count={3} size="small" offset={[-2, 2]}>
-                <Button type="text" icon={<BellOutlined />} style={{ color: '#4f6272', fontSize: 17, width: 40, height: 40 }} />
+                <Button type="text" icon={<BellOutlined />} style={{ color: '#6b7280', fontSize: 17, width: 40, height: 40 }} />
               </Badge>
             </Tooltip>
 
-            <div style={{ width: 1, height: 24, background: '#1a2d45' }} />
+            <div style={{ width: 1, height: 24, background: '#e8edf3' }} />
 
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '4px 8px', borderRadius: 8, transition: 'background 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#122036'}
+                onMouseEnter={e => e.currentTarget.style.background = '#f0fdf4'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 <Avatar size={34} style={{ background: meta.color, fontWeight: 700, fontSize: 13 }}>
                   {user?.firstName?.[0]}{user?.lastName?.[0]}
                 </Avatar>
                 <div>
-                  <div style={{ color: '#e2e8f0', fontSize: 13, fontWeight: 600, lineHeight: 1.2 }}>
+                  <div style={{ color: '#111827', fontSize: 13, fontWeight: 600, lineHeight: 1.2 }}>
                     {user?.firstName} {user?.lastName}
                   </div>
                   <div style={{ color: meta.color, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
@@ -272,7 +272,7 @@ export default function AppLayout() {
           </Space>
         </Header>
 
-        <Content style={{ padding: '24px', minHeight: 'calc(100vh - 64px)', background: '#09111e' }}>
+        <Content style={{ padding: '24px', minHeight: 'calc(100vh - 64px)', background: '#f5f6fa' }}>
           <Outlet />
         </Content>
       </Layout>

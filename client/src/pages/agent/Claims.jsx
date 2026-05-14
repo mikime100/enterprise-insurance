@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import {
   Card, Table, Typography, Tag, Space, Button, Select, Modal,
   Descriptions, Timeline, Divider, Form, Input, InputNumber, message,
@@ -12,19 +12,19 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
-const S = { card: { background:'#0d1a2d', border:'1px solid #1a2d45', borderRadius:12 } };
+const S = { card: { background:'#ffffff', border:'1px solid #e8edf3', borderRadius:12 } };
 
 const STATUS_COLORS = {
-  submitted:'#3b82f6', acknowledged:'#06b6d4', under_review:'#f59e0b',
+  submitted:'#22c55e', acknowledged:'#06b6d4', under_review:'#f59e0b',
   documentation_requested:'#8b5cf6', investigation:'#6366f1', assessment:'#eab308',
   approved:'#10b981', partially_approved:'#84cc16', denied:'#ef4444',
-  settled:'#10b981', closed:'#4f6272',
+  settled:'#10b981', closed:'#9ca3af',
 };
 const PRIORITY_CONFIG = {
   urgent:{ color:'#ef4444', bg:'#ef444418' },
   high:  { color:'#f97316', bg:'#f9731618' },
-  medium:{ color:'#3b82f6', bg:'#3b82f618' },
-  low:   { color:'#4f6272', bg:'#4f627218' },
+  medium:{ color:'#22c55e', bg:'#22c55e18' },
+  low:   { color:'#9ca3af', bg:'#4f627218' },
 };
 
 const VALID_TRANSITIONS = {
@@ -42,7 +42,7 @@ const VALID_TRANSITIONS = {
 };
 
 function StatusBadge({ status }) {
-  const c = STATUS_COLORS[status] || '#4f6272';
+  const c = STATUS_COLORS[status] || '#9ca3af';
   return (
     <Tag style={{ background:`${c}18`, color:c, border:`1px solid ${c}33`, fontSize:11, fontWeight:500 }}>
       {status?.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())}
@@ -130,8 +130,8 @@ export default function AgentClaims() {
       title: 'Claim', width: 160,
       render: (_, r) => (
         <div>
-          <Text style={{ color:'#3b82f6', fontFamily:'monospace', fontSize:11 }}>{r.claimNumber}</Text>
-          <div style={{ color:'#4f6272', fontSize:11 }}>{dayjs(r.createdAt).format('MMM D, YYYY')}</div>
+          <Text style={{ color:'#22c55e', fontFamily:'monospace', fontSize:11 }}>{r.claimNumber}</Text>
+          <div style={{ color:'#9ca3af', fontSize:11 }}>{dayjs(r.createdAt).format('MMM D, YYYY')}</div>
         </div>
       ),
     },
@@ -139,19 +139,19 @@ export default function AgentClaims() {
       title: 'Customer',
       render: (_, r) => (
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <Avatar size={30} style={{ background:'#1a2d45', color:'#8b9ab0', fontSize:11, fontWeight:700, flexShrink:0 }}>
+          <Avatar size={30} style={{ background:'#e8edf3', color:'#6b7280', fontSize:11, fontWeight:700, flexShrink:0 }}>
             {r.customer?.firstName?.[0]}{r.customer?.lastName?.[0]}
           </Avatar>
           <div>
-            <Text style={{ color:'#e2e8f0', fontSize:13 }}>{r.customer?.firstName} {r.customer?.lastName}</Text>
-            <div style={{ color:'#4f6272', fontSize:11 }}>{r.policy?.policyNumber}</div>
+            <Text style={{ color:'#111827', fontSize:13 }}>{r.customer?.firstName} {r.customer?.lastName}</Text>
+            <div style={{ color:'#9ca3af', fontSize:11 }}>{r.policy?.policyNumber}</div>
           </div>
         </div>
       ),
     },
     {
       title: 'Type',
-      render: (_, r) => <Text style={{ color:'#8b9ab0', fontSize:12 }}>{r.type?.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())}</Text>,
+      render: (_, r) => <Text style={{ color:'#6b7280', fontSize:12 }}>{r.type?.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())}</Text>,
     },
     {
       title: 'Amount',
@@ -163,7 +163,7 @@ export default function AgentClaims() {
       title: 'Actions', width: 100,
       render: (_, r) => (
         <Button size="small" icon={<EyeOutlined />} onClick={() => openDetail(r)}
-          style={{ background:'#122036', border:'1px solid #1a2d45', color:'#e2e8f0' }}>
+          style={{ background:'#f0f4f8', border:'1px solid #e8edf3', color:'#111827' }}>
           Manage
         </Button>
       ),
@@ -172,7 +172,7 @@ export default function AgentClaims() {
 
   return (
     <div>
-      <Title level={4} style={{ color:'#e2e8f0', marginBottom:20 }}>Claims Management</Title>
+      <Title level={4} style={{ color:'#111827', marginBottom:20 }}>Claims Management</Title>
 
       <Card style={S.card}>
         <Space style={{ marginBottom:16 }} wrap>
@@ -189,16 +189,16 @@ export default function AgentClaims() {
         <Table
           dataSource={claims} columns={columns} rowKey="_id" loading={loading}
           pagination={{ pageSize:12, showTotal:t=>`${t} claims` }}
-          style={{ background:'#0d1a2d' }}
+          style={{ background:'#ffffff' }}
           rowStyle={(r) => ({ background: ['submitted','documentation_requested'].includes(r.status) ? '#1a200a' : undefined })}
         />
       </Card>
 
       {/* Detail Drawer */}
       <Drawer
-        title={<Text style={{ color:'#e2e8f0', fontWeight:700 }}>Claim — {selected?.claimNumber}</Text>}
+        title={<Text style={{ color:'#111827', fontWeight:700 }}>Claim — {selected?.claimNumber}</Text>}
         open={drawerOpen} onClose={() => setDrawer(false)} width={560}
-        styles={{ content:{ background:'#0d1a2d' }, header:{ background:'#0d1a2d', borderBottom:'1px solid #1a2d45' }, body:{ background:'#0d1a2d' } }}
+        styles={{ content:{ background:'#ffffff' }, header:{ background:'#ffffff', borderBottom:'1px solid #e8edf3' }, body:{ background:'#ffffff' } }}
         extra={
           <Space>
             {nextStatuses.length > 0 && (
@@ -208,7 +208,7 @@ export default function AgentClaims() {
               </Button>
             )}
             <Button icon={<MessageOutlined />} size="small"
-              style={{ background:'#122036', border:'1px solid #1a2d45', color:'#e2e8f0' }}
+              style={{ background:'#f0f4f8', border:'1px solid #e8edf3', color:'#111827' }}
               onClick={() => { noteForm.resetFields(); setNoteModal(true); }}>
               Add Note
             </Button>
@@ -217,7 +217,7 @@ export default function AgentClaims() {
       >
         {selected && (
           <>
-            <Descriptions column={1} size="small" labelStyle={{ color:'#4f6272', width:140 }} contentStyle={{ color:'#e2e8f0' }}>
+            <Descriptions column={1} size="small" labelStyle={{ color:'#9ca3af', width:140 }} contentStyle={{ color:'#111827' }}>
               <Descriptions.Item label="Customer">{selected.customer?.firstName} {selected.customer?.lastName}</Descriptions.Item>
               <Descriptions.Item label="Email">{selected.customer?.email}</Descriptions.Item>
               <Descriptions.Item label="Policy">{selected.policy?.policyNumber}</Descriptions.Item>
@@ -234,41 +234,41 @@ export default function AgentClaims() {
               </Descriptions.Item>
             </Descriptions>
 
-            <Divider style={{ borderColor:'#1a2d45', margin:'16px 0' }}>Description</Divider>
-            <div style={{ background:'#060e1a', borderRadius:8, padding:14, border:'1px solid #1a2d45' }}>
-              <Text style={{ color:'#8b9ab0', fontSize:13, lineHeight:1.6 }}>{selected.description}</Text>
+            <Divider style={{ borderColor:'#e8edf3', margin:'16px 0' }}>Description</Divider>
+            <div style={{ background:'#f8f9fc', borderRadius:8, padding:14, border:'1px solid #e8edf3' }}>
+              <Text style={{ color:'#6b7280', fontSize:13, lineHeight:1.6 }}>{selected.description}</Text>
             </div>
 
             {selected.resolution && (
               <Alert message={selected.resolution} type="success" style={{ marginTop:12, borderRadius:8 }} />
             )}
 
-            <Divider style={{ borderColor:'#1a2d45', margin:'16px 0' }}>Status Timeline</Divider>
+            <Divider style={{ borderColor:'#e8edf3', margin:'16px 0' }}>Status Timeline</Divider>
             <Timeline items={[...(selected.statusHistory||[])].reverse().map(h => ({
-              color: STATUS_COLORS[h.status]||'#4f6272',
+              color: STATUS_COLORS[h.status]||'#9ca3af',
               children: (
                 <div>
-                  <Text style={{ color:'#e2e8f0', fontWeight:600, fontSize:13 }}>
+                  <Text style={{ color:'#111827', fontWeight:600, fontSize:13 }}>
                     {h.status?.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())}
                   </Text>
-                  {h.reason && <div style={{ color:'#4f6272', fontSize:12, marginTop:2 }}>{h.reason}</div>}
-                  <div style={{ color:'#2a4060', fontSize:11, marginTop:2 }}>{dayjs(h.timestamp).format('MMM D, YYYY h:mm A')}</div>
+                  {h.reason && <div style={{ color:'#9ca3af', fontSize:12, marginTop:2 }}>{h.reason}</div>}
+                  <div style={{ color:'#c7d3e3', fontSize:11, marginTop:2 }}>{dayjs(h.timestamp).format('MMM D, YYYY h:mm A')}</div>
                 </div>
               ),
             }))} />
 
             {selected.notes?.length > 0 && (
               <>
-                <Divider style={{ borderColor:'#1a2d45', margin:'16px 0' }}>Notes</Divider>
+                <Divider style={{ borderColor:'#e8edf3', margin:'16px 0' }}>Notes</Divider>
                 {selected.notes.map((n,i) => (
                   <div key={i} style={{
-                    background: n.isInternal ? '#2a1060' : '#060e1a',
-                    border:`1px solid ${n.isInternal ? '#6d28d933' : '#1a2d45'}`,
+                    background: n.isInternal ? '#2a1060' : '#f8f9fc',
+                    border:`1px solid ${n.isInternal ? '#6d28d933' : '#e8edf3'}`,
                     borderRadius:8, padding:'10px 14px', marginBottom:8,
                   }}>
                     {n.isInternal && <Tag style={{ fontSize:10, marginBottom:6, background:'#6d28d918', color:'#8b5cf6', border:'1px solid #8b5cf633' }}>Internal Note</Tag>}
-                    <Text style={{ color:'#e2e8f0', fontSize:13, display:'block' }}>{n.content}</Text>
-                    <Text style={{ color:'#2a4060', fontSize:11, marginTop:4 }}>
+                    <Text style={{ color:'#111827', fontSize:13, display:'block' }}>{n.content}</Text>
+                    <Text style={{ color:'#c7d3e3', fontSize:11, marginTop:4 }}>
                       {n.author?.firstName} {n.author?.lastName} · {dayjs(n.createdAt).format('MMM D, YYYY')}
                     </Text>
                   </div>
@@ -281,10 +281,10 @@ export default function AgentClaims() {
 
       {/* Status update modal */}
       <Modal
-        title={<Text style={{ color:'#e2e8f0' }}>Update Claim Status</Text>}
+        title={<Text style={{ color:'#111827' }}>Update Claim Status</Text>}
         open={statusModal} onCancel={() => setStatModal(false)}
         onOk={() => statusForm.submit()} confirmLoading={updating} okText="Update Status"
-        styles={{ content:{ background:'#0d1a2d' }, header:{ background:'#0d1a2d', borderBottom:'1px solid #1a2d45' }, footer:{ background:'#0d1a2d', borderTop:'1px solid #1a2d45' } }}
+        styles={{ content:{ background:'#ffffff' }, header:{ background:'#ffffff', borderBottom:'1px solid #e8edf3' }, footer:{ background:'#ffffff', borderTop:'1px solid #e8edf3' } }}
       >
         <Form form={statusForm} onFinish={handleStatusUpdate} layout="vertical" style={{ marginTop:16 }}>
           <Form.Item name="status" label="New Status" rules={[{ required:true }]}>
@@ -319,10 +319,10 @@ export default function AgentClaims() {
 
       {/* Note modal */}
       <Modal
-        title={<Text style={{ color:'#e2e8f0' }}>Add Note to Claim</Text>}
+        title={<Text style={{ color:'#111827' }}>Add Note to Claim</Text>}
         open={noteModal} onCancel={() => setNoteModal(false)}
         onOk={() => noteForm.submit()} confirmLoading={updating} okText="Add Note"
-        styles={{ content:{ background:'#0d1a2d' }, header:{ background:'#0d1a2d', borderBottom:'1px solid #1a2d45' }, footer:{ background:'#0d1a2d', borderTop:'1px solid #1a2d45' } }}
+        styles={{ content:{ background:'#ffffff' }, header:{ background:'#ffffff', borderBottom:'1px solid #e8edf3' }, footer:{ background:'#ffffff', borderTop:'1px solid #e8edf3' } }}
       >
         <Form form={noteForm} onFinish={handleAddNote} layout="vertical" style={{ marginTop:16 }}>
           <Form.Item name="content" label="Note Content" rules={[{ required:true, min:5 }]}>

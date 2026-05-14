@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import {
   Card, Steps, Select, Form, Input, InputNumber, Button, Typography,
   Tag, Space, Row, Col, Modal, Divider, Alert, Spin, message, Radio, Checkbox,
@@ -14,14 +14,14 @@ import dayjs from 'dayjs';
 const { Title, Text } = Typography;
 
 const S = {
-  card: { background:'#0d1a2d', border:'1px solid #1a2d45', borderRadius:12 },
-  inner: { background:'#060e1a', border:'1px solid #1a2d45', borderRadius:10 },
+  card: { background:'#ffffff', border:'1px solid #e8edf3', borderRadius:12 },
+  inner: { background:'#f8f9fc', border:'1px solid #e8edf3', borderRadius:10 },
 };
 
-const TT = { contentStyle:{ background:'#122036', border:'1px solid #1a2d45', borderRadius:8 }, labelStyle:{ color:'#e2e8f0' }, itemStyle:{ color:'#8b9ab0' } };
+const TT = { contentStyle:{ background:'#f0f4f8', border:'1px solid #e8edf3', borderRadius:8 }, labelStyle:{ color:'#111827' }, itemStyle:{ color:'#6b7280' } };
 
 const PRODUCT_ICONS = {
-  auto:      { icon:<CarOutlined />,          color:'#3b82f6' },
+  auto:      { icon:<CarOutlined />,          color:'#22c55e' },
   home:      { icon:<HomeOutlined />,         color:'#10b981' },
   life:      { icon:<HeartOutlined />,        color:'#8b5cf6' },
   health:    { icon:<MedicineBoxOutlined />,  color:'#ef4444' },
@@ -33,7 +33,7 @@ const PRODUCT_ICONS = {
 };
 
 const STATUS_COLORS = {
-  pending:'#3b82f6', reviewed:'#06b6d4', accepted:'#10b981', rejected:'#ef4444', expired:'#4f6272',
+  pending:'#22c55e', reviewed:'#06b6d4', accepted:'#10b981', rejected:'#ef4444', expired:'#9ca3af',
 };
 
 const FREQ_OPTIONS = [
@@ -114,15 +114,15 @@ export default function CustomerQuotes() {
 
   return (
     <div>
-      <Title level={4} style={{ color:'#e2e8f0', marginBottom:4 }}>Insurance Quotes</Title>
-      <Text style={{ color:'#4f6272', display:'block', marginBottom:28 }}>
+      <Title level={4} style={{ color:'#111827', marginBottom:4 }}>Insurance Quotes</Title>
+      <Text style={{ color:'#9ca3af', display:'block', marginBottom:28 }}>
         Compare coverage options and get instant pricing tailored to your needs.
       </Text>
 
       {/* Step indicator */}
-      <div style={{ background:'#0d1a2d', border:'1px solid #1a2d45', borderRadius:12, padding:'20px 28px', marginBottom:28 }}>
+      <div style={{ background:'#ffffff', border:'1px solid #e8edf3', borderRadius:12, padding:'20px 28px', marginBottom:28 }}>
         <Steps current={step} size="small"
-          items={['Select Product','Configure Coverage','Review & Confirm','Complete'].map(t => ({ title:<Text style={{ color:'#8b9ab0', fontSize:12 }}>{t}</Text> }))}
+          items={['Select Product','Configure Coverage','Review & Confirm','Complete'].map(t => ({ title:<Text style={{ color:'#6b7280', fontSize:12 }}>{t}</Text> }))}
         />
       </div>
 
@@ -130,12 +130,12 @@ export default function CustomerQuotes() {
       {step === 0 && (
         <>
           <div style={{ marginBottom:20 }}>
-            <Title level={5} style={{ color:'#e2e8f0', margin:0 }}>Choose an Insurance Product</Title>
-            <Text style={{ color:'#4f6272', fontSize:13 }}>{products.length} products available</Text>
+            <Title level={5} style={{ color:'#111827', margin:0 }}>Choose an Insurance Product</Title>
+            <Text style={{ color:'#9ca3af', fontSize:13 }}>{products.length} products available</Text>
           </div>
           <Row gutter={[16, 16]}>
             {products.map(p => {
-              const cfg = PRODUCT_ICONS[p.type] || { icon:<SafetyOutlined />, color:'#3b82f6' };
+              const cfg = PRODUCT_ICONS[p.type] || { icon:<SafetyOutlined />, color:'#22c55e' };
               return (
                 <Col xs={24} sm={12} lg={8} key={p._id}>
                   <Card hoverable onClick={() => selectProduct(p)} className="ei-card-hover"
@@ -145,11 +145,11 @@ export default function CustomerQuotes() {
                         {cfg.icon}
                       </div>
                       <div style={{ flex:1 }}>
-                        <Text style={{ color:'#e2e8f0', fontWeight:700, display:'block', fontSize:14 }}>{p.name}</Text>
-                        <Text style={{ color:'#4f6272', fontSize:12, lineHeight:1.5 }}>{p.description?.slice(0,70)}...</Text>
+                        <Text style={{ color:'#111827', fontWeight:700, display:'block', fontSize:14 }}>{p.name}</Text>
+                        <Text style={{ color:'#9ca3af', fontSize:12, lineHeight:1.5 }}>{p.description?.slice(0,70)}...</Text>
                         <div style={{ marginTop:10, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                           <Text style={{ color:cfg.color, fontWeight:700, fontSize:16 }}>
-                            From ${p.baseMonthlyPremium}<span style={{ color:'#4f6272', fontSize:11 }}>/mo</span>
+                            From ${p.baseMonthlyPremium}<span style={{ color:'#9ca3af', fontSize:11 }}>/mo</span>
                           </Text>
                           <Tag style={{ background:`${cfg.color}18`, color:cfg.color, border:`1px solid ${cfg.color}33`, fontSize:10 }}>
                             {p.type?.toUpperCase()}
@@ -169,12 +169,12 @@ export default function CustomerQuotes() {
       {step === 1 && selectedProduct && (
         <Row gutter={[20, 20]}>
           <Col xs={24} lg={16}>
-            <Card style={S.card} styles={{ header:{ borderBottom:'1px solid #1a2d45' } }}
-              title={<Text style={{ color:'#e2e8f0', fontWeight:700 }}>{selectedProduct.name} — Coverage Options</Text>}>
+            <Card style={S.card} styles={{ header:{ borderBottom:'1px solid #e8edf3' } }}
+              title={<Text style={{ color:'#111827', fontWeight:700 }}>{selectedProduct.name} — Coverage Options</Text>}>
               <Alert message={selectedProduct.description} type="info" showIcon
                 style={{ marginBottom:20, borderRadius:8, background:'#0a2040', border:'1px solid #1a3a60' }} />
 
-              <Text style={{ color:'#8b9ab0', fontSize:13, fontWeight:600, display:'block', marginBottom:12 }}>
+              <Text style={{ color:'#6b7280', fontSize:13, fontWeight:600, display:'block', marginBottom:12 }}>
                 ADD-ON COVERAGE
               </Text>
               <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:24 }}>
@@ -182,24 +182,24 @@ export default function CustomerQuotes() {
                   const active = selectedOptions.includes(opt.name);
                   return (
                     <div key={opt.name} onClick={() => toggleOption(opt.name)} style={{
-                      background: active ? '#0a2040' : '#060e1a',
-                      border:`1px solid ${active ? '#3b82f6' : '#1a2d45'}`,
+                      background: active ? '#0a2040' : '#f8f9fc',
+                      border:`1px solid ${active ? '#22c55e' : '#e8edf3'}`,
                       borderRadius:10, padding:'14px 18px', cursor:'pointer',
                       display:'flex', justifyContent:'space-between', alignItems:'center',
                       transition:'all 0.15s',
                     }}>
                       <div style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
-                        <div style={{ marginTop:2, width:18, height:18, borderRadius:4, border:`2px solid ${active ? '#3b82f6' : '#1a2d45'}`, background: active ? '#3b82f6' : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.15s' }}>
+                        <div style={{ marginTop:2, width:18, height:18, borderRadius:4, border:`2px solid ${active ? '#22c55e' : '#e8edf3'}`, background: active ? '#22c55e' : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.15s' }}>
                           {active && <CheckCircleOutlined style={{ color:'#fff', fontSize:11 }} />}
                         </div>
                         <div>
-                          <Text style={{ color:'#e2e8f0', fontWeight:600, fontSize:13 }}>{opt.name}</Text>
-                          <div style={{ color:'#4f6272', fontSize:12, marginTop:2 }}>
+                          <Text style={{ color:'#111827', fontWeight:600, fontSize:13 }}>{opt.name}</Text>
+                          <div style={{ color:'#9ca3af', fontSize:12, marginTop:2 }}>
                             {opt.description}{opt.maxCoverage && ` · Up to $${opt.maxCoverage.toLocaleString()}`}
                           </div>
                         </div>
                       </div>
-                      <Text style={{ color:'#3b82f6', fontWeight:700, fontSize:14, whiteSpace:'nowrap', marginLeft:16 }}>
+                      <Text style={{ color:'#22c55e', fontWeight:700, fontSize:14, whiteSpace:'nowrap', marginLeft:16 }}>
                         +${opt.basePrice}/mo
                       </Text>
                     </div>
@@ -207,18 +207,18 @@ export default function CustomerQuotes() {
                 })}
               </div>
 
-              <Text style={{ color:'#8b9ab0', fontSize:13, fontWeight:600, display:'block', marginBottom:12 }}>
+              <Text style={{ color:'#6b7280', fontSize:13, fontWeight:600, display:'block', marginBottom:12 }}>
                 PAYMENT FREQUENCY
               </Text>
               <Row gutter={[10, 10]}>
                 {FREQ_OPTIONS.map(f => (
                   <Col key={f.val} xs={12} sm={6}>
                     <div onClick={() => setFrequency(f.val)} style={{
-                      background: frequency === f.val ? '#0a2040' : '#060e1a',
-                      border:`1px solid ${frequency === f.val ? '#3b82f6' : '#1a2d45'}`,
+                      background: frequency === f.val ? '#0a2040' : '#f8f9fc',
+                      border:`1px solid ${frequency === f.val ? '#22c55e' : '#e8edf3'}`,
                       borderRadius:10, padding:'12px 14px', cursor:'pointer', textAlign:'center', transition:'all 0.15s',
                     }}>
-                      <Text style={{ color: frequency === f.val ? '#3b82f6' : '#e2e8f0', fontWeight:600, display:'block', fontSize:13 }}>{f.label}</Text>
+                      <Text style={{ color: frequency === f.val ? '#22c55e' : '#111827', fontWeight:600, display:'block', fontSize:13 }}>{f.label}</Text>
                       {f.disc && <Tag style={{ background:'#10b98118', color:'#10b981', border:'1px solid #10b98133', fontSize:10, marginTop:4 }}>{f.disc}</Tag>}
                     </div>
                   </Col>
@@ -229,19 +229,19 @@ export default function CustomerQuotes() {
 
           <Col xs={24} lg={8}>
             <div style={{ position:'sticky', top:80 }}>
-              <Card style={S.card} styles={{ header:{ borderBottom:'1px solid #1a2d45' } }}
-                title={<Text style={{ color:'#e2e8f0', fontWeight:700 }}>Quote Summary</Text>}>
+              <Card style={S.card} styles={{ header:{ borderBottom:'1px solid #e8edf3' } }}
+                title={<Text style={{ color:'#111827', fontWeight:700 }}>Quote Summary</Text>}>
                 <div style={{ marginBottom:16 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', marginBottom:10 }}>
-                    <Text style={{ color:'#4f6272', fontSize:13 }}>Base premium</Text>
-                    <Text style={{ color:'#e2e8f0', fontSize:13 }}>${selectedProduct.baseMonthlyPremium}/mo</Text>
+                    <Text style={{ color:'#9ca3af', fontSize:13 }}>Base premium</Text>
+                    <Text style={{ color:'#111827', fontSize:13 }}>${selectedProduct.baseMonthlyPremium}/mo</Text>
                   </div>
                   {selectedOptions.map(name => {
                     const o = selectedProduct.coverageOptions.find(x => x.name === name);
                     return o ? (
                       <div key={name} style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
-                        <Text style={{ color:'#4f6272', fontSize:12 }}>+ {name}</Text>
-                        <Text style={{ color:'#8b9ab0', fontSize:12 }}>+${o.basePrice}/mo</Text>
+                        <Text style={{ color:'#9ca3af', fontSize:12 }}>+ {name}</Text>
+                        <Text style={{ color:'#6b7280', fontSize:12 }}>+${o.basePrice}/mo</Text>
                       </div>
                     ) : null;
                   })}
@@ -252,18 +252,18 @@ export default function CustomerQuotes() {
                     </div>
                   )}
                 </div>
-                <Divider style={{ borderColor:'#1a2d45', margin:'12px 0' }} />
+                <Divider style={{ borderColor:'#e8edf3', margin:'12px 0' }} />
                 <div style={{ textAlign:'center', padding:'12px 0' }}>
-                  <Text style={{ color:'#4f6272', fontSize:12, display:'block', marginBottom:4 }}>
+                  <Text style={{ color:'#9ca3af', fontSize:12, display:'block', marginBottom:4 }}>
                     {frequency} premium
                   </Text>
-                  <Text style={{ color:'#3b82f6', fontSize:32, fontWeight:800 }}>${premium}</Text>
+                  <Text style={{ color:'#22c55e', fontSize:32, fontWeight:800 }}>${premium}</Text>
                 </div>
                 <Space direction="vertical" style={{ width:'100%', gap:8 }}>
                   <Button type="primary" block icon={<ArrowRightOutlined />} onClick={() => setStep(2)}>
                     Review Quote
                   </Button>
-                  <Button block icon={<ArrowLeftOutlined />} style={{ background:'#060e1a', border:'1px solid #1a2d45', color:'#8b9ab0' }}
+                  <Button block icon={<ArrowLeftOutlined />} style={{ background:'#f8f9fc', border:'1px solid #e8edf3', color:'#6b7280' }}
                     onClick={() => { setProduct(null); setStep(0); }}>
                     Back to Products
                   </Button>
@@ -278,39 +278,39 @@ export default function CustomerQuotes() {
       {step === 2 && selectedProduct && (
         <Row gutter={[20, 20]}>
           <Col xs={24} lg={16}>
-            <Card style={S.card} styles={{ header:{ borderBottom:'1px solid #1a2d45' } }}
-              title={<Text style={{ color:'#e2e8f0', fontWeight:700 }}>Review Your Quote</Text>}>
+            <Card style={S.card} styles={{ header:{ borderBottom:'1px solid #e8edf3' } }}
+              title={<Text style={{ color:'#111827', fontWeight:700 }}>Review Your Quote</Text>}>
               <Row gutter={[16, 20]}>
                 {[
                   { label:'Product', value:selectedProduct.name },
-                  { label:'Type', value:<Tag style={{ background:'#3b82f618', color:'#3b82f6', border:'1px solid #3b82f633' }}>{selectedProduct.type?.toUpperCase()}</Tag> },
+                  { label:'Type', value:<Tag style={{ background:'#22c55e18', color:'#22c55e', border:'1px solid #22c55e33' }}>{selectedProduct.type?.toUpperCase()}</Tag> },
                   { label:'Payment Frequency', value:<span style={{ textTransform:'capitalize' }}>{frequency}</span> },
                   { label:'Valid Until', value:dayjs().add(30,'days').format('MMMM D, YYYY') },
                 ].map(item => (
                   <Col key={item.label} xs={12}>
-                    <div style={{ background:'#060e1a', borderRadius:10, padding:'14px 16px', border:'1px solid #1a2d45' }}>
-                      <Text style={{ color:'#4f6272', fontSize:11, display:'block', marginBottom:4, textTransform:'uppercase', letterSpacing:'0.06em' }}>{item.label}</Text>
-                      <Text style={{ color:'#e2e8f0', fontWeight:600, fontSize:14 }}>{item.value}</Text>
+                    <div style={{ background:'#f8f9fc', borderRadius:10, padding:'14px 16px', border:'1px solid #e8edf3' }}>
+                      <Text style={{ color:'#9ca3af', fontSize:11, display:'block', marginBottom:4, textTransform:'uppercase', letterSpacing:'0.06em' }}>{item.label}</Text>
+                      <Text style={{ color:'#111827', fontWeight:600, fontSize:14 }}>{item.value}</Text>
                     </div>
                   </Col>
                 ))}
                 <Col xs={24}>
-                  <div style={{ background:'#060e1a', borderRadius:10, padding:'14px 16px', border:'1px solid #1a2d45' }}>
-                    <Text style={{ color:'#4f6272', fontSize:11, display:'block', marginBottom:8, textTransform:'uppercase', letterSpacing:'0.06em' }}>Coverage Add-ons</Text>
+                  <div style={{ background:'#f8f9fc', borderRadius:10, padding:'14px 16px', border:'1px solid #e8edf3' }}>
+                    <Text style={{ color:'#9ca3af', fontSize:11, display:'block', marginBottom:8, textTransform:'uppercase', letterSpacing:'0.06em' }}>Coverage Add-ons</Text>
                     {selectedOptions.length > 0
-                      ? <Space wrap>{selectedOptions.map(o => <Tag key={o} style={{ background:'#3b82f618', color:'#3b82f6', border:'1px solid #3b82f633' }}><CheckCircleOutlined style={{ marginRight:4 }} />{o}</Tag>)}</Space>
-                      : <Text style={{ color:'#4f6272', fontSize:13 }}>Base coverage only — no add-ons selected</Text>
+                      ? <Space wrap>{selectedOptions.map(o => <Tag key={o} style={{ background:'#22c55e18', color:'#22c55e', border:'1px solid #22c55e33' }}><CheckCircleOutlined style={{ marginRight:4 }} />{o}</Tag>)}</Space>
+                      : <Text style={{ color:'#9ca3af', fontSize:13 }}>Base coverage only — no add-ons selected</Text>
                     }
                   </div>
                 </Col>
               </Row>
 
-              <Divider style={{ borderColor:'#1a2d45', margin:'20px 0' }}>Included Features</Divider>
+              <Divider style={{ borderColor:'#e8edf3', margin:'20px 0' }}>Included Features</Divider>
               <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                 {selectedProduct.features?.map(f => (
-                  <div key={f} style={{ display:'flex', alignItems:'center', gap:6, background:'#060e1a', border:'1px solid #1a2d45', borderRadius:8, padding:'6px 12px' }}>
+                  <div key={f} style={{ display:'flex', alignItems:'center', gap:6, background:'#f8f9fc', border:'1px solid #e8edf3', borderRadius:8, padding:'6px 12px' }}>
                     <CheckCircleOutlined style={{ color:'#10b981', fontSize:12 }} />
-                    <Text style={{ color:'#8b9ab0', fontSize:12 }}>{f}</Text>
+                    <Text style={{ color:'#6b7280', fontSize:12 }}>{f}</Text>
                   </div>
                 ))}
               </div>
@@ -319,18 +319,18 @@ export default function CustomerQuotes() {
 
           <Col xs={24} lg={8}>
             <div style={{ position:'sticky', top:80 }}>
-              <Card style={S.card} styles={{ header:{ borderBottom:'1px solid #1a2d45' } }}
-                title={<Text style={{ color:'#e2e8f0', fontWeight:700 }}>Final Price</Text>}>
+              <Card style={S.card} styles={{ header:{ borderBottom:'1px solid #e8edf3' } }}
+                title={<Text style={{ color:'#111827', fontWeight:700 }}>Final Price</Text>}>
                 <div style={{ textAlign:'center', padding:'20px 0' }}>
-                  <Text style={{ color:'#4f6272', fontSize:13, display:'block', marginBottom:4 }}>{frequency} premium</Text>
-                  <Text style={{ color:'#3b82f6', fontSize:36, fontWeight:800 }}>${premium}</Text>
-                  <Text style={{ color:'#4f6272', fontSize:12, display:'block', marginTop:8 }}>Quote valid for 30 days</Text>
+                  <Text style={{ color:'#9ca3af', fontSize:13, display:'block', marginBottom:4 }}>{frequency} premium</Text>
+                  <Text style={{ color:'#22c55e', fontSize:36, fontWeight:800 }}>${premium}</Text>
+                  <Text style={{ color:'#9ca3af', fontSize:12, display:'block', marginTop:8 }}>Quote valid for 30 days</Text>
                 </div>
                 <Space direction="vertical" style={{ width:'100%', gap:8 }}>
                   <Button type="primary" block loading={submitting} onClick={handleSubmitQuote} icon={<CheckCircleOutlined />}>
                     Save This Quote
                   </Button>
-                  <Button block icon={<ArrowLeftOutlined />} style={{ background:'#060e1a', border:'1px solid #1a2d45', color:'#8b9ab0' }}
+                  <Button block icon={<ArrowLeftOutlined />} style={{ background:'#f8f9fc', border:'1px solid #e8edf3', color:'#6b7280' }}
                     onClick={() => setStep(1)}>
                     Edit Coverage
                   </Button>
@@ -347,8 +347,8 @@ export default function CustomerQuotes() {
           <div style={{ width:80, height:80, borderRadius:'50%', background:'#10b98118', border:'2px solid #10b98133', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px' }}>
             <CheckCircleOutlined style={{ fontSize:40, color:'#10b981' }} />
           </div>
-          <Title level={4} style={{ color:'#e2e8f0', marginBottom:8 }}>Quote Saved Successfully!</Title>
-          <Text style={{ color:'#4f6272', display:'block', marginBottom:24, fontSize:14, lineHeight:1.7 }}>
+          <Title level={4} style={{ color:'#111827', marginBottom:8 }}>Quote Saved Successfully!</Title>
+          <Text style={{ color:'#9ca3af', display:'block', marginBottom:24, fontSize:14, lineHeight:1.7 }}>
             Your quote is valid for 30 days. Review it below and click Purchase when ready to activate your policy.
           </Text>
           <Button type="primary" size="large" onClick={() => { setStep(0); setProduct(null); setOptions([]); }}>
@@ -360,35 +360,35 @@ export default function CustomerQuotes() {
       {/* Existing quotes */}
       {quotes.length > 0 && (
         <Card style={{ ...S.card, marginTop:32 }}
-          styles={{ header:{ borderBottom:'1px solid #1a2d45' } }}
+          styles={{ header:{ borderBottom:'1px solid #e8edf3' } }}
           title={
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <Text style={{ color:'#e2e8f0', fontWeight:700 }}>My Quotes</Text>
-              <Tag style={{ background:'#3b82f618', color:'#3b82f6', border:'1px solid #3b82f633' }}>{quotes.length} quotes</Tag>
+              <Text style={{ color:'#111827', fontWeight:700 }}>My Quotes</Text>
+              <Tag style={{ background:'#22c55e18', color:'#22c55e', border:'1px solid #22c55e33' }}>{quotes.length} quotes</Tag>
             </div>
           }>
           <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
             {quotes.map(q => {
-              const sc = STATUS_COLORS[q.status] || '#4f6272';
+              const sc = STATUS_COLORS[q.status] || '#9ca3af';
               return (
                 <div key={q._id} style={{
-                  background:'#060e1a', borderRadius:10, padding:'16px 20px',
-                  border:`1px solid ${q.status === 'pending' || q.status === 'reviewed' ? '#1a2d4566' : '#1a2d45'}`,
+                  background:'#f8f9fc', borderRadius:10, padding:'16px 20px',
+                  border:`1px solid ${q.status === 'pending' || q.status === 'reviewed' ? '#e8edf366' : '#e8edf3'}`,
                   display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12,
                 }}>
                   <div style={{ display:'flex', gap:14, alignItems:'center' }}>
-                    <div style={{ width:40, height:40, borderRadius:10, background:`${PRODUCT_ICONS[q.product?.type]?.color || '#3b82f6'}18`, display:'flex', alignItems:'center', justifyContent:'center', color:PRODUCT_ICONS[q.product?.type]?.color || '#3b82f6', fontSize:18 }}>
+                    <div style={{ width:40, height:40, borderRadius:10, background:`${PRODUCT_ICONS[q.product?.type]?.color || '#22c55e'}18`, display:'flex', alignItems:'center', justifyContent:'center', color:PRODUCT_ICONS[q.product?.type]?.color || '#22c55e', fontSize:18 }}>
                       {PRODUCT_ICONS[q.product?.type]?.icon || <SafetyOutlined />}
                     </div>
                     <div>
-                      <Text style={{ color:'#e2e8f0', fontWeight:600, fontSize:14 }}>{q.product?.name}</Text>
-                      <div style={{ color:'#4f6272', fontSize:12, marginTop:2 }}>
+                      <Text style={{ color:'#111827', fontWeight:600, fontSize:14 }}>{q.product?.name}</Text>
+                      <div style={{ color:'#9ca3af', fontSize:12, marginTop:2 }}>
                         Valid until {dayjs(q.validUntil).format('MMM D, YYYY')} · {q.frequency}
                       </div>
                     </div>
                   </div>
                   <Space>
-                    <Text style={{ color:'#3b82f6', fontWeight:700, fontSize:16 }}>${q.calculatedPremium}<span style={{ color:'#4f6272', fontSize:11 }}>/mo</span></Text>
+                    <Text style={{ color:'#22c55e', fontWeight:700, fontSize:16 }}>${q.calculatedPremium}<span style={{ color:'#9ca3af', fontSize:11 }}>/mo</span></Text>
                     <Tag style={{ background:`${sc}18`, color:sc, border:`1px solid ${sc}33`, fontSize:11 }}>{q.status}</Tag>
                     {(q.status === 'pending' || q.status === 'reviewed') && (
                       <Button type="primary" size="small" icon={<CreditCardOutlined />}
@@ -406,35 +406,35 @@ export default function CustomerQuotes() {
 
       {/* Payment modal */}
       <Modal
-        title={<Text style={{ color:'#e2e8f0', fontWeight:700 }}>Complete Purchase</Text>}
+        title={<Text style={{ color:'#111827', fontWeight:700 }}>Complete Purchase</Text>}
         open={payModal.open}
         onCancel={() => setPayModal({ open:false, quoteId:null })}
         onOk={confirmPurchase}
         confirmLoading={purchasing}
         okText="Pay & Activate Policy"
-        styles={{ content:{ background:'#0d1a2d' }, header:{ background:'#0d1a2d', borderBottom:'1px solid #1a2d45' }, footer:{ background:'#0d1a2d', borderTop:'1px solid #1a2d45' } }}
+        styles={{ content:{ background:'#ffffff' }, header:{ background:'#ffffff', borderBottom:'1px solid #e8edf3' }, footer:{ background:'#ffffff', borderTop:'1px solid #e8edf3' } }}
       >
         <Alert message="Simulated payment — no real charges will be made." type="info" showIcon
           style={{ marginBottom:20, borderRadius:8, background:'#0a2040', border:'1px solid #1a3a60' }} />
         <Form form={payForm} layout="vertical" style={{ marginTop:4 }}>
           <Form.Item name="cardNumber" label="Card Number" rules={[{ required:true },{ len:16, message:'Enter 16 digits' }]}>
-            <Input prefix={<CreditCardOutlined style={{ color:'#4f6272' }} />} maxLength={16} placeholder="1234 5678 9012 3456"
-              style={{ background:'#060e1a', borderColor:'#1a2d45' }} />
+            <Input prefix={<CreditCardOutlined style={{ color:'#9ca3af' }} />} maxLength={16} placeholder="1234 5678 9012 3456"
+              style={{ background:'#f8f9fc', borderColor:'#e8edf3' }} />
           </Form.Item>
           <Row gutter={12}>
             <Col span={12}>
               <Form.Item name="expiry" label="Expiry" rules={[{ required:true }]}>
-                <Input placeholder="MM/YY" maxLength={5} style={{ background:'#060e1a', borderColor:'#1a2d45' }} />
+                <Input placeholder="MM/YY" maxLength={5} style={{ background:'#f8f9fc', borderColor:'#e8edf3' }} />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item name="cvv" label="CVV" rules={[{ required:true }]}>
-                <Input.Password maxLength={4} placeholder="•••" style={{ background:'#060e1a', borderColor:'#1a2d45' }} />
+                <Input.Password maxLength={4} placeholder="•••" style={{ background:'#f8f9fc', borderColor:'#e8edf3' }} />
               </Form.Item>
             </Col>
           </Row>
           <Form.Item name="name" label="Cardholder Name" rules={[{ required:true }]}>
-            <Input placeholder="John Doe" style={{ background:'#060e1a', borderColor:'#1a2d45' }} />
+            <Input placeholder="John Doe" style={{ background:'#f8f9fc', borderColor:'#e8edf3' }} />
           </Form.Item>
         </Form>
       </Modal>
