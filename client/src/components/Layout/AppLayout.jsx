@@ -5,8 +5,7 @@ import {
   DashboardOutlined, FileTextOutlined, SafetyOutlined, AlertOutlined,
   UserOutlined, TeamOutlined, BarChartOutlined, LogoutOutlined,
   MenuFoldOutlined, MenuUnfoldOutlined, ShopOutlined, BellOutlined,
-  QuestionCircleOutlined, SecurityScanOutlined, SettingOutlined,
-  CaretUpOutlined,
+  QuestionCircleOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -82,24 +81,21 @@ export default function AppLayout() {
       >
         {/* Logo */}
         <div style={{
-          padding: collapsed ? '20px 0' : '20px 20px',
+          padding: collapsed ? '14px 0' : '14px 16px',
           borderBottom: '1px solid #1e2730',
           display: 'flex', alignItems: 'center',
           gap: 10, cursor: 'pointer', justifyContent: collapsed ? 'center' : 'flex-start',
           minHeight: 72,
         }} onClick={() => navigate('/')}>
-          <div style={{
-            width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-            background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 16px rgba(34,197,94,0.35)',
-          }}>
-            <SecurityScanOutlined style={{ color: '#fff', fontSize: 18 }} />
-          </div>
+          <img
+            src="/logo.png"
+            alt="Nile Insurance"
+            style={{ height: collapsed ? 40 : 38, width: 'auto', objectFit: 'contain', flexShrink: 0 }}
+          />
           {!collapsed && (
             <div style={{ lineHeight: 1.2, overflow: 'hidden' }}>
-              <div style={{ color: '#f1f5f9', fontSize: 15, fontWeight: 700, whiteSpace: 'nowrap' }}>Enterprise</div>
-              <div style={{ color: '#22c55e', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Insurance</div>
+              <div style={{ color: '#f1f5f9', fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap' }}>Nile Insurance</div>
+              <div style={{ color: '#60a5fa', fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Management Platform</div>
             </div>
           )}
         </div>
@@ -159,7 +155,7 @@ export default function AppLayout() {
               icon: (
                 <span style={{
                   fontSize: 16,
-                  color: activeKey === item.key ? '#22c55e' : '#64748b',
+                  color: activeKey === item.key ? '#60a5fa' : '#64748b',
                   transition: 'color 0.2s',
                 }}>
                   {item.icon}
@@ -182,9 +178,9 @@ export default function AppLayout() {
                 lineHeight: '42px',
                 paddingLeft: collapsed ? undefined : 12,
                 background: activeKey === item.key
-                  ? 'rgba(34,197,94,0.15)'
+                  ? 'rgba(29,78,216,0.18)'
                   : 'transparent',
-                borderLeft: activeKey === item.key ? '2px solid #22c55e' : '2px solid transparent',
+                borderLeft: activeKey === item.key ? '2px solid #60a5fa' : '2px solid transparent',
                 transition: 'all 0.2s',
               },
             }))}
@@ -253,7 +249,7 @@ export default function AppLayout() {
 
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '4px 8px', borderRadius: 8, transition: 'background 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#f0fdf4'}
+                onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 <Avatar size={34} style={{ background: meta.color, fontWeight: 700, fontSize: 13 }}>

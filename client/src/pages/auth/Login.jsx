@@ -1,21 +1,21 @@
 import { useState } from 'react';
-import { Form, Input, Button, Typography, Alert, Divider, Space } from 'antd';
-import { LockOutlined, MailOutlined, SecurityScanOutlined, SafetyOutlined, FileTextOutlined, AlertOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Typography, Alert, Divider } from 'antd';
+import { LockOutlined, MailOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
 const DEMOS = [
   { role: 'Admin',    email: 'admin@insurance.com',       password: 'Admin@123',    color: '#ec4899', desc: 'Full system access' },
   { role: 'Agent',    email: 'sarah.agent@insurance.com', password: 'Agent@123',    color: '#8b5cf6', desc: 'Agent portal' },
-  { role: 'Customer', email: 'michael@customer.com',      password: 'Customer@123', color: '#22c55e', desc: 'Customer portal' },
+  { role: 'Customer', email: 'michael@customer.com',      password: 'Customer@123', color: '#1d4ed8', desc: 'Customer portal' },
 ];
 
 const FEATURES = [
-  { icon: <SafetyOutlined />,   title: 'Smart Policy Management', desc: 'Manage all your insurance policies in one unified dashboard.' },
-  { icon: <AlertOutlined />,    title: 'Real-Time Claims',        desc: 'File and track claims with live status updates and workflow.' },
-  { icon: <FileTextOutlined />, title: 'Instant Quotes',          desc: 'Compare coverage options and get instant pricing in minutes.' },
+  { title: 'Smart Policy Management', desc: 'Manage all your insurance policies in one unified dashboard.' },
+  { title: 'Real-Time Claims',        desc: 'File and track claims with live status updates and workflow.' },
+  { title: 'Instant Quotes',          desc: 'Compare coverage options and get instant pricing in minutes.' },
 ];
 
 export default function Login() {
@@ -38,69 +38,57 @@ export default function Login() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', background: '#ffffff' }}>
 
-      {/* ── Left panel ── */}
+      {/* ── Left panel — navy matching logo oval ── */}
       <div style={{
         flex: 1, display: 'none', flexDirection: 'column', justifyContent: 'center',
         padding: '60px 64px', position: 'relative', overflow: 'hidden',
-        background: 'linear-gradient(135deg, #0d3320 0%, #14532d 50%, #166534 100%)',
-        borderRight: '1px solid #166534',
+        background: 'linear-gradient(160deg, #0a1628 0%, #0d2040 50%, #1a3465 100%)',
+        borderRight: '1px solid #1e3a6e',
       }}
         className="login-left-panel"
       >
-        {/* Grid overlay */}
+        {/* Subtle grid */}
         <div style={{
-          position: 'absolute', inset: 0, opacity: 0.06,
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
+          position: 'absolute', inset: 0, opacity: 0.05,
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)',
           backgroundSize: '40px 40px',
         }} />
 
         {/* Glow orbs */}
-        <div style={{ position:'absolute', width:400, height:400, borderRadius:'50%', background:'radial-gradient(circle, rgba(34,197,94,0.25) 0%, transparent 70%)', top:-100, right:-100, pointerEvents:'none' }} />
-        <div style={{ position:'absolute', width:300, height:300, borderRadius:'50%', background:'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)', bottom:-50, left:-50, pointerEvents:'none' }} />
+        <div style={{ position:'absolute', width:400, height:400, borderRadius:'50%', background:'radial-gradient(circle, rgba(29,78,216,0.3) 0%, transparent 70%)', top:-100, right:-100, pointerEvents:'none' }} />
+        <div style={{ position:'absolute', width:300, height:300, borderRadius:'50%', background:'radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%)', bottom:-50, left:-50, pointerEvents:'none' }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
           {/* Logo */}
-          <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:56 }}>
-            <div style={{
-              width:52, height:52, borderRadius:14,
-              background:'rgba(255,255,255,0.15)',
-              display:'flex', alignItems:'center', justifyContent:'center',
-              boxShadow:'0 8px 32px rgba(0,0,0,0.2)',
-              border: '1px solid rgba(255,255,255,0.2)',
-            }}>
-              <SecurityScanOutlined style={{ color:'#fff', fontSize:26 }} />
-            </div>
+          <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:56 }}>
+            <img src="/logo.png" alt="Nile Insurance" style={{ height: 60, width: 'auto', objectFit: 'contain' }} />
             <div>
-              <div style={{ color:'#ffffff', fontSize:20, fontWeight:800, lineHeight:1.1 }}>Enterprise</div>
-              <div style={{ color:'rgba(255,255,255,0.7)', fontSize:12, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase' }}>Insurance Platform</div>
+              <div style={{ color:'#ffffff', fontSize:20, fontWeight:800, lineHeight:1.1 }}>Nile Insurance</div>
+              <div style={{ color:'rgba(255,255,255,0.6)', fontSize:12, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase' }}>Management Platform</div>
             </div>
           </div>
 
           <Title level={2} style={{ color:'#ffffff', fontWeight:800, lineHeight:1.2, marginBottom:12, fontSize:32 }}>
             The Modern Way to<br/>
-            <span style={{ color:'rgba(255,255,255,0.8)' }}>
+            <span style={{ color:'#93c5fd' }}>
               Manage Insurance
             </span>
           </Title>
-          <Paragraph style={{ color:'rgba(255,255,255,0.65)', fontSize:15, marginBottom:48, lineHeight:1.7 }}>
+          <Text style={{ color:'rgba(255,255,255,0.6)', fontSize:15, display:'block', marginBottom:48, lineHeight:1.7 }}>
             Streamline policies, claims, and customer relationships in one powerful enterprise platform.
-          </Paragraph>
+          </Text>
 
           {/* Features */}
-          <div style={{ display:'flex', flexDirection:'column', gap:24 }}>
+          <div style={{ display:'flex', flexDirection:'column', gap:22 }}>
             {FEATURES.map((f, i) => (
-              <div key={i} style={{ display:'flex', gap:16, alignItems:'flex-start' }}>
+              <div key={i} style={{ display:'flex', gap:14, alignItems:'flex-start' }}>
                 <div style={{
-                  width:40, height:40, borderRadius:10, flexShrink:0,
-                  background:'rgba(255,255,255,0.15)', border:'1px solid rgba(255,255,255,0.2)',
-                  display:'flex', alignItems:'center', justifyContent:'center',
-                  color:'#ffffff', fontSize:17,
-                }}>
-                  {f.icon}
-                </div>
+                  width:8, height:8, borderRadius:'50%', flexShrink:0, marginTop:6,
+                  background:'#60a5fa',
+                }} />
                 <div>
                   <div style={{ color:'#ffffff', fontWeight:600, fontSize:14, marginBottom:3 }}>{f.title}</div>
-                  <div style={{ color:'rgba(255,255,255,0.6)', fontSize:13, lineHeight:1.5 }}>{f.desc}</div>
+                  <div style={{ color:'rgba(255,255,255,0.55)', fontSize:13, lineHeight:1.5 }}>{f.desc}</div>
                 </div>
               </div>
             ))}
@@ -116,12 +104,10 @@ export default function Login() {
       }}>
         {/* Mobile logo */}
         <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:22 }}>
-          <div style={{ width:36, height:36, borderRadius:10, background:'linear-gradient(135deg, #22c55e, #16a34a)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 4px 14px rgba(34,197,94,0.3)' }}>
-            <SecurityScanOutlined style={{ color:'#fff', fontSize:18 }} />
-          </div>
+          <img src="/logo.png" alt="Nile Insurance" style={{ height: 40, width: 'auto', objectFit: 'contain' }} />
           <div>
-            <div style={{ color:'#111827', fontSize:14, fontWeight:700 }}>Enterprise Insurance</div>
-            <div style={{ color:'#6b7280', fontSize:11 }}>Platform</div>
+            <div style={{ color:'#111827', fontSize:14, fontWeight:700 }}>Nile Insurance</div>
+            <div style={{ color:'#6b7280', fontSize:11 }}>Management Platform</div>
           </div>
         </div>
 
@@ -143,8 +129,8 @@ export default function Login() {
           </Form.Item>
           <Button type="primary" htmlType="submit" loading={loading} block style={{
             height:44, fontWeight:700, fontSize:14, borderRadius:10, marginTop:2,
-            background:'linear-gradient(135deg, #22c55e, #16a34a)',
-            border:'none', boxShadow:'0 4px 14px rgba(34,197,94,0.3)',
+            background:'linear-gradient(135deg, #1d4ed8, #1e40af)',
+            border:'none', boxShadow:'0 4px 14px rgba(29,78,216,0.35)',
           }}>
             Sign In to Portal
           </Button>
@@ -153,7 +139,7 @@ export default function Login() {
         <div style={{ textAlign:'center', marginTop:12 }}>
           <Text style={{ color:'#6b7280', fontSize:12 }}>
             New customer?{' '}
-            <Link to="/register" style={{ color:'#22c55e', fontWeight:600 }}>Create an account</Link>
+            <Link to="/register" style={{ color:'#1d4ed8', fontWeight:600 }}>Create an account</Link>
           </Text>
         </div>
 

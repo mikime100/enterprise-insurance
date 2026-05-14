@@ -66,7 +66,7 @@ export default function CustomerProfile() {
           <Card style={S.card} styles={{ body:{ padding:28 } }}>
             <div style={{ textAlign:'center' }}>
               <div style={{ position:'relative', display:'inline-block', marginBottom:16 }}>
-                <Avatar size={88} style={{ background:'linear-gradient(135deg, #22c55e, #16a34a)', fontSize:30, fontWeight:800, boxShadow:'0 8px 24px rgba(34,197,94,0.35)' }}>
+                <Avatar size={88} style={{ background:'linear-gradient(135deg, #1d4ed8, #1e40af)', fontSize:30, fontWeight:800, boxShadow:'0 8px 24px rgba(29,78,216,0.35)' }}>
                   {user?.firstName?.[0]}{user?.lastName?.[0]}
                 </Avatar>
               </div>

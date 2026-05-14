@@ -63,7 +63,7 @@ export default function AgentReports() {
 
   return (
     <div>
-      <div style={{ background:'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border:'1px solid #bbf7d0', borderRadius:16, padding:'22px 28px', marginBottom:24 }}>
+      <div style={{ background:'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', border:'1px solid #bfdbfe', borderRadius:16, padding:'22px 28px', marginBottom:24 }}>
         <Title level={4} style={{ color:'#111827', margin:0, fontWeight:800 }}>Reports & Analytics</Title>
         <Text style={{ color:'#9ca3af' }}>Your portfolio performance overview</Text>
       </div>

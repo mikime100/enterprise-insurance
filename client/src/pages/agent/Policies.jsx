@@ -72,7 +72,7 @@ export default function AgentPolicies() {
       title: 'Policy', width: 160,
       render: (_, r) => (
         <div>
-          <Text style={{ color:'#22c55e', fontFamily:'monospace', fontSize:11 }}>{r.policyNumber}</Text>
+          <Text style={{ color:'#1d4ed8', fontFamily:'monospace', fontSize:11 }}>{r.policyNumber}</Text>
           <div style={{ color:'#9ca3af', fontSize:11, marginTop:2 }}>{dayjs(r.startDate).format('MMM D, YYYY')}</div>
         </div>
       ),

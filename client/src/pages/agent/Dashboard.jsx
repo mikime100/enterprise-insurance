@@ -49,8 +49,8 @@ export default function AgentDashboard() {
   return (
     <div>
       {/* Banner */}
-      <div style={{ background:'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border:'1px solid #bbf7d0', borderRadius:16, padding:'24px 28px', marginBottom:24, position:'relative', overflow:'hidden' }}>
-        <div style={{ position:'absolute', right:-30, top:-30, width:200, height:200, borderRadius:'50%', background:'radial-gradient(circle, rgba(34,197,94,0.12) 0%, transparent 70%)', pointerEvents:'none' }} />
+      <div style={{ background:'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', border:'1px solid #bfdbfe', borderRadius:16, padding:'24px 28px', marginBottom:24, position:'relative', overflow:'hidden' }}>
+        <div style={{ position:'absolute', right:-30, top:-30, width:200, height:200, borderRadius:'50%', background:'radial-gradient(circle, rgba(29,78,216,0.12) 0%, transparent 70%)', pointerEvents:'none' }} />
         <div style={{ position:'relative' }}>
           <Title level={4} style={{ color:'#111827', margin:0, fontWeight:800 }}>Agent Dashboard</Title>
           <Text style={{ color:'#9ca3af' }}>Welcome back, {user?.firstName}. You have {actionNeeded.length} items needing attention.</Text>
@@ -79,7 +79,7 @@ export default function AgentDashboard() {
                 )}
               </Space>
             }
-            extra={<Button type="link" size="small" style={{ color:'#22c55e', padding:0 }} onClick={() => navigate('/agent/claims')}>Manage <ArrowRightOutlined /></Button>}
+            extra={<Button type="link" size="small" style={{ color:'#1d4ed8', padding:0 }} onClick={() => navigate('/agent/claims')}>Manage <ArrowRightOutlined /></Button>}
           >
             {actionNeeded.length === 0 ? (
               <div style={{ textAlign:'center', padding:'32px 0' }}>
@@ -124,7 +124,7 @@ export default function AgentDashboard() {
         <Col xs={24} lg={15}>
           <Card style={S.card} styles={{ header:{ borderBottom:'1px solid #e8edf3' } }}
             title={<Text style={{ color:'#111827', fontWeight:700 }}>Recent Claims</Text>}
-            extra={<Button type="link" size="small" style={{ color:'#22c55e', padding:0 }} onClick={() => navigate('/agent/claims')}>View all <ArrowRightOutlined /></Button>}
+            extra={<Button type="link" size="small" style={{ color:'#1d4ed8', padding:0 }} onClick={() => navigate('/agent/claims')}>View all <ArrowRightOutlined /></Button>}
           >
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
               {recentClaims.slice(0,8).map(c => {

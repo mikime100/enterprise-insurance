@@ -64,8 +64,8 @@ export default function CustomerDashboard() {
     <div>
       {/* Welcome banner */}
       <div style={{
-        background:'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
-        border:'1px solid #bbf7d0', borderRadius:16, padding:'28px 32px', marginBottom:24,
+        background:'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+        border:'1px solid #bfdbfe', borderRadius:16, padding:'28px 32px', marginBottom:24,
         display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:16,
         position:'relative', overflow:'hidden',
       }}>
@@ -78,7 +78,7 @@ export default function CustomerDashboard() {
         </div>
         <Space>
           <Button type="primary" onClick={() => navigate('/customer/quotes')} icon={<FileTextOutlined />}
-            style={{ background:'#22c55e', border:'none', fontWeight:600, height:40 }}>
+            style={{ background:'#1d4ed8', border:'none', fontWeight:600, height:40 }}>
             Get a Quote
           </Button>
           <Button onClick={() => navigate('/customer/claims')} icon={<AlertOutlined />}
@@ -109,7 +109,7 @@ export default function CustomerDashboard() {
         <Col xs={24} lg={14}>
           <Card style={S.card} styles={{ header:{ borderBottom:'1px solid #e8edf3' } }}
             title={<Text style={{ color:'#111827', fontWeight:700 }}>Active Policies</Text>}
-            extra={<Button type="link" size="small" style={{ color:'#22c55e', padding:0 }} onClick={() => navigate('/customer/policies')}>
+            extra={<Button type="link" size="small" style={{ color:'#1d4ed8', padding:0 }} onClick={() => navigate('/customer/policies')}>
               View all <ArrowRightOutlined />
             </Button>}>
             {activePolicies.length === 0 ? (
@@ -157,7 +157,7 @@ export default function CustomerDashboard() {
         <Col xs={24} lg={10}>
           <Card style={S.card} styles={{ header:{ borderBottom:'1px solid #e8edf3' } }}
             title={<Text style={{ color:'#111827', fontWeight:700 }}>Recent Claims</Text>}
-            extra={<Button type="link" size="small" style={{ color:'#22c55e', padding:0 }} onClick={() => navigate('/customer/claims')}>
+            extra={<Button type="link" size="small" style={{ color:'#1d4ed8', padding:0 }} onClick={() => navigate('/customer/claims')}>
               View all <ArrowRightOutlined />
             </Button>}>
             {claims.length === 0 ? (

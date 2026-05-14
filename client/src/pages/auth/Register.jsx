@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Form, Input, Button, Typography, Alert, DatePicker, Row, Col } from 'antd';
 import {
-  UserOutlined, LockOutlined, MailOutlined, PhoneOutlined,
-  SecurityScanOutlined, CheckCircleOutlined, SafetyOutlined, AlertOutlined,
+  UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, CheckCircleOutlined,
+  SafetyOutlined, AlertOutlined,
 } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -38,49 +38,41 @@ export default function Register() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', background: '#ffffff' }}>
 
-      {/* Left branding panel */}
+      {/* Left panel — navy matching logo oval */}
       <div className="login-left-panel" style={{
         flex: 1, display: 'none', flexDirection: 'column', justifyContent: 'center',
         padding: '60px 64px', position: 'relative', overflow: 'hidden',
-        background: 'linear-gradient(135deg, #0d3320 0%, #14532d 50%, #166534 100%)',
-        borderRight: '1px solid #166534',
+        background: 'linear-gradient(160deg, #0a1628 0%, #0d2040 50%, #1a3465 100%)',
+        borderRight: '1px solid #1e3a6e',
       }}>
-        {/* Grid overlay */}
+        {/* Subtle grid */}
         <div style={{
-          position: 'absolute', inset: 0, opacity: 0.06,
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
+          position: 'absolute', inset: 0, opacity: 0.05,
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)',
           backgroundSize: '40px 40px',
         }} />
 
         {/* Glow orbs */}
-        <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(34,197,94,0.25) 0%, transparent 70%)', top: -100, right: -100, pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)', bottom: -50, left: -50, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,78,216,0.3) 0%, transparent 70%)', top: -100, right: -100, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%)', bottom: -50, left: -50, pointerEvents: 'none' }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 56 }}>
-            <div style={{
-              width: 52, height: 52, borderRadius: 14,
-              background: 'rgba(255,255,255,0.15)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-              border: '1px solid rgba(255,255,255,0.2)',
-            }}>
-              <SecurityScanOutlined style={{ color: '#fff', fontSize: 26 }} />
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 56 }}>
+            <img src="/logo.png" alt="Nile Insurance" style={{ height: 60, width: 'auto', objectFit: 'contain' }} />
             <div>
-              <div style={{ color: '#ffffff', fontSize: 20, fontWeight: 800, lineHeight: 1.1 }}>Enterprise</div>
-              <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Insurance Platform</div>
+              <div style={{ color: '#ffffff', fontSize: 20, fontWeight: 800, lineHeight: 1.1 }}>Nile Insurance</div>
+              <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Management Platform</div>
             </div>
           </div>
 
           <Title level={2} style={{ color: '#ffffff', fontWeight: 800, lineHeight: 1.2, marginBottom: 12, fontSize: 32 }}>
             Start Your Coverage<br/>
-            <span style={{ color: 'rgba(255,255,255,0.8)' }}>
+            <span style={{ color: '#93c5fd' }}>
               Journey Today
             </span>
           </Title>
-          <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15, display: 'block', marginBottom: 48, lineHeight: 1.7 }}>
-            Join thousands of customers who trust Enterprise Insurance for complete protection of what matters most.
+          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 15, display: 'block', marginBottom: 48, lineHeight: 1.7 }}>
+            Join thousands of customers who trust Nile Insurance for complete protection of what matters most.
           </Text>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -88,9 +80,9 @@ export default function Register() {
               <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
                 <div style={{
                   width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                  background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.25)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#ffffff', fontSize: 16,
+                  color: '#93c5fd', fontSize: 16,
                 }}>
                   {b.icon}
                 </div>
@@ -104,17 +96,15 @@ export default function Register() {
       {/* Right form panel */}
       <div style={{ width: '100%', maxWidth: 520, margin: '0 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px 40px', overflowY: 'auto' }}>
         {/* Mobile logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 36 }}>
-          <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg, #22c55e, #16a34a)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 20px rgba(34,197,94,0.35)' }}>
-            <SecurityScanOutlined style={{ color: '#fff', fontSize: 19 }} />
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
+          <img src="/logo.png" alt="Nile Insurance" style={{ height: 40, width: 'auto', objectFit: 'contain' }} />
           <div>
-            <div style={{ color: '#111827', fontSize: 15, fontWeight: 700 }}>Enterprise Insurance</div>
-            <div style={{ color: '#6b7280', fontSize: 12 }}>Platform</div>
+            <div style={{ color: '#111827', fontSize: 14, fontWeight: 700 }}>Nile Insurance</div>
+            <div style={{ color: '#6b7280', fontSize: 11 }}>Management Platform</div>
           </div>
         </div>
 
-        <div style={{ marginBottom: 28 }}>
+        <div style={{ marginBottom: 24 }}>
           <Title level={3} style={{ color: '#111827', margin: 0, fontWeight: 700 }}>Create your account</Title>
           <Text style={{ color: '#6b7280' }}>Get covered in minutes — no paperwork</Text>
         </div>
@@ -177,17 +167,17 @@ export default function Register() {
 
           <Button type="primary" htmlType="submit" loading={loading} block style={{
             height: 48, fontWeight: 700, fontSize: 15, borderRadius: 10, marginTop: 4,
-            background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-            border: 'none', boxShadow: '0 6px 20px rgba(34,197,94,0.35)',
+            background: 'linear-gradient(135deg, #1d4ed8, #1e40af)',
+            border: 'none', boxShadow: '0 4px 14px rgba(29,78,216,0.35)',
           }}>
             Create Account
           </Button>
         </Form>
 
-        <div style={{ textAlign: 'center', marginTop: 20 }}>
+        <div style={{ textAlign: 'center', marginTop: 16 }}>
           <Text style={{ color: '#6b7280', fontSize: 13 }}>
             Already have an account?{' '}
-            <Link to="/login" style={{ color: '#22c55e', fontWeight: 600 }}>Sign in</Link>
+            <Link to="/login" style={{ color: '#1d4ed8', fontWeight: 600 }}>Sign in</Link>
           </Text>
         </div>
       </div>

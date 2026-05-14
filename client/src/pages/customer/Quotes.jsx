@@ -182,7 +182,7 @@ export default function CustomerQuotes() {
                   const active = selectedOptions.includes(opt.name);
                   return (
                     <div key={opt.name} onClick={() => toggleOption(opt.name)} style={{
-                      background: active ? '#f0fdf4' : '#f8f9fc',
+                      background: active ? '#eff6ff' : '#f8f9fc',
                       border:`1px solid ${active ? '#22c55e' : '#e8edf3'}`,
                       borderRadius:10, padding:'14px 18px', cursor:'pointer',
                       display:'flex', justifyContent:'space-between', alignItems:'center',
@@ -214,7 +214,7 @@ export default function CustomerQuotes() {
                 {FREQ_OPTIONS.map(f => (
                   <Col key={f.val} xs={12} sm={6}>
                     <div onClick={() => setFrequency(f.val)} style={{
-                      background: frequency === f.val ? '#f0fdf4' : '#f8f9fc',
+                      background: frequency === f.val ? '#eff6ff' : '#f8f9fc',
                       border:`1px solid ${frequency === f.val ? '#22c55e' : '#e8edf3'}`,
                       borderRadius:10, padding:'12px 14px', cursor:'pointer', textAlign:'center', transition:'all 0.15s',
                     }}>

@@ -279,7 +279,7 @@ export default function AdminUsers() {
             const isCurrentAgent = selected?.assignedAgent?._id === a._id;
             return (
               <div key={a._id} onClick={() => handleAssignAgent(a._id)} style={{
-                background: isCurrentAgent ? '#f0fdf4' : '#f8f9fc',
+                background: isCurrentAgent ? '#eff6ff' : '#f8f9fc',
                 border:`1px solid ${isCurrentAgent ? '#22c55e' : '#e8edf3'}`,
                 borderRadius:10, padding:'12px 16px', cursor:'pointer',
                 display:'flex', justifyContent:'space-between', alignItems:'center',
