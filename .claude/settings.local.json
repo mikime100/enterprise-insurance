@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npm install *)",
+      "Bash(node seeds/seed.js)",
+      "Bash(node server.js)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:5000/api/health)",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:5000/api/health\" -UseBasicParsing)",
+      "Bash(node -e \"const http=require\\('http'\\); http.get\\('http://localhost:5000/api/health', r=>{let d=''; r.on\\('data',c=>d+=c\\); r.on\\('end',\\(\\)=>console.log\\(d\\)\\);}\\).on\\('error',e=>console.log\\('ERR:',e.message\\)\\);\")",
+      "Bash(node -e ' *)",
+      "Read(//c/Users/windows 10/.claude/skills/everything-claude-code/.git/**)",
+      "Read(//c/Users/windows 10/.claude/skills/**)",
+      "PowerShell(node --version)",
+      "PowerShell(npm --version)"
+    ]
+  }
+}
