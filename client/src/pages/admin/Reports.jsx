@@ -74,7 +74,7 @@ export default function AdminReports() {
 
   return (
     <div>
-      <div style={{ background:'linear-gradient(135deg, #0a2040 0%, #091628 100%)', border:'1px solid #1a3a60', borderRadius:16, padding:'22px 28px', marginBottom:24 }}>
+      <div style={{ background:'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border:'1px solid #bbf7d0', borderRadius:16, padding:'22px 28px', marginBottom:24 }}>
         <Title level={4} style={{ color:'#111827', margin:0, fontWeight:800 }}>System Reports & Analytics</Title>
         <Text style={{ color:'#9ca3af' }}>Full platform performance · {dayjs().format('MMMM D, YYYY')}</Text>
       </div>

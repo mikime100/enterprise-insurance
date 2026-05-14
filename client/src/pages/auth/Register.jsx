@@ -42,8 +42,8 @@ export default function Register() {
       <div className="login-left-panel" style={{
         flex: 1, display: 'none', flexDirection: 'column', justifyContent: 'center',
         padding: '60px 64px', position: 'relative', overflow: 'hidden',
-        background: 'linear-gradient(135deg, #14532d 0%, #166534 50%, #15803d 100%)',
-        borderRight: '1px solid #16a34a',
+        background: 'linear-gradient(135deg, #0d3320 0%, #14532d 50%, #166534 100%)',
+        borderRight: '1px solid #166534',
       }}>
         {/* Grid overlay */}
         <div style={{

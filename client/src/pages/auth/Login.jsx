@@ -42,8 +42,8 @@ export default function Login() {
       <div style={{
         flex: 1, display: 'none', flexDirection: 'column', justifyContent: 'center',
         padding: '60px 64px', position: 'relative', overflow: 'hidden',
-        background: 'linear-gradient(135deg, #14532d 0%, #166534 50%, #15803d 100%)',
-        borderRight: '1px solid #16a34a',
+        background: 'linear-gradient(135deg, #0d3320 0%, #14532d 50%, #166534 100%)',
+        borderRight: '1px solid #166534',
       }}
         className="login-left-panel"
       >
@@ -110,75 +110,75 @@ export default function Login() {
 
       {/* ── Right panel ── */}
       <div style={{
-        width: '100%', maxWidth: 480, margin: '0 auto',
+        width: '100%', maxWidth: 460, margin: '0 auto',
         display: 'flex', flexDirection: 'column', justifyContent: 'center',
-        padding: '40px 40px',
+        padding: '28px 36px',
       }}>
         {/* Mobile logo */}
-        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:40 }}>
-          <div style={{ width:38, height:38, borderRadius:10, background:'linear-gradient(135deg, #22c55e, #16a34a)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 6px 20px rgba(34,197,94,0.35)' }}>
-            <SecurityScanOutlined style={{ color:'#fff', fontSize:19 }} />
+        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:22 }}>
+          <div style={{ width:36, height:36, borderRadius:10, background:'linear-gradient(135deg, #22c55e, #16a34a)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 4px 14px rgba(34,197,94,0.3)' }}>
+            <SecurityScanOutlined style={{ color:'#fff', fontSize:18 }} />
           </div>
           <div>
-            <div style={{ color:'#111827', fontSize:15, fontWeight:700 }}>Enterprise Insurance</div>
-            <div style={{ color:'#6b7280', fontSize:12 }}>Platform</div>
+            <div style={{ color:'#111827', fontSize:14, fontWeight:700 }}>Enterprise Insurance</div>
+            <div style={{ color:'#6b7280', fontSize:11 }}>Platform</div>
           </div>
         </div>
 
-        <div style={{ marginBottom: 32 }}>
+        <div style={{ marginBottom: 18 }}>
           <Title level={3} style={{ color:'#111827', margin:0, fontWeight:700 }}>Welcome back</Title>
           <Text style={{ color:'#6b7280' }}>Sign in to access your portal</Text>
         </div>
 
-        {error && <Alert message={error} type="error" showIcon style={{ marginBottom:20, borderRadius:8 }} />}
+        {error && <Alert message={error} type="error" showIcon style={{ marginBottom:14, borderRadius:8 }} />}
 
         <Form form={form} onFinish={onFinish} layout="vertical" size="large">
-          <Form.Item name="email" label="Email address" rules={[{required:true,message:'Email is required'},{type:'email',message:'Enter a valid email'}]}>
+          <Form.Item name="email" label="Email address" rules={[{required:true,message:'Email is required'},{type:'email',message:'Enter a valid email'}]} style={{ marginBottom:14 }}>
             <Input prefix={<MailOutlined style={{color:'#9ca3af'}} />} placeholder="you@example.com"
-              style={{ background:'#ffffff', borderColor:'#e8edf3', height:46 }} />
+              style={{ background:'#ffffff', borderColor:'#e8edf3', height:42 }} />
           </Form.Item>
-          <Form.Item name="password" label="Password" rules={[{required:true,message:'Password is required'}]}>
+          <Form.Item name="password" label="Password" rules={[{required:true,message:'Password is required'}]} style={{ marginBottom:14 }}>
             <Input.Password prefix={<LockOutlined style={{color:'#9ca3af'}} />} placeholder="Your password"
-              style={{ background:'#ffffff', borderColor:'#e8edf3', height:46 }} />
+              style={{ background:'#ffffff', borderColor:'#e8edf3', height:42 }} />
           </Form.Item>
           <Button type="primary" htmlType="submit" loading={loading} block style={{
-            height:48, fontWeight:700, fontSize:15, borderRadius:10, marginTop:4,
+            height:44, fontWeight:700, fontSize:14, borderRadius:10, marginTop:2,
             background:'linear-gradient(135deg, #22c55e, #16a34a)',
-            border:'none', boxShadow:'0 6px 20px rgba(34,197,94,0.35)',
+            border:'none', boxShadow:'0 4px 14px rgba(34,197,94,0.3)',
           }}>
             Sign In to Portal
           </Button>
         </Form>
 
-        <div style={{ textAlign:'center', marginTop:20 }}>
-          <Text style={{ color:'#6b7280', fontSize:13 }}>
+        <div style={{ textAlign:'center', marginTop:12 }}>
+          <Text style={{ color:'#6b7280', fontSize:12 }}>
             New customer?{' '}
             <Link to="/register" style={{ color:'#22c55e', fontWeight:600 }}>Create an account</Link>
           </Text>
         </div>
 
-        <Divider style={{ borderColor:'#e8edf3', color:'#9ca3af', fontSize:12 }}>Quick Demo Access</Divider>
+        <Divider style={{ borderColor:'#e8edf3', color:'#9ca3af', fontSize:11, margin:'12px 0' }}>Quick Demo Access</Divider>
 
-        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+        <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
           {DEMOS.map(d => (
             <div key={d.role}
               onClick={() => form.setFieldsValue({ email: d.email, password: d.password })}
               style={{
-                border:`1px solid ${d.color}33`, borderRadius:10, padding:'10px 14px',
-                cursor:'pointer', background:`${d.color}0a`, display:'flex', alignItems:'center', gap:12,
+                border:`1px solid ${d.color}33`, borderRadius:8, padding:'7px 12px',
+                cursor:'pointer', background:`${d.color}0a`, display:'flex', alignItems:'center', gap:10,
                 transition:'all 0.2s',
               }}
               onMouseEnter={e => { e.currentTarget.style.background = `${d.color}18`; e.currentTarget.style.borderColor = `${d.color}66`; }}
               onMouseLeave={e => { e.currentTarget.style.background = `${d.color}0a`; e.currentTarget.style.borderColor = `${d.color}33`; }}
             >
-              <div style={{ width:34, height:34, borderRadius:8, background:d.color, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:700, fontSize:12, flexShrink:0 }}>
+              <div style={{ width:28, height:28, borderRadius:6, background:d.color, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:700, fontSize:11, flexShrink:0 }}>
                 {d.role[0]}
               </div>
               <div>
-                <div style={{ color:'#111827', fontWeight:600, fontSize:13 }}>{d.role} Demo</div>
-                <div style={{ color:'#6b7280', fontSize:11 }}>{d.desc} · Click to fill</div>
+                <div style={{ color:'#111827', fontWeight:600, fontSize:12 }}>{d.role} Demo</div>
+                <div style={{ color:'#6b7280', fontSize:10 }}>{d.desc} · Click to fill</div>
               </div>
-              <div style={{ marginLeft:'auto', color:d.color, fontSize:11, fontWeight:600 }}>USE →</div>
+              <div style={{ marginLeft:'auto', color:d.color, fontSize:10, fontWeight:600 }}>USE →</div>
             </div>
           ))}
         </div>

@@ -49,8 +49,8 @@ export default function AgentDashboard() {
   return (
     <div>
       {/* Banner */}
-      <div style={{ background:'linear-gradient(135deg, #1a0a3d 0%, #0f0a2d 50%, #091628 100%)', border:'1px solid #2a1a5e', borderRadius:16, padding:'24px 28px', marginBottom:24, position:'relative', overflow:'hidden' }}>
-        <div style={{ position:'absolute', right:-30, top:-30, width:200, height:200, borderRadius:'50%', background:'radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%)', pointerEvents:'none' }} />
+      <div style={{ background:'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border:'1px solid #bbf7d0', borderRadius:16, padding:'24px 28px', marginBottom:24, position:'relative', overflow:'hidden' }}>
+        <div style={{ position:'absolute', right:-30, top:-30, width:200, height:200, borderRadius:'50%', background:'radial-gradient(circle, rgba(34,197,94,0.12) 0%, transparent 70%)', pointerEvents:'none' }} />
         <div style={{ position:'relative' }}>
           <Title level={4} style={{ color:'#111827', margin:0, fontWeight:800 }}>Agent Dashboard</Title>
           <Text style={{ color:'#9ca3af' }}>Welcome back, {user?.firstName}. You have {actionNeeded.length} items needing attention.</Text>

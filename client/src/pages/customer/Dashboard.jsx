@@ -64,8 +64,8 @@ export default function CustomerDashboard() {
     <div>
       {/* Welcome banner */}
       <div style={{
-        background:'linear-gradient(135deg, #f0fdf4 0%, #0a1e3d 50%, #091628 100%)',
-        border:'1px solid #1a3a60', borderRadius:16, padding:'28px 32px', marginBottom:24,
+        background:'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+        border:'1px solid #bbf7d0', borderRadius:16, padding:'28px 32px', marginBottom:24,
         display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:16,
         position:'relative', overflow:'hidden',
       }}>

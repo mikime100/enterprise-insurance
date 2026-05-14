@@ -252,7 +252,7 @@ export default function CustomerPolicies() {
           <div style={{ color:'#22c55e', fontSize:24, fontWeight:800, marginTop:2 }}>${selected?.premium?.amount}</div>
         </div>
         <Alert message="Simulated payment — no real charges will be made." type="info" showIcon
-          style={{ marginBottom:16, borderRadius:8, background:'#0a2040', border:'1px solid #1a3a60' }} />
+          style={{ marginBottom:16, borderRadius:8 }} />
         <Form form={payForm} layout="vertical">
           <Form.Item name="card" label="Card Number" rules={[{ required:true, len:16, message:'Enter 16 digits' }]}>
             <Input prefix={<CreditCardOutlined style={{ color:'#9ca3af' }} />} maxLength={16} placeholder="1234 5678 9012 3456"

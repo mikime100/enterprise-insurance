@@ -172,7 +172,7 @@ export default function CustomerQuotes() {
             <Card style={S.card} styles={{ header:{ borderBottom:'1px solid #e8edf3' } }}
               title={<Text style={{ color:'#111827', fontWeight:700 }}>{selectedProduct.name} — Coverage Options</Text>}>
               <Alert message={selectedProduct.description} type="info" showIcon
-                style={{ marginBottom:20, borderRadius:8, background:'#0a2040', border:'1px solid #1a3a60' }} />
+                style={{ marginBottom:20, borderRadius:8 }} />
 
               <Text style={{ color:'#6b7280', fontSize:13, fontWeight:600, display:'block', marginBottom:12 }}>
                 ADD-ON COVERAGE
@@ -182,7 +182,7 @@ export default function CustomerQuotes() {
                   const active = selectedOptions.includes(opt.name);
                   return (
                     <div key={opt.name} onClick={() => toggleOption(opt.name)} style={{
-                      background: active ? '#0a2040' : '#f8f9fc',
+                      background: active ? '#f0fdf4' : '#f8f9fc',
                       border:`1px solid ${active ? '#22c55e' : '#e8edf3'}`,
                       borderRadius:10, padding:'14px 18px', cursor:'pointer',
                       display:'flex', justifyContent:'space-between', alignItems:'center',
@@ -214,7 +214,7 @@ export default function CustomerQuotes() {
                 {FREQ_OPTIONS.map(f => (
                   <Col key={f.val} xs={12} sm={6}>
                     <div onClick={() => setFrequency(f.val)} style={{
-                      background: frequency === f.val ? '#0a2040' : '#f8f9fc',
+                      background: frequency === f.val ? '#f0fdf4' : '#f8f9fc',
                       border:`1px solid ${frequency === f.val ? '#22c55e' : '#e8edf3'}`,
                       borderRadius:10, padding:'12px 14px', cursor:'pointer', textAlign:'center', transition:'all 0.15s',
                     }}>
@@ -415,7 +415,7 @@ export default function CustomerQuotes() {
         styles={{ content:{ background:'#ffffff' }, header:{ background:'#ffffff', borderBottom:'1px solid #e8edf3' }, footer:{ background:'#ffffff', borderTop:'1px solid #e8edf3' } }}
       >
         <Alert message="Simulated payment — no real charges will be made." type="info" showIcon
-          style={{ marginBottom:20, borderRadius:8, background:'#0a2040', border:'1px solid #1a3a60' }} />
+          style={{ marginBottom:20, borderRadius:8 }} />
         <Form form={payForm} layout="vertical" style={{ marginTop:4 }}>
           <Form.Item name="cardNumber" label="Card Number" rules={[{ required:true },{ len:16, message:'Enter 16 digits' }]}>
             <Input prefix={<CreditCardOutlined style={{ color:'#9ca3af' }} />} maxLength={16} placeholder="1234 5678 9012 3456"
