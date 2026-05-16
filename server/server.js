@@ -84,6 +84,21 @@ app.use('/api/admin', require('./routes/admin'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
+// One-time seed trigger — only works when DB is empty, safe to leave in
+app.post('/api/seed-init', async (req, res) => {
+  try {
+    const User = require('./models/User');
+    const count = await User.countDocuments();
+    if (count > 0) return res.json({ message: 'Already seeded', userCount: count });
+    const { spawn } = require('child_process');
+    const seeder = spawn('node', ['seeds/seed.js'], { cwd: __dirname, stdio: 'inherit', env: process.env });
+    seeder.on('exit', code => console.log(`Seed finished (exit ${code})`));
+    res.json({ message: 'Seeding started — wait 60s then try logging in' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({ message: err.message || 'Internal server error' });
