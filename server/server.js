@@ -5,37 +5,10 @@ const MongoStore = require('connect-mongo');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
 const app = express();
-
-const startDB = async (retries = 5) => {
-  for (let i = 1; i <= retries; i++) {
-    try {
-      await connectDB();
-      autoSeedIfEmpty();
-      return;
-    } catch (err) {
-      console.error(`DB connection attempt ${i}/${retries} failed:`, err.message);
-      if (i === retries) { process.exit(1); }
-      await new Promise(r => setTimeout(r, 3000));
-    }
-  }
-};
-
-async function autoSeedIfEmpty() {
-  const User = require('./models/User');
-  const count = await User.countDocuments();
-  if (count > 0) return;
-  console.log('Empty database — running initial seed...');
-  const { spawn } = require('child_process');
-  const seeder = spawn('node', ['seeds/seed.js'], {
-    cwd: __dirname, stdio: 'inherit', env: process.env,
-  });
-  seeder.on('exit', code => console.log(`Seed finished (exit ${code})`));
-}
-
-startDB();
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(morgan('dev'));
@@ -45,21 +18,6 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'enterprise-insurance-secret',
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/enterprise_insurance',
-    ttl: 24 * 60 * 60,
-  }),
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000,
-  },
-}));
 
 // Auth
 app.use('/api/auth', require('./routes/auth'));
@@ -82,9 +40,9 @@ app.use('/api/reports', require('./routes/reports'));
 // Super admin entity management
 app.use('/api/admin', require('./routes/admin'));
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/api/health', (req, res) => res.json({ status: 'ok', db: mongoose.connection.readyState }));
 
-// One-time seed trigger — only works when DB is empty, safe to leave in
+// One-time seed trigger — only works when DB is empty
 app.post('/api/seed-init', async (req, res) => {
   try {
     const User = require('./models/User');
@@ -104,5 +62,54 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ message: err.message || 'Internal server error' });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+async function start() {
+  for (let i = 1; i <= 5; i++) {
+    try {
+      await connectDB();
+      console.log('MongoDB connected');
+      break;
+    } catch (err) {
+      console.error(`DB attempt ${i}/5 failed:`, err.message);
+      if (i === 5) { process.exit(1); }
+      await new Promise(r => setTimeout(r, 3000));
+    }
+  }
+
+  // Session store reuses the established mongoose connection — no second connection
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'enterprise-insurance-secret',
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      client: mongoose.connection.getClient(),
+      ttl: 24 * 60 * 60,
+    }),
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+    },
+  }));
+
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    autoSeedIfEmpty();
+  });
+}
+
+async function autoSeedIfEmpty() {
+  try {
+    const User = require('./models/User');
+    const count = await User.countDocuments();
+    if (count > 0) { console.log(`DB has ${count} users — skip seed`); return; }
+    console.log('Empty database — running initial seed...');
+    const { spawn } = require('child_process');
+    const seeder = spawn('node', ['seeds/seed.js'], { cwd: __dirname, stdio: 'inherit', env: process.env });
+    seeder.on('exit', code => console.log(`Seed finished (exit ${code})`));
+  } catch (err) {
+    console.error('autoSeedIfEmpty error:', err.message);
+  }
+}
+
+start();
