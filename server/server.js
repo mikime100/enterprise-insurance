@@ -13,6 +13,7 @@ const startDB = async (retries = 5) => {
   for (let i = 1; i <= retries; i++) {
     try {
       await connectDB();
+      autoSeedIfEmpty();
       return;
     } catch (err) {
       console.error(`DB connection attempt ${i}/${retries} failed:`, err.message);
@@ -21,6 +22,19 @@ const startDB = async (retries = 5) => {
     }
   }
 };
+
+async function autoSeedIfEmpty() {
+  const User = require('./models/User');
+  const count = await User.countDocuments();
+  if (count > 0) return;
+  console.log('Empty database — running initial seed...');
+  const { spawn } = require('child_process');
+  const seeder = spawn('node', ['seeds/seed.js'], {
+    cwd: __dirname, stdio: 'inherit', env: process.env,
+  });
+  seeder.on('exit', code => console.log(`Seed finished (exit ${code})`));
+}
+
 startDB();
 
 app.use(helmet({ contentSecurityPolicy: false }));
