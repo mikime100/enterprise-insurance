@@ -1,34 +1,74 @@
+import { Component } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Spin } from 'antd';
+import { Spin, Button, Result } from 'antd';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import AppLayout from './components/Layout/AppLayout';
 
-import Login from './pages/auth/Login';
+class ErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(err) { return { error: err }; }
+  render() {
+    if (this.state.error) return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f7fa' }}>
+        <Result status="error" title="Something went wrong"
+          subTitle={this.state.error?.message || 'An unexpected error occurred.'}
+          extra={<Button type="primary" onClick={() => { this.setState({ error: null }); window.location.reload(); }}>Reload Page</Button>}
+        />
+      </div>
+    );
+    return this.props.children;
+  }
+}
+
+import Login    from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
-import CustomerDashboard from './pages/customer/Dashboard';
-import CustomerQuotes from './pages/customer/Quotes';
-import CustomerPolicies from './pages/customer/Policies';
-import CustomerClaims from './pages/customer/Claims';
-import CustomerProfile from './pages/customer/Profile';
+// Payer portal
+import PayerDashboard    from './pages/payer/Dashboard';
+import PayerProducts     from './pages/payer/Products';
+import PayerCoverages    from './pages/payer/Coverages';
+import PayerQuotes       from './pages/payer/Quotes';
+import PayerEnrollments  from './pages/payer/Enrollments';
+import PayerClaims       from './pages/payer/Claims';
+import PayerProviders    from './pages/payer/Providers';
+import PayerReports      from './pages/payer/Reports';
 
-import AgentDashboard from './pages/agent/Dashboard';
-import AgentCustomers from './pages/agent/Customers';
-import AgentPolicies from './pages/agent/Policies';
-import AgentClaims from './pages/agent/Claims';
-import AgentReports from './pages/agent/Reports';
+// Provider portal
+import ProviderDashboard   from './pages/provider/Dashboard';
+import ProviderSubmitClaim from './pages/provider/SubmitClaim';
+import ProviderClaims      from './pages/provider/Claims';
 
-import AdminDashboard from './pages/admin/Dashboard';
-import AdminUsers from './pages/admin/Users';
-import AdminProducts from './pages/admin/Products';
-import AdminReports from './pages/admin/Reports';
+// Institution portal
+import InstitutionDashboard from './pages/institution/Dashboard';
+import InstitutionGroups    from './pages/institution/Groups';
+import InstitutionEmployees from './pages/institution/Employees';
+import InstitutionPolicy    from './pages/institution/Policy';
+import InstitutionClaims    from './pages/institution/Claims';
+
+// Insured portal
+import InsuredDashboard   from './pages/insured/Dashboard';
+import InsuredCoverage    from './pages/insured/Coverage';
+import InsuredClaims      from './pages/insured/Claims';
+import InsuredDependents  from './pages/insured/Dependents';
+
+// Admin portal
+import AdminDashboard    from './pages/admin/Dashboard';
+import AdminPayers       from './pages/admin/Payers';
+import AdminProviders    from './pages/admin/Providers';
+import AdminInstitutions from './pages/admin/Institutions';
+import AdminUsers        from './pages/admin/Users';
+import AdminReports      from './pages/admin/Reports';
+
+const PAYER_ROLES = ['payer_admin', 'underwriter', 'claims_officer', 'finance_officer', 'sales_broker', 'customer_support'];
 
 function RoleRedirect() {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
-  if (user.role === 'agent') return <Navigate to="/agent/dashboard" replace />;
-  return <Navigate to="/customer/dashboard" replace />;
+  if (user.role === 'superadmin')     return <Navigate to="/admin/dashboard" replace />;
+  if (PAYER_ROLES.includes(user.role)) return <Navigate to="/payer/dashboard" replace />;
+  if (user.role === 'provider_admin')  return <Navigate to="/provider/dashboard" replace />;
+  if (user.role === 'institution_admin') return <Navigate to="/institution/dashboard" replace />;
+  return <Navigate to="/insured/dashboard" replace />;
 }
 
 function ProtectedRoute({ children, roles }) {
@@ -53,37 +93,58 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/login"    element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/"         element={<ProtectedRoute><RoleRedirect /></ProtectedRoute>} />
 
-      <Route path="/" element={<ProtectedRoute><RoleRedirect /></ProtectedRoute>} />
-
-      {/* Customer routes */}
-      <Route path="/customer" element={<ProtectedRoute roles={['customer']}><AppLayout /></ProtectedRoute>}>
-        <Route path="dashboard" element={<CustomerDashboard />} />
-        <Route path="quotes" element={<CustomerQuotes />} />
-        <Route path="policies" element={<CustomerPolicies />} />
-        <Route path="claims" element={<CustomerClaims />} />
-        <Route path="profile" element={<CustomerProfile />} />
+      {/* Payer Portal */}
+      <Route path="/payer" element={<ProtectedRoute roles={PAYER_ROLES}><AppLayout /></ProtectedRoute>}>
+        <Route path="dashboard"   element={<PayerDashboard />} />
+        <Route path="products"    element={<PayerProducts />} />
+        <Route path="coverages"   element={<PayerCoverages />} />
+        <Route path="quotes"      element={<PayerQuotes />} />
+        <Route path="enrollments" element={<PayerEnrollments />} />
+        <Route path="claims"      element={<PayerClaims />} />
+        <Route path="providers"   element={<PayerProviders />} />
+        <Route path="reports"     element={<PayerReports />} />
         <Route index element={<Navigate to="dashboard" replace />} />
       </Route>
 
-      {/* Agent routes */}
-      <Route path="/agent" element={<ProtectedRoute roles={['agent']}><AppLayout /></ProtectedRoute>}>
-        <Route path="dashboard" element={<AgentDashboard />} />
-        <Route path="customers" element={<AgentCustomers />} />
-        <Route path="policies" element={<AgentPolicies />} />
-        <Route path="claims" element={<AgentClaims />} />
-        <Route path="reports" element={<AgentReports />} />
+      {/* Provider Portal */}
+      <Route path="/provider" element={<ProtectedRoute roles={['provider_admin']}><AppLayout /></ProtectedRoute>}>
+        <Route path="dashboard"    element={<ProviderDashboard />} />
+        <Route path="submit-claim" element={<ProviderSubmitClaim />} />
+        <Route path="claims"       element={<ProviderClaims />} />
         <Route index element={<Navigate to="dashboard" replace />} />
       </Route>
 
-      {/* Admin routes */}
-      <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AppLayout /></ProtectedRoute>}>
-        <Route path="dashboard" element={<AdminDashboard />} />
-        <Route path="users" element={<AdminUsers />} />
-        <Route path="products" element={<AdminProducts />} />
-        <Route path="reports" element={<AdminReports />} />
+      {/* Institution Portal */}
+      <Route path="/institution" element={<ProtectedRoute roles={['institution_admin']}><AppLayout /></ProtectedRoute>}>
+        <Route path="dashboard" element={<InstitutionDashboard />} />
+        <Route path="groups"    element={<InstitutionGroups />} />
+        <Route path="employees" element={<InstitutionEmployees />} />
+        <Route path="policy"    element={<InstitutionPolicy />} />
+        <Route path="claims"    element={<InstitutionClaims />} />
+        <Route index element={<Navigate to="dashboard" replace />} />
+      </Route>
+
+      {/* Insured Person Portal */}
+      <Route path="/insured" element={<ProtectedRoute roles={['insured_person']}><AppLayout /></ProtectedRoute>}>
+        <Route path="dashboard"  element={<InsuredDashboard />} />
+        <Route path="coverage"   element={<InsuredCoverage />} />
+        <Route path="claims"     element={<InsuredClaims />} />
+        <Route path="dependents" element={<InsuredDependents />} />
+        <Route index element={<Navigate to="dashboard" replace />} />
+      </Route>
+
+      {/* Super Admin Portal */}
+      <Route path="/admin" element={<ProtectedRoute roles={['superadmin']}><AppLayout /></ProtectedRoute>}>
+        <Route path="dashboard"    element={<AdminDashboard />} />
+        <Route path="payers"       element={<AdminPayers />} />
+        <Route path="providers"    element={<AdminProviders />} />
+        <Route path="institutions" element={<AdminInstitutions />} />
+        <Route path="users"        element={<AdminUsers />} />
+        <Route path="reports"      element={<AdminReports />} />
         <Route index element={<Navigate to="dashboard" replace />} />
       </Route>
 
@@ -94,10 +155,12 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }

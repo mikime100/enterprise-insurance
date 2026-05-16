@@ -1,28 +1,36 @@
 const express = require('express');
 const router = express.Router();
 const Claim = require('../models/Claim');
-const Policy = require('../models/Policy');
-const User = require('../models/User');
+const PolicyEnrollment = require('../models/PolicyEnrollment');
+const InsuredPerson = require('../models/InsuredPerson');
 const { requireAuth, requireRole } = require('../middleware/auth');
 
 router.use(requireAuth);
 
+const STAFF_ROLES = ['payer_admin', 'claims_officer', 'finance_officer', 'underwriter', 'superadmin'];
+const CLAIMS_ROLES = ['payer_admin', 'claims_officer', 'superadmin'];
+
 router.get('/', async (req, res, next) => {
   try {
-    let query = {};
-    if (req.user.role === 'customer') {
-      query.customer = req.user._id;
-    } else if (req.user.role === 'agent') {
-      const customers = await User.find({ assignedAgent: req.user._id }, '_id');
-      query.customer = { $in: customers.map(c => c._id) };
-    }
-    if (req.query.status) query.status = req.query.status;
-    if (req.query.priority) query.priority = req.query.priority;
+    const filter = {};
+    if (req.query.status) filter.status = req.query.status;
+    if (req.query.priority) filter.priority = req.query.priority;
+    if (req.query.submissionType) filter.submissionType = req.query.submissionType;
 
-    const claims = await Claim.find(query)
-      .populate('customer', 'firstName lastName email')
-      .populate('policy', 'policyNumber')
-      .populate('assignedAgent', 'firstName lastName')
+    if (req.user.role === 'insured_person' && req.user.linkedEntity?.entityId) {
+      filter.insuredPerson = req.user.linkedEntity.entityId;
+    } else if (req.user.role === 'provider_admin' && req.user.linkedEntity?.entityId) {
+      filter.provider = req.user.linkedEntity.entityId;
+    } else if (req.user.role === 'institution_admin' && req.user.linkedEntity?.entityId) {
+      const persons = await InsuredPerson.find({ institution: req.user.linkedEntity.entityId }, '_id');
+      filter.insuredPerson = { $in: persons.map(p => p._id) };
+    }
+
+    const claims = await Claim.find(filter)
+      .populate('insuredPerson', 'firstName lastName')
+      .populate('enrollment', 'enrollmentNumber')
+      .populate('provider', 'name type')
+      .populate('assignedOfficer', 'firstName lastName')
       .sort({ createdAt: -1 });
     res.json({ claims });
   } catch (err) { next(err); }
@@ -31,62 +39,75 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const claim = await Claim.findById(req.params.id)
-      .populate('customer', 'firstName lastName email phone address')
-      .populate({ path: 'policy', populate: { path: 'product', select: 'name type' } })
-      .populate('assignedAgent', 'firstName lastName email')
+      .populate('insuredPerson', 'firstName lastName email phone')
+      .populate({ path: 'enrollment', populate: { path: 'product', select: 'name productType' } })
+      .populate('provider', 'name type contactEmail')
+      .populate('submittedBy', 'firstName lastName role')
+      .populate('assignedOfficer', 'firstName lastName')
       .populate('notes.author', 'firstName lastName role')
-      .populate('statusHistory.changedBy', 'firstName lastName');
+      .populate('statusHistory.changedBy', 'firstName lastName')
+      .populate('financeApproval.approvedBy', 'firstName lastName');
 
     if (!claim) return res.status(404).json({ message: 'Claim not found' });
-    if (req.user.role === 'customer' && claim.customer._id.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Forbidden' });
-    }
 
     const claimObj = claim.toObject();
-    if (req.user.role === 'customer') {
+    // Insured persons only see external notes
+    if (req.user.role === 'insured_person') {
       claimObj.notes = claimObj.notes.filter(n => !n.isInternal);
     }
     res.json({ claim: claimObj });
   } catch (err) { next(err); }
 });
 
-// File a new claim (customer)
+// Submit claim — insured (reimbursement) or provider (direct billing)
 router.post('/', async (req, res, next) => {
   try {
-    const { policyId, type, incidentDate, description, claimedAmount, priority } = req.body;
+    let { enrollmentId, insuredPersonId, providerId, submissionType, claimType,
+            incidentDate, description, diagnosis, claimedAmount, priority, services, documents } = req.body;
 
-    const policy = await Policy.findById(policyId);
-    if (!policy) return res.status(404).json({ message: 'Policy not found' });
-    if (policy.status !== 'active') return res.status(400).json({ message: 'Claims can only be filed against active policies' });
-
-    const ownerId = policy.customer.toString();
-    const requesterId = req.user._id.toString();
-    if (req.user.role === 'customer' && ownerId !== requesterId) {
-      return res.status(403).json({ message: 'Forbidden' });
+    // Mobile: auto-resolve enrollment and insuredPerson for insured_person role
+    if (req.user.role === 'insured_person' && req.user.linkedEntity?.entityId) {
+      if (!insuredPersonId) insuredPersonId = req.user.linkedEntity.entityId;
+      if (!enrollmentId) {
+        const activeEnrollment = await PolicyEnrollment.findOne({
+          insuredPersons: { $elemMatch: { _id: insuredPersonId } },
+          status: 'active',
+        }).sort({ effectiveDate: -1 });
+        if (activeEnrollment) enrollmentId = activeEnrollment._id;
+      }
     }
 
+    const enrollment = await PolicyEnrollment.findById(enrollmentId);
+    if (!enrollment) return res.status(404).json({ message: 'Enrollment not found — ensure you have an active policy' });
+    if (enrollment.status !== 'active') return res.status(400).json({ message: 'Claims can only be filed against active enrollments' });
+
     const claim = new Claim({
-      customer: policy.customer,
-      policy: policyId,
-      assignedAgent: policy.agent,
-      type,
-      incidentDate,
+      insuredPerson: insuredPersonId,
+      enrollment: enrollmentId,
+      provider: providerId || undefined,
+      submittedBy: req.user._id,
+      submissionType: submissionType || 'insured_reimbursement',
+      claimType,
+      incidentDate: incidentDate || req.body.dateOfService,
       description,
+      diagnosis,
       claimedAmount,
       priority: priority || 'medium',
-      statusHistory: [{ status: 'submitted', changedBy: req.user._id }],
+      services: services || [],
+      documents: documents || [],
+      statusHistory: [{ status: 'submitted', changedBy: req.user._id }]
     });
     await claim.save();
 
     const populated = await Claim.findById(claim._id)
-      .populate('customer', 'firstName lastName')
-      .populate('policy', 'policyNumber');
+      .populate('insuredPerson', 'firstName lastName')
+      .populate('enrollment', 'enrollmentNumber');
     res.status(201).json({ claim: populated });
   } catch (err) { next(err); }
 });
 
-// Update claim status (agent/admin)
-router.patch('/:id/status', requireRole('admin', 'agent'), async (req, res, next) => {
+// Update claim status (claims_officer, payer_admin)
+router.patch('/:id/status', requireRole(...CLAIMS_ROLES), async (req, res, next) => {
   try {
     const { status, reason, approvedAmount, settlementAmount, estimatedResolutionDate, resolution } = req.body;
     const claim = await Claim.findById(req.params.id);
@@ -95,7 +116,7 @@ router.patch('/:id/status', requireRole('admin', 'agent'), async (req, res, next
     if (!claim.canTransitionTo(status)) {
       return res.status(400).json({
         message: `Cannot transition from '${claim.status}' to '${status}'`,
-        validNext: Claim.VALID_TRANSITIONS[claim.status],
+        validNext: Claim.VALID_TRANSITIONS[claim.status]
       });
     }
 
@@ -107,48 +128,60 @@ router.patch('/:id/status', requireRole('admin', 'agent'), async (req, res, next
     if (resolution) claim.resolution = resolution;
     await claim.save();
 
-    const populated = await Claim.findById(claim._id)
-      .populate('customer', 'firstName lastName')
-      .populate('policy', 'policyNumber')
-      .populate('assignedAgent', 'firstName lastName');
-    res.json({ claim: populated });
+    res.json({ claim });
   } catch (err) { next(err); }
 });
 
-// Add note to a claim
-router.post('/:id/notes', requireRole('admin', 'agent'), async (req, res, next) => {
+// Finance officer approves/denies payment
+router.patch('/:id/finance-approve', requireRole('finance_officer', 'payer_admin', 'superadmin'), async (req, res, next) => {
+  try {
+    const { approved, notes, settlementAmount } = req.body;
+    const claim = await Claim.findById(req.params.id);
+    if (!claim) return res.status(404).json({ message: 'Claim not found' });
+    if (claim.status !== 'pending_finance_approval') {
+      return res.status(400).json({ message: 'Claim is not awaiting finance approval' });
+    }
+
+    const newStatus = approved ? (settlementAmount < claim.claimedAmount ? 'partially_approved' : 'approved') : 'denied';
+    claim.status = newStatus;
+    claim.financeApproval = { approvedBy: req.user._id, approvedAt: new Date(), notes };
+    if (settlementAmount !== undefined) claim.settlementAmount = settlementAmount;
+    if (settlementAmount !== undefined) claim.approvedAmount = settlementAmount;
+    claim.statusHistory.push({ status: newStatus, changedBy: req.user._id, reason: notes });
+    await claim.save();
+
+    res.json({ claim });
+  } catch (err) { next(err); }
+});
+
+// Add note
+router.post('/:id/notes', requireRole(...CLAIMS_ROLES, 'finance_officer'), async (req, res, next) => {
   try {
     const { content, isInternal = false } = req.body;
     const claim = await Claim.findById(req.params.id);
     if (!claim) return res.status(404).json({ message: 'Claim not found' });
-
     claim.notes.push({ author: req.user._id, content, isInternal });
     await claim.save();
-
-    const note = claim.notes[claim.notes.length - 1];
-    res.status(201).json({ note });
+    res.status(201).json({ note: claim.notes[claim.notes.length - 1] });
   } catch (err) { next(err); }
 });
 
-// Assign agent to claim (admin)
-router.patch('/:id/assign', requireRole('admin'), async (req, res, next) => {
+// Assign claims officer
+router.patch('/:id/assign', requireRole('payer_admin', 'superadmin'), async (req, res, next) => {
   try {
-    const { agentId } = req.body;
     const claim = await Claim.findByIdAndUpdate(
       req.params.id,
-      { assignedAgent: agentId || null },
+      { assignedOfficer: req.body.officerId || null },
       { new: true }
-    ).populate('assignedAgent', 'firstName lastName');
+    ).populate('assignedOfficer', 'firstName lastName');
     if (!claim) return res.status(404).json({ message: 'Claim not found' });
     res.json({ claim });
   } catch (err) { next(err); }
 });
 
-// Update priority (agent/admin)
-router.patch('/:id/priority', requireRole('admin', 'agent'), async (req, res, next) => {
+router.patch('/:id/priority', requireRole(...CLAIMS_ROLES), async (req, res, next) => {
   try {
-    const { priority } = req.body;
-    const claim = await Claim.findByIdAndUpdate(req.params.id, { priority }, { new: true });
+    const claim = await Claim.findByIdAndUpdate(req.params.id, { priority: req.body.priority }, { new: true });
     if (!claim) return res.status(404).json({ message: 'Claim not found' });
     res.json({ claim });
   } catch (err) { next(err); }

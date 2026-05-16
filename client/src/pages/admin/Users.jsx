@@ -5,7 +5,7 @@ import {
 } from 'antd';
 import {
   SearchOutlined, PlusOutlined, EyeOutlined, StopOutlined,
-  CheckCircleOutlined, UserOutlined, SwapOutlined,
+  CheckCircleOutlined, UserOutlined,
 } from '@ant-design/icons';
 import api from '../../api';
 import dayjs from 'dayjs';
@@ -16,9 +16,13 @@ const { Option } = Select;
 const S = { card:{ background:'#ffffff', border:'1px solid #e8edf3', borderRadius:12 } };
 
 const ROLE_CONFIG = {
-  customer: { color:'#22c55e', label:'Customer' },
-  agent:    { color:'#8b5cf6', label:'Agent' },
-  admin:    { color:'#ec4899', label:'Admin' },
+  superadmin:        { color:'#ec4899', label:'Super Admin' },
+  payer_admin:       { color:'#1e3a5f', label:'Payer Admin' },
+  payer_claims:      { color:'#3b82f6', label:'Payer Claims' },
+  payer_finance:     { color:'#8b5cf6', label:'Payer Finance' },
+  provider_admin:    { color:'#10b981', label:'Provider Admin' },
+  institution_admin: { color:'#f59e0b', label:'Institution Admin' },
+  insured:           { color:'#22c55e', label:'Insured' },
 };
 
 function RoleBadge({ role }) {
@@ -32,7 +36,6 @@ function RoleBadge({ role }) {
 
 export default function AdminUsers() {
   const [users, setUsers]           = useState([]);
-  const [agents, setAgents]         = useState([]);
   const [loading, setLoading]       = useState(true);
   const [total, setTotal]           = useState(0);
   const [page, setPage]             = useState(1);
@@ -41,7 +44,6 @@ export default function AdminUsers() {
   const [createModal, setCreate]    = useState(false);
   const [selected, setSelected]     = useState(null);
   const [detailModal, setDetail]    = useState(false);
-  const [assignModal, setAssign]    = useState(false);
   const [creating, setCreating]     = useState(false);
   const [createForm]                = Form.useForm();
 
@@ -51,19 +53,20 @@ export default function AdminUsers() {
       const p = new URLSearchParams({ page, limit:15 });
       if (roleFilter) p.set('role', roleFilter);
       if (search)     p.set('search', search);
-      const res = await api.get(`/users?${p}`);
+      const res = await api.get(`/admin/users?${p}`);
       setUsers(res.data.users);
-      setTotal(res.data.total);
+      setTotal(res.data.total || res.data.users.length);
+    } catch (err) {
+      console.error('Failed to load users:', err);
     } finally { setLoading(false); }
   };
 
   useEffect(() => { fetchUsers(); }, [page, roleFilter, search]);
-  useEffect(() => { api.get('/users/agents').then(r => setAgents(r.data.agents)); }, []);
 
   const handleCreate = async (values) => {
     setCreating(true);
     try {
-      await api.post('/users', values);
+      await api.post('/admin/users', values);
       message.success('User created successfully');
       setCreate(false);
       createForm.resetFields();
@@ -75,19 +78,10 @@ export default function AdminUsers() {
 
   const handleToggleActive = async (user) => {
     try {
-      const res = await api.patch(`/users/${user._id}/toggle-active`);
+      const res = await api.patch(`/admin/users/${user._id}/toggle`);
       setUsers(prev => prev.map(u => u._id === user._id ? res.data.user : u));
       message.success(`User ${res.data.user.isActive ? 'activated' : 'deactivated'}`);
     } catch { message.error('Failed to update user status'); }
-  };
-
-  const handleAssignAgent = async (agentId) => {
-    try {
-      await api.patch(`/users/${selected._id}/assign-agent`, { agentId: agentId || null });
-      message.success('Agent assigned successfully');
-      setAssign(false);
-      fetchUsers();
-    } catch { message.error('Failed to assign agent'); }
   };
 
   const columns = [
@@ -114,10 +108,8 @@ export default function AdminUsers() {
       render: (_, r) => <Text style={{ color:'#6b7280', fontSize:12 }}>{r.phone || '—'}</Text>,
     },
     {
-      title: 'Agent', width: 160,
-      render: (_, r) => r.role === 'customer'
-        ? <Text style={{ color:'#6b7280', fontSize:12 }}>{r.assignedAgent ? `${r.assignedAgent.firstName} ${r.assignedAgent.lastName}` : 'Unassigned'}</Text>
-        : <Text style={{ color:'#e8edf3', fontSize:12 }}>—</Text>,
+      title: 'Linked Entity', width: 160,
+      render: (_, r) => <Text style={{ color:'#6b7280', fontSize:12 }}>{r.linkedEntity?.entityType?.replace(/_/g,' ') || '—'}</Text>,
     },
     {
       title: 'Status', width: 100,
@@ -137,12 +129,6 @@ export default function AdminUsers() {
         <Space size={4}>
           <Button size="small" icon={<EyeOutlined />} style={{ background:'#f0f4f8', border:'1px solid #e8edf3', color:'#111827' }}
             onClick={() => { setSelected(r); setDetail(true); }} />
-          {r.role === 'customer' && (
-            <Button size="small" icon={<SwapOutlined />} style={{ background:'#f0f4f8', border:'1px solid #e8edf3', color:'#6b7280' }}
-              onClick={() => { setSelected(r); setAssign(true); }}>
-              Assign
-            </Button>
-          )}
           <Popconfirm title={`${r.isActive ? 'Deactivate' : 'Activate'} this user?`} onConfirm={() => handleToggleActive(r)} okText="Yes">
             <Button size="small" danger={r.isActive} type={r.isActive ? 'default' : 'primary'}
               icon={r.isActive ? <StopOutlined /> : <CheckCircleOutlined />} />
@@ -156,10 +142,10 @@ export default function AdminUsers() {
     <div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
         <div>
-          <Title level={4} style={{ color:'#111827', margin:0 }}>User Management</Title>
-          <Text style={{ color:'#9ca3af' }}>{total} total users across all roles</Text>
+          <Title level={3} style={{ color:'#111827', margin:0 }}>User Management</Title>
+          <Text style={{ color:'#6b7280' }}>{total} total users across all roles</Text>
         </div>
-        <Button type="primary" icon={<PlusOutlined />} size="large" style={{ height:42, fontWeight:600 }}
+        <Button icon={<PlusOutlined />} style={{ background:'#1e3a5f', borderColor:'#1e3a5f', color:'#fff', borderRadius:7, height:38, fontWeight:600 }}
           onClick={() => { createForm.resetFields(); setCreate(true); }}>
           Add User
         </Button>
@@ -211,7 +197,7 @@ export default function AdminUsers() {
           </Form.Item>
           <Row gutter={12}>
             <Col span={12}>
-              <Form.Item name="role" label="Role" initialValue="customer" rules={[{ required:true }]}>
+              <Form.Item name="role" label="Role" initialValue="insured" rules={[{ required:true }]}>
                 <Select options={Object.entries(ROLE_CONFIG).map(([v,c])=>({ value:v, label:c.label }))} />
               </Form.Item>
             </Col>
@@ -251,9 +237,9 @@ export default function AdminUsers() {
               </Tag>
             </Descriptions.Item>
             <Descriptions.Item label="Joined">{dayjs(selected.createdAt).format('MMMM D, YYYY')}</Descriptions.Item>
-            {selected.role === 'customer' && (
-              <Descriptions.Item label="Agent">
-                {selected.assignedAgent ? `${selected.assignedAgent.firstName} ${selected.assignedAgent.lastName}` : 'Unassigned'}
+            {selected.linkedEntity?.entityType && (
+              <Descriptions.Item label="Linked Entity">
+                {selected.linkedEntity.entityType?.replace(/_/g,' ')}
               </Descriptions.Item>
             )}
             {selected.address?.city && (
@@ -265,42 +251,6 @@ export default function AdminUsers() {
         )}
       </Modal>
 
-      {/* Assign agent modal */}
-      <Modal
-        title={<Text style={{ color:'#111827', fontWeight:700 }}>Assign Agent — {selected?.firstName}</Text>}
-        open={assignModal} onCancel={() => setAssign(false)} footer={null}
-        styles={{ content:{ background:'#ffffff' }, header:{ background:'#ffffff', borderBottom:'1px solid #e8edf3' } }}
-      >
-        <Text style={{ color:'#9ca3af', fontSize:13, display:'block', marginBottom:14 }}>
-          Select an agent to manage this customer:
-        </Text>
-        <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:12 }}>
-          {agents.map(a => {
-            const isCurrentAgent = selected?.assignedAgent?._id === a._id;
-            return (
-              <div key={a._id} onClick={() => handleAssignAgent(a._id)} style={{
-                background: isCurrentAgent ? '#eff6ff' : '#f8f9fc',
-                border:`1px solid ${isCurrentAgent ? '#22c55e' : '#e8edf3'}`,
-                borderRadius:10, padding:'12px 16px', cursor:'pointer',
-                display:'flex', justifyContent:'space-between', alignItems:'center',
-                transition:'all 0.15s',
-              }}>
-                <div style={{ display:'flex', gap:10, alignItems:'center' }}>
-                  <Avatar size={34} style={{ background:'#8b5cf618', color:'#8b5cf6', fontWeight:700, border:'1px solid #8b5cf633' }}>
-                    {a.firstName?.[0]}{a.lastName?.[0]}
-                  </Avatar>
-                  <div>
-                    <Text style={{ color:'#111827', fontWeight:600, fontSize:13 }}>{a.firstName} {a.lastName}</Text>
-                    <div style={{ color:'#9ca3af', fontSize:11 }}>{a.email}</div>
-                  </div>
-                </div>
-                {isCurrentAgent && <Tag style={{ background:'#10b98118', color:'#10b981', border:'1px solid #10b98133', fontSize:11 }}>Current</Tag>}
-              </div>
-            );
-          })}
-        </div>
-        <Button block danger onClick={() => handleAssignAgent(null)}>Remove Agent Assignment</Button>
-      </Modal>
     </div>
   );
 }

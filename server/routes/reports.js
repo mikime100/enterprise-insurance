@@ -1,87 +1,66 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
-const Policy = require('../models/Policy');
+const PolicyEnrollment = require('../models/PolicyEnrollment');
 const Claim = require('../models/Claim');
+const InsuredPerson = require('../models/InsuredPerson');
+const Institution = require('../models/Institution');
+const Provider = require('../models/Provider');
 const { requireAuth, requireRole } = require('../middleware/auth');
 
-router.use(requireAuth, requireRole('admin', 'agent'));
+router.use(requireAuth, requireRole('payer_admin', 'underwriter', 'claims_officer', 'finance_officer', 'superadmin'));
 
 router.get('/summary', async (req, res, next) => {
   try {
-    const isAdmin = req.user.role === 'admin';
-
-    let customerQuery = { role: 'customer' };
-    let policyQuery = {};
-    let claimQuery = {};
-
-    if (!isAdmin) {
-      const customers = await User.find({ assignedAgent: req.user._id }, '_id');
-      const customerIds = customers.map(c => c._id);
-      customerQuery._id = { $in: customerIds };
-      policyQuery.customer = { $in: customerIds };
-      claimQuery.customer = { $in: customerIds };
-    }
-
-    const openClaimStatuses = ['submitted', 'acknowledged', 'under_review', 'documentation_requested', 'investigation', 'assessment'];
+    const openClaimStatuses = [
+      'submitted', 'acknowledged', 'under_review',
+      'documentation_requested', 'investigation', 'assessment', 'pending_finance_approval'
+    ];
 
     const [
-      totalCustomers,
-      totalPolicies,
-      activePolicies,
+      totalEnrollments,
+      activeEnrollments,
       totalClaims,
       openClaims,
-      totalAgents,
+      totalInsuredPersons,
+      totalInstitutions,
+      totalProviders,
+      revenueResult
     ] = await Promise.all([
-      User.countDocuments(customerQuery),
-      Policy.countDocuments(policyQuery),
-      Policy.countDocuments({ ...policyQuery, status: 'active' }),
-      Claim.countDocuments(claimQuery),
-      Claim.countDocuments({ ...claimQuery, status: { $in: openClaimStatuses } }),
-      isAdmin ? User.countDocuments({ role: 'agent' }) : Promise.resolve(null),
+      PolicyEnrollment.countDocuments(),
+      PolicyEnrollment.countDocuments({ status: 'active' }),
+      Claim.countDocuments(),
+      Claim.countDocuments({ status: { $in: openClaimStatuses } }),
+      InsuredPerson.countDocuments({ isActive: true }),
+      Institution.countDocuments({ isActive: true }),
+      Provider.countDocuments({ isActive: true }),
+      PolicyEnrollment.aggregate([
+        { $match: { status: 'active' } },
+        { $group: { _id: null, annualRevenue: { $sum: '$premium.amount' } } }
+      ])
     ]);
 
-    const revenueResult = await Policy.aggregate([
-      { $match: { ...policyQuery, status: 'active' } },
-      { $group: { _id: null, monthlyRevenue: { $sum: '$premium.amount' } } },
-    ]);
-    const monthlyRevenue = revenueResult[0]?.monthlyRevenue || 0;
-
-    res.json({ totalCustomers, totalPolicies, activePolicies, totalClaims, openClaims, monthlyRevenue, ...(isAdmin && { totalAgents }) });
+    const annualRevenue = revenueResult[0]?.annualRevenue || 0;
+    res.json({ totalEnrollments, activeEnrollments, totalClaims, openClaims, totalInsuredPersons, totalInstitutions, totalProviders, annualRevenue });
   } catch (err) { next(err); }
 });
 
 router.get('/claims-by-status', async (req, res, next) => {
   try {
-    let matchStage = {};
-    if (req.user.role === 'agent') {
-      const customers = await User.find({ assignedAgent: req.user._id }, '_id');
-      matchStage.customer = { $in: customers.map(c => c._id) };
-    }
-
     const data = await Claim.aggregate([
-      { $match: matchStage },
       { $group: { _id: '$status', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
+      { $sort: { count: -1 } }
     ]);
     res.json({ data: data.map(d => ({ status: d._id, count: d.count })) });
   } catch (err) { next(err); }
 });
 
-router.get('/policies-by-type', async (req, res, next) => {
+router.get('/enrollments-by-type', async (req, res, next) => {
   try {
-    let matchStage = {};
-    if (req.user.role === 'agent') {
-      const customers = await User.find({ assignedAgent: req.user._id }, '_id');
-      matchStage.customer = { $in: customers.map(c => c._id) };
-    }
-
-    const data = await Policy.aggregate([
-      { $match: matchStage },
+    const data = await PolicyEnrollment.aggregate([
       { $lookup: { from: 'insuranceproducts', localField: 'product', foreignField: '_id', as: 'product' } },
       { $unwind: '$product' },
-      { $group: { _id: '$product.type', count: { $sum: 1 }, revenue: { $sum: '$premium.amount' } } },
-      { $sort: { count: -1 } },
+      { $group: { _id: '$product.productType', count: { $sum: 1 }, revenue: { $sum: '$premium.amount' } } },
+      { $sort: { count: -1 } }
     ]);
     res.json({ data: data.map(d => ({ type: d._id, count: d.count, revenue: d.revenue })) });
   } catch (err) { next(err); }
@@ -89,35 +68,31 @@ router.get('/policies-by-type', async (req, res, next) => {
 
 router.get('/recent-claims', async (req, res, next) => {
   try {
-    let query = {};
-    if (req.user.role === 'agent') {
-      const customers = await User.find({ assignedAgent: req.user._id }, '_id');
-      query.customer = { $in: customers.map(c => c._id) };
-    }
-    const claims = await Claim.find(query)
-      .populate('customer', 'firstName lastName')
-      .populate('policy', 'policyNumber')
+    const claims = await Claim.find()
+      .populate('insuredPerson', 'firstName lastName')
+      .populate('enrollment', 'enrollmentNumber')
+      .populate('assignedOfficer', 'firstName lastName')
       .sort({ createdAt: -1 })
       .limit(10);
     res.json({ claims });
   } catch (err) { next(err); }
 });
 
-router.get('/claims-trend', requireRole('admin'), async (req, res, next) => {
+router.get('/claims-trend', async (req, res, next) => {
   try {
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
     const data = await Claim.aggregate([
-      { $match: { createdAt: { $gte: sixMonthsAgo } } },
+      { $match: { incidentDate: { $gte: sixMonthsAgo } } },
       {
         $group: {
-          _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+          _id: { year: { $year: '$incidentDate' }, month: { $month: '$incidentDate' } },
           count: { $sum: 1 },
-          totalClaimed: { $sum: '$claimedAmount' },
-        },
+          totalClaimed: { $sum: '$claimedAmount' }
+        }
       },
-      { $sort: { '_id.year': 1, '_id.month': 1 } },
+      { $sort: { '_id.year': 1, '_id.month': 1 } }
     ]);
     res.json({ data });
   } catch (err) { next(err); }

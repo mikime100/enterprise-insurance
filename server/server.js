@@ -38,13 +38,26 @@ app.use(session({
   },
 }));
 
+// Auth
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/products', require('./routes/products'));
-app.use('/api/quotes', require('./routes/quotes'));
-app.use('/api/policies', require('./routes/policies'));
-app.use('/api/claims', require('./routes/claims'));
+
+// Product catalog (multi-role read, payer_admin write)
+app.use('/api/products',   require('./routes/products'));
+app.use('/api/coverages',  require('./routes/coverages'));
+app.use('/api/tiers',      require('./routes/tiers'));
+
+// Core insurance workflows
+app.use('/api/quotes',      require('./routes/quotes'));
+app.use('/api/enrollments', require('./routes/enrollments'));
+app.use('/api/claims',      require('./routes/claims'));
+app.use('/api/payments',    require('./routes/payments'));
+app.use('/api/agreements',  require('./routes/agreements'));
+
+// Analytics
 app.use('/api/reports', require('./routes/reports'));
+
+// Super admin entity management
+app.use('/api/admin', require('./routes/admin'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 

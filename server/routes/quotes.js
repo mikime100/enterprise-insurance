@@ -1,27 +1,29 @@
 const express = require('express');
 const router = express.Router();
 const Quote = require('../models/Quote');
-const Policy = require('../models/Policy');
-const User = require('../models/User');
+const PolicyEnrollment = require('../models/PolicyEnrollment');
 const { requireAuth, requireRole } = require('../middleware/auth');
 
 router.use(requireAuth);
 
 router.get('/', async (req, res, next) => {
   try {
-    let query = {};
-    if (req.user.role === 'customer') {
-      query.customer = req.user._id;
-    } else if (req.user.role === 'agent') {
-      const customers = await User.find({ assignedAgent: req.user._id }, '_id');
-      query.customer = { $in: customers.map(c => c._id) };
-    }
-    if (req.query.status) query.status = req.query.status;
+    const filter = {};
+    if (req.query.status) filter.status = req.query.status;
+    if (req.query.payerId) filter.payer = req.query.payerId;
 
-    const quotes = await Quote.find(query)
-      .populate('customer', 'firstName lastName email')
-      .populate('product', 'name type')
-      .populate('agent', 'firstName lastName')
+    if (req.user.role === 'institution_admin' && req.user.linkedEntity?.entityId) {
+      filter.institution = req.user.linkedEntity.entityId;
+    } else if (req.user.role === 'insured_person' && req.user.linkedEntity?.entityId) {
+      filter.insuredPerson = req.user.linkedEntity.entityId;
+    }
+
+    const quotes = await Quote.find(filter)
+      .populate('payer', 'name')
+      .populate('product', 'name productType')
+      .populate('institution', 'name')
+      .populate('insuredPerson', 'firstName lastName')
+      .populate('assignedUnderwriter', 'firstName lastName')
       .sort({ createdAt: -1 });
     res.json({ quotes });
   } catch (err) { next(err); }
@@ -30,124 +32,99 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const quote = await Quote.findById(req.params.id)
-      .populate('customer', 'firstName lastName email phone address dateOfBirth')
+      .populate('payer', 'name')
       .populate('product')
-      .populate('agent', 'firstName lastName email');
+      .populate('institution', 'name contactEmail')
+      .populate('insuredPerson', 'firstName lastName email')
+      .populate('requestedBy', 'firstName lastName')
+      .populate('assignedUnderwriter', 'firstName lastName')
+      .populate('scenarios.tier')
+      .populate('notes.author', 'firstName lastName role');
     if (!quote) return res.status(404).json({ message: 'Quote not found' });
-    if (req.user.role === 'customer' && quote.customer._id.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Forbidden' });
-    }
     res.json({ quote });
   } catch (err) { next(err); }
 });
 
 router.post('/', async (req, res, next) => {
   try {
-    const { productId, coverageDetails, frequency, notes, customerId } = req.body;
-
-    const customMonthlyPremiums = {
-      monthly: 1,
-      quarterly: 0.95,
-      'semi-annual': 0.92,
-      annual: 0.88,
-    };
-
-    const InsuranceProduct = require('../models/InsuranceProduct');
-    const product = await InsuranceProduct.findById(productId);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
-
-    const selectedCoverageTotal = (coverageDetails?.selectedOptions || []).reduce((sum, optionName) => {
-      const opt = product.coverageOptions.find(o => o.name === optionName);
-      return sum + (opt ? opt.basePrice : 0);
-    }, 0);
-
-    const basePremium = product.baseMonthlyPremium + selectedCoverageTotal;
-    const multiplier = customMonthlyPremiums[frequency] || 1;
-    const calculatedPremium = parseFloat((basePremium * multiplier).toFixed(2));
-
-    const targetCustomer = req.user.role === 'customer' ? req.user._id : customerId;
-    const agentId = req.user.role === 'agent' ? req.user._id : undefined;
-
-    const validUntil = new Date();
-    validUntil.setDate(validUntil.getDate() + 30);
-
     const quote = new Quote({
-      customer: targetCustomer,
-      product: productId,
-      agent: agentId,
-      coverageDetails,
-      calculatedPremium,
-      frequency: frequency || 'monthly',
-      validUntil,
-      notes,
+      ...req.body,
+      requestedBy: req.user._id,
+      status: 'submitted',
+      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
     });
     await quote.save();
-
-    const populated = await Quote.findById(quote._id)
-      .populate('product', 'name type')
-      .populate('customer', 'firstName lastName email');
-    res.status(201).json({ quote: populated });
+    res.status(201).json({ quote });
   } catch (err) { next(err); }
 });
 
-router.patch('/:id/status', requireRole('admin', 'agent'), async (req, res, next) => {
+// Underwriter takes ownership and adds scenarios/risk assessment
+router.patch('/:id/underwrite', requireRole('underwriter', 'payer_admin', 'superadmin'), async (req, res, next) => {
   try {
-    const { status, notes } = req.body;
-    const quote = await Quote.findByIdAndUpdate(
-      req.params.id,
-      { status, ...(notes && { notes }) },
-      { new: true }
-    ).populate('customer', 'firstName lastName').populate('product', 'name');
+    const quote = await Quote.findById(req.params.id);
     if (!quote) return res.status(404).json({ message: 'Quote not found' });
+
+    quote.assignedUnderwriter = req.user._id;
+    quote.status = 'under_review';
+    if (req.body.riskFactors) quote.riskFactors = req.body.riskFactors;
+    if (req.body.scenarios) quote.scenarios = req.body.scenarios;
+    if (req.body.note) quote.notes.push({ author: req.user._id, content: req.body.note });
+    await quote.save();
     res.json({ quote });
   } catch (err) { next(err); }
 });
 
-// Accept quote and create policy (customer action with mock payment)
+// Approve / reject quote
+router.patch('/:id/status', requireRole('underwriter', 'payer_admin', 'superadmin'), async (req, res, next) => {
+  try {
+    const { status, note, finalPremium } = req.body;
+    const allowed = ['approved', 'rejected', 'under_review', 'expired'];
+    if (!allowed.includes(status)) return res.status(400).json({ message: 'Invalid status' });
+
+    const quote = await Quote.findById(req.params.id);
+    if (!quote) return res.status(404).json({ message: 'Quote not found' });
+
+    quote.status = status;
+    if (finalPremium !== undefined) quote.finalPremium = finalPremium;
+    if (note) quote.notes.push({ author: req.user._id, content: note });
+    await quote.save();
+    res.json({ quote });
+  } catch (err) { next(err); }
+});
+
+// Accept approved quote → create PolicyEnrollment
 router.post('/:id/accept', async (req, res, next) => {
   try {
     const quote = await Quote.findById(req.params.id).populate('product');
     if (!quote) return res.status(404).json({ message: 'Quote not found' });
-    if (req.user.role === 'customer' && quote.customer.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Forbidden' });
-    }
-    if (quote.status !== 'pending' && quote.status !== 'reviewed') {
-      return res.status(400).json({ message: 'Quote cannot be accepted in its current state' });
-    }
+    if (quote.status !== 'approved') return res.status(400).json({ message: 'Only approved quotes can be accepted' });
 
-    const { paymentMethod = 'credit_card' } = req.body;
+    const selectedIdx = req.body.selectedScenario ?? 0;
+    quote.status = 'accepted';
+    quote.selectedScenario = selectedIdx;
+    await quote.save();
+
+    const selectedTier = quote.scenarios[selectedIdx]?.tier;
+    const premium = quote.finalPremium || quote.scenarios[selectedIdx]?.annualPremium || quote.product.baseAnnualPremium;
 
     const startDate = new Date();
-    const endDate = new Date();
+    const endDate = new Date(startDate);
     endDate.setFullYear(endDate.getFullYear() + 1);
 
-    const policy = new Policy({
-      customer: quote.customer,
-      product: quote.product._id,
-      agent: quote.agent,
+    const enrollment = new PolicyEnrollment({
       quote: quote._id,
-      status: 'active',
-      coverageDetails: quote.coverageDetails,
-      premium: { amount: quote.calculatedPremium, frequency: quote.frequency },
+      product: quote.product._id,
+      tier: selectedTier,
+      payer: quote.payer,
+      institution: quote.institution || undefined,
+      status: 'pending',
       startDate,
       endDate,
       renewalDate: endDate,
-      paymentHistory: [{
-        amount: quote.calculatedPremium,
-        method: paymentMethod,
-        status: 'completed',
-        transactionId: `TXN-${Date.now()}`,
-      }],
+      premium: { amount: premium, frequency: 'annual' }
     });
-    await policy.save();
-
-    quote.status = 'accepted';
-    await quote.save();
-
-    const populated = await Policy.findById(policy._id)
-      .populate('product', 'name type')
-      .populate('customer', 'firstName lastName');
-    res.status(201).json({ policy: populated });
+    await enrollment.save();
+    res.status(201).json({ quote, enrollment });
   } catch (err) { next(err); }
 });
 

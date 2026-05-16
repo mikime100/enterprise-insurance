@@ -1,44 +1,123 @@
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Layout, Menu, Avatar, Dropdown, Typography, Space, Button, Tooltip, Badge, Divider } from 'antd';
+import { Layout, Menu, Avatar, Dropdown, Badge, Button, Tooltip, Input } from 'antd';
 import {
   DashboardOutlined, FileTextOutlined, SafetyOutlined, AlertOutlined,
-  UserOutlined, TeamOutlined, BarChartOutlined, LogoutOutlined,
-  MenuFoldOutlined, MenuUnfoldOutlined, ShopOutlined, BellOutlined,
-  QuestionCircleOutlined,
+  TeamOutlined, BarChartOutlined, LogoutOutlined, ShopOutlined,
+  BellOutlined, QuestionCircleOutlined, SearchOutlined,
+  AuditOutlined, BankOutlined, PartitionOutlined, MedicineBoxOutlined,
+  HomeOutlined, ContainerOutlined, DollarOutlined, ApiOutlined,
+  MenuFoldOutlined, MenuUnfoldOutlined, PlusOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../../contexts/AuthContext';
 
 const { Sider, Header, Content } = Layout;
-const { Text } = Typography;
 
+// ─── Design tokens ───────────────────────────────────────────────────────────
+const SIDEBAR_BG     = '#111827';
+const SIDEBAR_BORDER = 'rgba(255,255,255,0.07)';
+const ACTIVE_BG      = '#16a34a';
+const ACTIVE_BORDER  = 'transparent';
+const NAV_INACTIVE   = '#9ca3af';
+const NAV_ACTIVE     = '#ffffff';
+const LOGO_GREEN     = '#16a34a';
+const CTA_GREEN      = '#16a34a';
+const PRIMARY_NAVY   = '#1e3a5f';
+
+// ─── Nav definitions ─────────────────────────────────────────────────────────
 const NAV = {
-  customer: [
-    { key: '/customer/dashboard', icon: <DashboardOutlined />, label: 'Dashboard' },
-    { key: '/customer/quotes',    icon: <FileTextOutlined />,  label: 'Get a Quote' },
-    { key: '/customer/policies',  icon: <SafetyOutlined />,    label: 'My Policies' },
-    { key: '/customer/claims',    icon: <AlertOutlined />,     label: 'My Claims' },
-    { key: '/customer/profile',   icon: <UserOutlined />,      label: 'Profile' },
+  payer_admin: [
+    { key: '/payer/dashboard',   icon: <DashboardOutlined />, label: 'Dashboard' },
+    { key: '/payer/quotes',      icon: <FileTextOutlined />,  label: 'Underwriting' },
+    { key: '/payer/enrollments', icon: <AuditOutlined />,     label: 'Policies' },
+    { key: '/payer/claims',      icon: <AlertOutlined />,     label: 'Claims' },
+    { key: '/payer/products',    icon: <ShopOutlined />,      label: 'Products' },
+    { key: '/payer/coverages',   icon: <SafetyOutlined />,    label: 'Coverages' },
+    { key: '/payer/providers',   icon: <BankOutlined />,      label: 'Providers' },
+    { key: '/payer/reports',     icon: <BarChartOutlined />,  label: 'Reports' },
   ],
-  agent: [
-    { key: '/agent/dashboard',  icon: <DashboardOutlined />, label: 'Dashboard' },
-    { key: '/agent/customers',  icon: <TeamOutlined />,      label: 'Customers' },
-    { key: '/agent/policies',   icon: <SafetyOutlined />,    label: 'Policies' },
-    { key: '/agent/claims',     icon: <AlertOutlined />,     label: 'Claims' },
-    { key: '/agent/reports',    icon: <BarChartOutlined />,  label: 'Reports' },
+  underwriter: [
+    { key: '/payer/dashboard',   icon: <DashboardOutlined />, label: 'Dashboard' },
+    { key: '/payer/quotes',      icon: <FileTextOutlined />,  label: 'Underwriting' },
+    { key: '/payer/enrollments', icon: <AuditOutlined />,     label: 'Policies' },
+    { key: '/payer/products',    icon: <ShopOutlined />,      label: 'Products' },
+    { key: '/payer/reports',     icon: <BarChartOutlined />,  label: 'Reports' },
   ],
-  admin: [
-    { key: '/admin/dashboard', icon: <DashboardOutlined />, label: 'Dashboard' },
-    { key: '/admin/users',     icon: <TeamOutlined />,      label: 'User Management' },
-    { key: '/admin/products',  icon: <ShopOutlined />,      label: 'Products' },
-    { key: '/admin/reports',   icon: <BarChartOutlined />,  label: 'Reports' },
+  claims_officer: [
+    { key: '/payer/dashboard',   icon: <DashboardOutlined />, label: 'Dashboard' },
+    { key: '/payer/claims',      icon: <AlertOutlined />,     label: 'Claims' },
+    { key: '/payer/enrollments', icon: <AuditOutlined />,     label: 'Policies' },
+    { key: '/payer/reports',     icon: <BarChartOutlined />,  label: 'Reports' },
+  ],
+  finance_officer: [
+    { key: '/payer/dashboard',   icon: <DashboardOutlined />, label: 'Dashboard' },
+    { key: '/payer/claims',      icon: <AlertOutlined />,     label: 'Claims' },
+    { key: '/payer/enrollments', icon: <AuditOutlined />,     label: 'Policies' },
+    { key: '/payer/reports',     icon: <BarChartOutlined />,  label: 'Financial Reports' },
+  ],
+  sales_broker: [
+    { key: '/payer/dashboard',   icon: <DashboardOutlined />, label: 'Dashboard' },
+    { key: '/payer/quotes',      icon: <FileTextOutlined />,  label: 'Underwriting' },
+    { key: '/payer/products',    icon: <ShopOutlined />,      label: 'Products' },
+  ],
+  customer_support: [
+    { key: '/payer/dashboard',   icon: <DashboardOutlined />, label: 'Dashboard' },
+    { key: '/payer/claims',      icon: <AlertOutlined />,     label: 'Claims' },
+    { key: '/payer/enrollments', icon: <AuditOutlined />,     label: 'Policies' },
+  ],
+  provider_admin: [
+    { key: '/provider/dashboard',    icon: <DashboardOutlined />,  label: 'Dashboard' },
+    { key: '/provider/submit-claim', icon: <ContainerOutlined />,  label: 'Submit Claim' },
+    { key: '/provider/claims',       icon: <AlertOutlined />,      label: 'My Claims' },
+  ],
+  institution_admin: [
+    { key: '/institution/dashboard', icon: <DashboardOutlined />,  label: 'Dashboard' },
+    { key: '/institution/groups',    icon: <PartitionOutlined />,  label: 'Departments' },
+    { key: '/institution/employees', icon: <TeamOutlined />,       label: 'Employees' },
+    { key: '/institution/policy',    icon: <SafetyOutlined />,     label: 'Our Policy' },
+    { key: '/institution/claims',    icon: <AlertOutlined />,      label: 'Employee Claims' },
+  ],
+  insured_person: [
+    { key: '/insured/dashboard',  icon: <DashboardOutlined />,  label: 'Dashboard' },
+    { key: '/insured/coverage',   icon: <MedicineBoxOutlined />,label: 'My Benefits' },
+    { key: '/insured/claims',     icon: <AlertOutlined />,      label: 'My Claims' },
+    { key: '/insured/dependents', icon: <TeamOutlined />,       label: 'Dependents' },
+  ],
+  superadmin: [
+    { key: '/admin/dashboard',    icon: <DashboardOutlined />, label: 'Dashboard' },
+    { key: '/admin/payers',       icon: <BankOutlined />,      label: 'Payers' },
+    { key: '/admin/providers',    icon: <HomeOutlined />,      label: 'Providers' },
+    { key: '/admin/institutions', icon: <AuditOutlined />,     label: 'Institutions' },
+    { key: '/admin/users',        icon: <TeamOutlined />,      label: 'Users' },
+    { key: '/admin/reports',      icon: <BarChartOutlined />,  label: 'Reports' },
   ],
 };
 
 const ROLE_META = {
-  customer:  { label: 'Customer',      color: '#3b82f6', bg: 'rgba(59,130,246,0.12)'  },
-  agent:     { label: 'Agent',         color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)'  },
-  admin:     { label: 'Administrator', color: '#ec4899', bg: 'rgba(236,72,153,0.12)'  },
+  payer_admin:       { label: 'Payer Admin' },
+  underwriter:       { label: 'Underwriter' },
+  claims_officer:    { label: 'Claims Officer' },
+  finance_officer:   { label: 'Finance Officer' },
+  sales_broker:      { label: 'Sales Broker' },
+  customer_support:  { label: 'Support' },
+  provider_admin:    { label: 'Provider' },
+  institution_admin: { label: 'Institution HR' },
+  insured_person:    { label: 'Insured Person' },
+  superadmin:        { label: 'Super Admin' },
+};
+
+// CTA config per role — what the sidebar "New …" button does
+const CTA_CONFIG = {
+  payer_admin:    { label: 'New Claim',     path: '/payer/claims' },
+  claims_officer: { label: 'New Claim',     path: '/payer/claims' },
+  finance_officer:{ label: 'New Claim',     path: '/payer/claims' },
+  underwriter:    { label: 'New Quote',     path: '/payer/quotes' },
+  sales_broker:   { label: 'New Quote',     path: '/payer/quotes' },
+  customer_support:{ label: 'New Claim',    path: '/payer/claims' },
+  provider_admin: { label: 'Submit Claim',  path: '/provider/submit-claim' },
+  institution_admin:{ label: 'Add Employee',path: '/institution/employees' },
+  insured_person: { label: 'File Claim',    path: '/insured/claims' },
+  superadmin:     { label: 'Add User',      path: '/admin/users' },
 };
 
 export default function AppLayout() {
@@ -49,12 +128,20 @@ export default function AppLayout() {
 
   const navItems = NAV[user?.role] || [];
   const activeKey = navItems.find(i => location.pathname.startsWith(i.key))?.key;
-  const meta = ROLE_META[user?.role] || ROLE_META.customer;
+  const meta = ROLE_META[user?.role] || { label: 'User' };
+  const cta  = CTA_CONFIG[user?.role];
+
+  const siderWidth = 256;
 
   const userMenuItems = [
     {
-      key: 'profile', icon: <UserOutlined />, label: 'My Profile',
-      onClick: () => navigate(`/${user?.role}/profile`),
+      key: 'profile', label: (
+        <div style={{ padding: '4px 0' }}>
+          <div style={{ fontWeight: 600, color: '#111827' }}>{user?.firstName} {user?.lastName}</div>
+          <div style={{ fontSize: 11, color: '#6b7280' }}>{user?.email}</div>
+          <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{meta.label}</div>
+        </div>
+      ), disabled: true,
     },
     { type: 'divider' },
     {
@@ -63,88 +150,73 @@ export default function AppLayout() {
     },
   ];
 
-  const siderWidth = 260;
-
   return (
-    <Layout style={{ minHeight: '100vh', background: '#f5f6fa' }}>
-      {/* ─── Sidebar ─── */}
+    <Layout style={{ minHeight: '100vh', background: '#f5f7fa' }}>
+
+      {/* ─── Sidebar ───────────────────────────────────────────────────────── */}
       <Sider
         collapsible collapsed={collapsed} trigger={null}
-        width={siderWidth} collapsedWidth={72}
+        width={siderWidth} collapsedWidth={68}
         style={{
-          background: '#111417',
-          borderRight: '1px solid #1e2730',
+          background: SIDEBAR_BG,
           position: 'fixed', left: 0, top: 0, bottom: 0,
           zIndex: 200, overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
+          boxShadow: '2px 0 12px rgba(0,0,0,0.25)',
         }}
       >
         {/* Logo */}
         <div style={{
-          padding: collapsed ? '14px 0' : '14px 16px',
-          borderBottom: '1px solid #1e2730',
-          display: 'flex', alignItems: 'center',
-          gap: 10, cursor: 'pointer', justifyContent: collapsed ? 'center' : 'flex-start',
-          minHeight: 72,
+          padding: collapsed ? '18px 0' : '18px 20px',
+          borderBottom: `1px solid ${SIDEBAR_BORDER}`,
+          display: 'flex', alignItems: 'center', gap: 12,
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          minHeight: 70, cursor: 'pointer',
         }} onClick={() => navigate('/')}>
-          <img
-            src="/logo.png"
-            alt="Nile Insurance"
-            style={{ height: collapsed ? 40 : 38, width: 'auto', objectFit: 'contain', flexShrink: 0 }}
-          />
+          <div style={{
+            width: 38, height: 38, borderRadius: 10, flexShrink: 0,
+            background: LOGO_GREEN,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(22,163,74,0.4)',
+          }}>
+            {/* Wave-style icon */}
+            <svg width="22" height="14" viewBox="0 0 22 14" fill="none">
+              <path d="M1 7 Q4 2, 7 7 Q10 12, 13 7 Q16 2, 19 7 Q20.5 9.5, 22 7" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none"/>
+            </svg>
+          </div>
           {!collapsed && (
-            <div style={{ lineHeight: 1.2, overflow: 'hidden' }}>
-              <div style={{ color: '#f1f5f9', fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap' }}>Nile Insurance</div>
-              <div style={{ color: '#60a5fa', fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Management Platform</div>
+            <div style={{ lineHeight: 1.25, overflow: 'hidden' }}>
+              <div style={{ color: '#ffffff', fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap' }}>Enterprise Ins.</div>
+              <div style={{ color: NAV_INACTIVE, fontSize: 10, fontWeight: 500, whiteSpace: 'nowrap' }}>Digital Platform</div>
             </div>
           )}
         </div>
 
-        {/* User card */}
-        {!collapsed ? (
-          <div style={{ padding: '14px 16px', borderBottom: '1px solid #1e2730' }}>
-            <div style={{
-              background: 'rgba(255,255,255,0.05)', borderRadius: 10,
-              border: '1px solid #1e2730', padding: '12px 14px',
-              display: 'flex', alignItems: 'center', gap: 10,
-            }}>
-              <Avatar size={38} style={{ background: meta.color, fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
-                {user?.firstName?.[0]}{user?.lastName?.[0]}
-              </Avatar>
-              <div style={{ overflow: 'hidden', flex: 1 }}>
-                <div style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {user?.firstName} {user?.lastName}
-                </div>
-                <div style={{ color: '#64748b', fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {user?.email}
-                </div>
-                <div style={{
-                  marginTop: 5, display: 'inline-block',
-                  background: meta.bg, color: meta.color,
-                  fontSize: 9, fontWeight: 700, letterSpacing: '0.08em',
-                  textTransform: 'uppercase', padding: '2px 7px', borderRadius: 20,
-                  border: `1px solid ${meta.color}44`,
-                }}>
-                  {meta.label}
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div style={{ padding: '12px 0', borderBottom: '1px solid #1e2730', display: 'flex', justifyContent: 'center' }}>
-            <Avatar size={36} style={{ background: meta.color, fontWeight: 700, fontSize: 13 }}>
-              {user?.firstName?.[0]}{user?.lastName?.[0]}
-            </Avatar>
+        {/* CTA Button */}
+        {cta && (
+          <div style={{ padding: collapsed ? '12px 10px' : '12px 14px', borderBottom: `1px solid ${SIDEBAR_BORDER}` }}>
+            <button
+              onClick={() => navigate(cta.path)}
+              style={{
+                width: '100%', padding: collapsed ? '9px 0' : '9px 0',
+                background: CTA_GREEN, border: 'none', borderRadius: 8,
+                color: '#ffffff', fontWeight: 700,
+                fontSize: collapsed ? 16 : 13, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                boxShadow: '0 2px 8px rgba(22,163,74,0.35)',
+                transition: 'background 0.2s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#15803d'}
+              onMouseLeave={e => e.currentTarget.style.background = CTA_GREEN}
+            >
+              <PlusOutlined style={{ fontSize: 13 }} />
+              {!collapsed && cta.label}
+            </button>
           </div>
         )}
 
         {/* Navigation */}
-        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '8px 0' }}>
-          {!collapsed && (
-            <div style={{ padding: '12px 20px 6px', color: '#374151', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              Navigation
-            </div>
-          )}
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '10px 0' }}>
           <Menu
             theme="dark" mode="inline"
             selectedKeys={[activeKey]}
@@ -155,7 +227,7 @@ export default function AppLayout() {
               icon: (
                 <span style={{
                   fontSize: 16,
-                  color: activeKey === item.key ? '#60a5fa' : '#64748b',
+                  color: activeKey === item.key ? NAV_ACTIVE : NAV_INACTIVE,
                   transition: 'color 0.2s',
                 }}>
                   {item.icon}
@@ -163,7 +235,7 @@ export default function AppLayout() {
               ),
               label: (
                 <span style={{
-                  color: activeKey === item.key ? '#ffffff' : '#94a3b8',
+                  color: activeKey === item.key ? NAV_ACTIVE : NAV_INACTIVE,
                   fontWeight: activeKey === item.key ? 600 : 400,
                   fontSize: 14,
                   transition: 'color 0.2s',
@@ -172,48 +244,58 @@ export default function AppLayout() {
                 </span>
               ),
               style: {
-                margin: '1px 8px',
+                margin: '2px 8px',
                 borderRadius: 8,
-                height: 42,
-                lineHeight: '42px',
-                paddingLeft: collapsed ? undefined : 12,
-                background: activeKey === item.key
-                  ? 'rgba(29,78,216,0.18)'
-                  : 'transparent',
-                borderLeft: activeKey === item.key ? '2px solid #60a5fa' : '2px solid transparent',
+                height: 44,
+                lineHeight: '44px',
+                background: activeKey === item.key ? ACTIVE_BG : 'transparent',
                 transition: 'all 0.2s',
               },
             }))}
           />
         </div>
 
-        {/* Bottom links */}
-        <div style={{ padding: '8px 8px 12px', borderTop: '1px solid #1e2730' }}>
+        {/* User info + logout at bottom */}
+        <div style={{ borderTop: `1px solid ${SIDEBAR_BORDER}` }}>
           {!collapsed ? (
-            <Space direction="vertical" style={{ width: '100%' }} size={2}>
-              <div
-                style={{ padding: '8px 12px', borderRadius: 8, cursor: 'pointer', color: '#64748b', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'}
-                onMouseLeave={e => e.currentTarget.style.color = '#64748b'}
-              >
-                <QuestionCircleOutlined /> Help & Support
+            <>
+              <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Avatar size={36} style={{ background: LOGO_GREEN, fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
+                  {user?.firstName?.[0]}{user?.lastName?.[0]}
+                </Avatar>
+                <div style={{ flex: 1, overflow: 'hidden' }}>
+                  <div style={{ color: '#ffffff', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {user?.firstName} {user?.lastName}
+                  </div>
+                  <div style={{ color: NAV_INACTIVE, fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {meta.label}
+                  </div>
+                </div>
               </div>
-              <div
-                onClick={async () => { await logout(); navigate('/login'); }}
-                style={{ padding: '8px 12px', borderRadius: 8, cursor: 'pointer', color: '#ef444466', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
-                onMouseLeave={e => e.currentTarget.style.color = '#ef444466'}
-              >
-                <LogoutOutlined /> Sign Out
+              <div style={{ padding: '0 14px 14px' }}>
+                <button
+                  onClick={async () => { await logout(); navigate('/login'); }}
+                  style={{
+                    width: '100%', padding: '8px 0', borderRadius: 8,
+                    background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
+                    color: '#d1d5db', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.13)'; e.currentTarget.style.color = '#fff'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.color = '#d1d5db'; }}
+                >
+                  <LogoutOutlined style={{ fontSize: 13 }} /> Logout
+                </button>
               </div>
-            </Space>
+            </>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-              <Tooltip title="Help" placement="right">
-                <Button type="text" icon={<QuestionCircleOutlined />} style={{ color: '#64748b' }} />
-              </Tooltip>
-              <Tooltip title="Sign Out" placement="right">
-                <Button type="text" icon={<LogoutOutlined />} style={{ color: '#ef444466' }}
+            <div style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+              <Avatar size={34} style={{ background: LOGO_GREEN, fontWeight: 700, fontSize: 12 }}>
+                {user?.firstName?.[0]}{user?.lastName?.[0]}
+              </Avatar>
+              <Tooltip title="Logout" placement="right">
+                <LogoutOutlined style={{ color: NAV_INACTIVE, fontSize: 14, cursor: 'pointer' }}
                   onClick={async () => { await logout(); navigate('/login'); }} />
               </Tooltip>
             </div>
@@ -221,54 +303,97 @@ export default function AppLayout() {
         </div>
       </Sider>
 
-      {/* ─── Main area ─── */}
-      <Layout style={{ marginLeft: collapsed ? 72 : siderWidth, transition: 'margin 0.2s ease', background: '#f5f6fa' }}>
+      {/* ─── Main area ─────────────────────────────────────────────────────── */}
+      <Layout style={{ marginLeft: collapsed ? 68 : siderWidth, transition: 'margin 0.2s ease', background: '#f5f7fa' }}>
+
         {/* Header */}
         <Header style={{
-          background: '#ffffff', borderBottom: '1px solid #e8edf3',
-          padding: '0 24px', height: 64,
+          background: '#ffffff',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '0 20px',
+          height: 64,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           position: 'sticky', top: 0, zIndex: 100,
-          boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+          gap: 16,
         }}>
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            style={{ color: '#6b7280', fontSize: 17, width: 40, height: 40 }}
-          />
+          {/* Left: collapse + search */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              style={{ color: '#6b7280', fontSize: 17, width: 38, height: 38, flexShrink: 0 }}
+            />
+            <Input
+              prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
+              placeholder="Search policies, claims..."
+              style={{
+                background: '#f3f4f6', border: 'none', borderRadius: 8,
+                maxWidth: 360, height: 38, fontSize: 13,
+              }}
+            />
+          </div>
 
-          <Space size={8}>
-            <Tooltip title="Notifications">
-              <Badge count={3} size="small" offset={[-2, 2]}>
-                <Button type="text" icon={<BellOutlined />} style={{ color: '#6b7280', fontSize: 17, width: 40, height: 40 }} />
-              </Badge>
-            </Tooltip>
-
-            <div style={{ width: 1, height: 24, background: '#e8edf3' }} />
-
-            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '4px 8px', borderRadius: 8, transition: 'background 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          {/* Right: actions + user */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, height: 64 }}>
+            {/* Emergency Claim — shown for payer/claims roles */}
+            {['payer_admin','claims_officer','finance_officer','superadmin'].includes(user?.role) && (
+              <button
+                onClick={() => navigate(user?.role === 'superadmin' ? '/admin/reports' : '/payer/claims')}
+                style={{
+                  height: 34, padding: '0 12px', borderRadius: 7, border: `1.5px solid ${LOGO_GREEN}`,
+                  background: 'transparent', color: LOGO_GREEN, fontWeight: 600, fontSize: 12,
+                  cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s', lineHeight: '34px',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#f0fdf4'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
               >
-                <Avatar size={34} style={{ background: meta.color, fontWeight: 700, fontSize: 13 }}>
+                Emergency Claim
+              </button>
+            )}
+
+            {/* ETB Wallet / Reports shortcut */}
+            <button
+              onClick={() => {
+                const reportPaths = { superadmin: '/admin/reports', provider_admin: '/provider/claims', institution_admin: '/institution/claims', insured_person: '/insured/claims' };
+                navigate(reportPaths[user?.role] || '/payer/reports');
+              }}
+              style={{
+                height: 34, padding: '0 14px', borderRadius: 7, border: 'none',
+                background: PRIMARY_NAVY, color: '#ffffff', fontWeight: 600, fontSize: 12,
+                cursor: 'pointer', whiteSpace: 'nowrap', transition: 'background 0.2s', lineHeight: '34px',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#162d4a'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = PRIMARY_NAVY; }}
+            >
+              ETB Wallet
+            </button>
+
+            {/* Notifications */}
+            <Badge count={3} size="small">
+              <Button type="text" icon={<BellOutlined />}
+                style={{ color: '#6b7280', fontSize: 18, width: 38, height: 38 }} />
+            </Badge>
+
+            <Button type="text" icon={<QuestionCircleOutlined />}
+              style={{ color: '#6b7280', fontSize: 17, width: 38, height: 38 }} />
+
+            {/* Avatar dropdown */}
+            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
+              <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                <Avatar
+                  size={36}
+                  style={{ background: LOGO_GREEN, fontWeight: 700, fontSize: 13 }}
+                >
                   {user?.firstName?.[0]}{user?.lastName?.[0]}
                 </Avatar>
-                <div>
-                  <div style={{ color: '#111827', fontSize: 13, fontWeight: 600, lineHeight: 1.2 }}>
-                    {user?.firstName} {user?.lastName}
-                  </div>
-                  <div style={{ color: meta.color, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    {meta.label}
-                  </div>
-                </div>
               </div>
             </Dropdown>
-          </Space>
+          </div>
         </Header>
 
-        <Content style={{ padding: '24px', minHeight: 'calc(100vh - 64px)', background: '#f5f6fa' }}>
+        <Content style={{ padding: '24px', minHeight: 'calc(100vh - 64px)', background: '#f5f7fa' }}>
           <Outlet />
         </Content>
       </Layout>

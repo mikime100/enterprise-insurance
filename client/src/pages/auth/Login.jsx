@@ -7,15 +7,19 @@ import { useAuth } from '../../contexts/AuthContext';
 const { Title, Text } = Typography;
 
 const DEMOS = [
-  { role: 'Admin',    email: 'admin@insurance.com',       password: 'Admin@123',    color: '#ec4899', desc: 'Full system access' },
-  { role: 'Agent',    email: 'sarah.agent@insurance.com', password: 'Agent@123',    color: '#8b5cf6', desc: 'Agent portal' },
-  { role: 'Customer', email: 'michael@customer.com',      password: 'Customer@123', color: '#1d4ed8', desc: 'Customer portal' },
+  { role: 'Super Admin',    email: 'admin@nileinsurance.com',         password: 'Admin@123',       color: '#22c55e', desc: 'Full system access' },
+  { role: 'Payer Admin',    email: 'payer.admin@nileinsurance.com',   password: 'Payer@123',       color: '#1e3a5f', desc: 'Nile Insurance staff' },
+  { role: 'Underwriter',    email: 'underwriter@nileinsurance.com',   password: 'Under@123',       color: '#8b5cf6', desc: 'Quote & underwriting' },
+  { role: 'Claims Officer', email: 'claims@nileinsurance.com',        password: 'Claims@123',      color: '#f59e0b', desc: 'Claims processing' },
+  { role: 'Provider',       email: 'billing@stgabriel.com',           password: 'Provider@123',    color: '#ec4899', desc: 'St. Gabriel Hospital' },
+  { role: 'Institution HR', email: 'hr@ethiotelecom.et',              password: 'Institution@123', color: '#f97316', desc: 'Ethio Telecom HR' },
+  { role: 'Insured Person', email: 'biruk@ethiotelecom.et',           password: 'Insured@123',     color: '#06b6d4', desc: 'Employee portal' },
 ];
 
 const FEATURES = [
-  { title: 'Smart Policy Management', desc: 'Manage all your insurance policies in one unified dashboard.' },
-  { title: 'Real-Time Claims',        desc: 'File and track claims with live status updates and workflow.' },
-  { title: 'Instant Quotes',          desc: 'Compare coverage options and get instant pricing in minutes.' },
+  { title: 'Multi-Stakeholder Portals', desc: 'Separate dashboards for payers, providers, institutions, and insured persons.' },
+  { title: 'End-to-End Claims Workflow', desc: 'Submit, track, assess, and settle claims with full audit trail.' },
+  { title: 'Quote & Enrollment Engine', desc: 'Dynamic underwriting, scenario pricing, and digital policy issuance.' },
 ];
 
 export default function Login() {
@@ -29,66 +33,64 @@ export default function Login() {
     setLoading(true); setError('');
     try {
       const user = await login(email, password);
-      navigate(user.role === 'admin' ? '/admin/dashboard' : user.role === 'agent' ? '/agent/dashboard' : '/customer/dashboard');
+      const PAYER_ROLES = ['payer_admin', 'underwriter', 'claims_officer', 'finance_officer', 'sales_broker', 'customer_support'];
+      if (user.role === 'superadmin') navigate('/admin/dashboard');
+      else if (PAYER_ROLES.includes(user.role)) navigate('/payer/dashboard');
+      else if (user.role === 'provider_admin') navigate('/provider/dashboard');
+      else if (user.role === 'institution_admin') navigate('/institution/dashboard');
+      else navigate('/insured/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally { setLoading(false); }
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', background: '#ffffff' }}>
+    <div style={{ height: '100vh', display: 'flex', background: '#ffffff', overflow: 'hidden' }}>
 
-      {/* ── Left panel — navy matching logo oval ── */}
+      {/* ── Left panel ── */}
       <div style={{
         flex: 1, display: 'none', flexDirection: 'column', justifyContent: 'center',
-        padding: '60px 64px', position: 'relative', overflow: 'hidden',
-        background: 'linear-gradient(160deg, #0a1628 0%, #0d2040 50%, #1a3465 100%)',
-        borderRight: '1px solid #1e3a6e',
+        padding: '36px 52px', position: 'relative', overflow: 'hidden',
+        background: '#111111',
       }}
         className="login-left-panel"
       >
         {/* Subtle grid */}
         <div style={{
-          position: 'absolute', inset: 0, opacity: 0.05,
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)',
+          position: 'absolute', inset: 0, opacity: 0.04,
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)',
           backgroundSize: '40px 40px',
         }} />
 
-        {/* Glow orbs */}
-        <div style={{ position:'absolute', width:400, height:400, borderRadius:'50%', background:'radial-gradient(circle, rgba(29,78,216,0.3) 0%, transparent 70%)', top:-100, right:-100, pointerEvents:'none' }} />
-        <div style={{ position:'absolute', width:300, height:300, borderRadius:'50%', background:'radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%)', bottom:-50, left:-50, pointerEvents:'none' }} />
+        {/* Glow orb */}
+        <div style={{ position:'absolute', width:400, height:400, borderRadius:'50%', background:'radial-gradient(circle, rgba(34,197,94,0.15) 0%, transparent 70%)', top:-100, right:-100, pointerEvents:'none' }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
           {/* Logo */}
-          <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:56 }}>
-            <img src="/logo.png" alt="Nile Insurance" style={{ height: 60, width: 'auto', objectFit: 'contain' }} />
+          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:32 }}>
+            <div style={{ width:42, height:42, borderRadius:10, background:'#22c55e', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:20, color:'#fff', flexShrink:0 }}>E</div>
             <div>
-              <div style={{ color:'#ffffff', fontSize:20, fontWeight:800, lineHeight:1.1 }}>Nile Insurance</div>
-              <div style={{ color:'rgba(255,255,255,0.6)', fontSize:12, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase' }}>Management Platform</div>
+              <div style={{ color:'#ffffff', fontSize:17, fontWeight:800, lineHeight:1.1 }}>Enterprise Insurance</div>
+              <div style={{ color:'#4b5563', fontSize:10, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase' }}>Management Platform</div>
             </div>
           </div>
 
-          <Title level={2} style={{ color:'#ffffff', fontWeight:800, lineHeight:1.2, marginBottom:12, fontSize:32 }}>
-            The Modern Way to<br/>
-            <span style={{ color:'#93c5fd' }}>
-              Manage Insurance
-            </span>
+          <Title level={2} style={{ color:'#ffffff', fontWeight:800, lineHeight:1.25, marginBottom:10, fontSize:28 }}>
+            Insurance Operations,<br/>
+            <span style={{ color:'#22c55e' }}>Fully Digitized</span>
           </Title>
-          <Text style={{ color:'rgba(255,255,255,0.6)', fontSize:15, display:'block', marginBottom:48, lineHeight:1.7 }}>
-            Streamline policies, claims, and customer relationships in one powerful enterprise platform.
+          <Text style={{ color:'#6b7280', fontSize:13, display:'block', marginBottom:28, lineHeight:1.65 }}>
+            One platform connecting payers, providers, institutions, and insured persons across the full insurance lifecycle.
           </Text>
 
           {/* Features */}
-          <div style={{ display:'flex', flexDirection:'column', gap:22 }}>
+          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
             {FEATURES.map((f, i) => (
-              <div key={i} style={{ display:'flex', gap:14, alignItems:'flex-start' }}>
-                <div style={{
-                  width:8, height:8, borderRadius:'50%', flexShrink:0, marginTop:6,
-                  background:'#60a5fa',
-                }} />
+              <div key={i} style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
+                <div style={{ width:8, height:8, borderRadius:'50%', flexShrink:0, marginTop:5, background:'#22c55e' }} />
                 <div>
-                  <div style={{ color:'#ffffff', fontWeight:600, fontSize:14, marginBottom:3 }}>{f.title}</div>
-                  <div style={{ color:'rgba(255,255,255,0.55)', fontSize:13, lineHeight:1.5 }}>{f.desc}</div>
+                  <div style={{ color:'#ffffff', fontWeight:600, fontSize:13, marginBottom:2 }}>{f.title}</div>
+                  <div style={{ color:'#6b7280', fontSize:12, lineHeight:1.5 }}>{f.desc}</div>
                 </div>
               </div>
             ))}
@@ -98,73 +100,66 @@ export default function Login() {
 
       {/* ── Right panel ── */}
       <div style={{
-        width: '100%', maxWidth: 460, margin: '0 auto',
-        display: 'flex', flexDirection: 'column', justifyContent: 'center',
-        padding: '28px 36px',
+        width: '100%', maxWidth: 460,
+        display: 'flex', flexDirection: 'column', justifyContent: 'flex-start',
+        padding: '32px 36px', overflowY: 'auto', flexShrink: 0,
       }}>
-        {/* Mobile logo */}
-        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:22 }}>
-          <img src="/logo.png" alt="Nile Insurance" style={{ height: 40, width: 'auto', objectFit: 'contain' }} />
+        {/* Logo (shown on mobile / when left panel is hidden) */}
+        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:18 }}>
+          <div style={{ width:32, height:32, borderRadius:8, background:'#22c55e', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:15, color:'#fff' }}>E</div>
           <div>
-            <div style={{ color:'#111827', fontSize:14, fontWeight:700 }}>Nile Insurance</div>
-            <div style={{ color:'#6b7280', fontSize:11 }}>Management Platform</div>
+            <div style={{ color:'#111827', fontSize:13, fontWeight:700 }}>Enterprise Insurance</div>
+            <div style={{ color:'#6b7280', fontSize:10 }}>Management Platform</div>
           </div>
         </div>
 
-        <div style={{ marginBottom: 18 }}>
+        <div style={{ marginBottom: 16 }}>
           <Title level={3} style={{ color:'#111827', margin:0, fontWeight:700 }}>Welcome back</Title>
           <Text style={{ color:'#6b7280' }}>Sign in to access your portal</Text>
         </div>
 
-        {error && <Alert message={error} type="error" showIcon style={{ marginBottom:14, borderRadius:8 }} />}
+        {error && <Alert message={error} type="error" showIcon style={{ marginBottom:12, borderRadius:8 }} />}
 
         <Form form={form} onFinish={onFinish} layout="vertical" size="large">
-          <Form.Item name="email" label="Email address" rules={[{required:true,message:'Email is required'},{type:'email',message:'Enter a valid email'}]} style={{ marginBottom:14 }}>
+          <Form.Item name="email" label="Email address" rules={[{required:true,message:'Email is required'},{type:'email',message:'Enter a valid email'}]} style={{ marginBottom:12 }}>
             <Input prefix={<MailOutlined style={{color:'#9ca3af'}} />} placeholder="you@example.com"
-              style={{ background:'#ffffff', borderColor:'#e8edf3', height:42 }} />
+              style={{ background:'#ffffff', borderColor:'#e5e7eb', height:40 }} />
           </Form.Item>
-          <Form.Item name="password" label="Password" rules={[{required:true,message:'Password is required'}]} style={{ marginBottom:14 }}>
+          <Form.Item name="password" label="Password" rules={[{required:true,message:'Password is required'}]} style={{ marginBottom:12 }}>
             <Input.Password prefix={<LockOutlined style={{color:'#9ca3af'}} />} placeholder="Your password"
-              style={{ background:'#ffffff', borderColor:'#e8edf3', height:42 }} />
+              style={{ background:'#ffffff', borderColor:'#e5e7eb', height:40 }} />
           </Form.Item>
           <Button type="primary" htmlType="submit" loading={loading} block style={{
-            height:44, fontWeight:700, fontSize:14, borderRadius:10, marginTop:2,
-            background:'linear-gradient(135deg, #1d4ed8, #1e40af)',
-            border:'none', boxShadow:'0 4px 14px rgba(29,78,216,0.35)',
+            height:42, fontWeight:700, fontSize:14, borderRadius:8, marginTop:2,
+            background:'#1e3a5f', border:'none',
+            boxShadow:'0 2px 8px rgba(30,58,95,0.3)',
           }}>
             Sign In to Portal
           </Button>
         </Form>
 
-        <div style={{ textAlign:'center', marginTop:12 }}>
-          <Text style={{ color:'#6b7280', fontSize:12 }}>
-            New customer?{' '}
-            <Link to="/register" style={{ color:'#1d4ed8', fontWeight:600 }}>Create an account</Link>
-          </Text>
-        </div>
+        <Divider style={{ borderColor:'#e5e7eb', color:'#9ca3af', fontSize:11, margin:'12px 0 8px' }}>Quick Demo Access</Divider>
 
-        <Divider style={{ borderColor:'#e8edf3', color:'#9ca3af', fontSize:11, margin:'12px 0' }}>Quick Demo Access</Divider>
-
-        <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+        <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
           {DEMOS.map(d => (
             <div key={d.role}
               onClick={() => form.setFieldsValue({ email: d.email, password: d.password })}
               style={{
-                border:`1px solid ${d.color}33`, borderRadius:8, padding:'7px 12px',
-                cursor:'pointer', background:`${d.color}0a`, display:'flex', alignItems:'center', gap:10,
+                border:`1px solid ${d.color}33`, borderRadius:8, padding:'6px 12px',
+                cursor:'pointer', background:`${d.color}08`, display:'flex', alignItems:'center', gap:10,
                 transition:'all 0.2s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = `${d.color}18`; e.currentTarget.style.borderColor = `${d.color}66`; }}
-              onMouseLeave={e => { e.currentTarget.style.background = `${d.color}0a`; e.currentTarget.style.borderColor = `${d.color}33`; }}
+              onMouseEnter={e => { e.currentTarget.style.background = `${d.color}15`; e.currentTarget.style.borderColor = `${d.color}55`; }}
+              onMouseLeave={e => { e.currentTarget.style.background = `${d.color}08`; e.currentTarget.style.borderColor = `${d.color}33`; }}
             >
-              <div style={{ width:28, height:28, borderRadius:6, background:d.color, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:700, fontSize:11, flexShrink:0 }}>
+              <div style={{ width:24, height:24, borderRadius:6, background:d.color, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:700, fontSize:10, flexShrink:0 }}>
                 {d.role[0]}
               </div>
               <div>
-                <div style={{ color:'#111827', fontWeight:600, fontSize:12 }}>{d.role} Demo</div>
+                <div style={{ color:'#111827', fontWeight:600, fontSize:12 }}>{d.role}</div>
                 <div style={{ color:'#6b7280', fontSize:10 }}>{d.desc} · Click to fill</div>
               </div>
-              <div style={{ marginLeft:'auto', color:d.color, fontSize:10, fontWeight:600 }}>USE →</div>
+              <div style={{ marginLeft:'auto', color:d.color, fontSize:10, fontWeight:700 }}>USE →</div>
             </div>
           ))}
         </div>

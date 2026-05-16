@@ -51,7 +51,7 @@ export default function AdminReports() {
     Promise.all([
       api.get('/reports/summary'),
       api.get('/reports/claims-by-status'),
-      api.get('/reports/policies-by-type'),
+      api.get('/reports/enrollments-by-type'),
       api.get('/reports/claims-trend'),
     ]).then(([sr, cr, pr, tr]) => {
       setSummary(sr.data);
@@ -62,7 +62,7 @@ export default function AdminReports() {
         claims: d.count,
         claimedAmount: Math.round(d.totalClaimed / 1000),
       })));
-    }).finally(() => setLoading(false));
+    }).catch(err => console.error('Reports load failed:', err)).finally(() => setLoading(false));
   }, []);
 
   if (loading) return <div style={{ display:'flex', justifyContent:'center', paddingTop:80 }}><Spin size="large" /></div>;
@@ -70,22 +70,22 @@ export default function AdminReports() {
   const totalClaims    = claimsByStatus.reduce((s, c) => s+c.count, 0);
   const resolvedClaims = claimsByStatus.filter(c => ['approved','partially_approved','denied','settled','closed'].includes(c.status)).reduce((s,c)=>s+c.count,0);
   const resolutionRate = totalClaims ? Math.round((resolvedClaims/totalClaims)*100) : 0;
-  const utilizationRate = summary?.totalPolicies ? Math.round((summary.activePolicies/summary.totalPolicies)*100) : 0;
+  const utilizationRate = summary?.totalEnrollments ? Math.round((summary.activeEnrollments/summary.totalEnrollments)*100) : 0;
 
   return (
     <div>
-      <div style={{ background:'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', border:'1px solid #bfdbfe', borderRadius:16, padding:'22px 28px', marginBottom:24 }}>
-        <Title level={4} style={{ color:'#111827', margin:0, fontWeight:800 }}>System Reports & Analytics</Title>
-        <Text style={{ color:'#9ca3af' }}>Full platform performance · {dayjs().format('MMMM D, YYYY')}</Text>
+      <div style={{ background:'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)', border:'1px solid #1e3a5f', borderRadius:16, padding:'22px 28px', marginBottom:24 }}>
+        <Title level={4} style={{ color:'#fff', margin:0, fontWeight:800 }}>System Reports & Analytics</Title>
+        <Text style={{ color:'rgba(255,255,255,0.7)' }}>Full platform performance · {dayjs().format('MMMM D, YYYY')}</Text>
       </div>
 
       {/* Top KPIs */}
       <Row gutter={[14, 14]} style={{ marginBottom:20 }}>
         <Col xs={24} sm={12} lg={6}>
-          <StatCard label="Monthly Revenue" value={`$${(summary?.monthlyRevenue||0).toFixed(0)}`} sub="Recurring premiums" icon={<DollarOutlined />} color="#10b981" />
+          <StatCard label="Annual Revenue (ETB)" value={(summary?.annualRevenue||0).toLocaleString()} sub="Recurring premiums" icon={<DollarOutlined />} color="#10b981" />
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <StatCard label="Policy Utilization" value={`${utilizationRate}%`} sub={`${summary?.activePolicies||0} of ${summary?.totalPolicies||0} active`} icon={<SafetyOutlined />} color="#22c55e" />
+          <StatCard label="Policy Utilization" value={`${utilizationRate}%`} sub={`${summary?.activeEnrollments||0} of ${summary?.totalEnrollments||0} active`} icon={<SafetyOutlined />} color="#22c55e" />
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <StatCard label="Claim Resolution" value={`${resolutionRate}%`} sub={`${resolvedClaims} of ${totalClaims} resolved`} icon={<CheckCircleOutlined />} color="#8b5cf6" />

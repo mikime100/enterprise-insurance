@@ -13,14 +13,14 @@ const TT_STYLE     = { contentStyle:{ background:'#f0f4f8', border:'1px solid #e
 
 function StatCard({ label, value, sub, icon, color, borderClass }) {
   return (
-    <Card className={`ei-card-hover ${borderClass}`} style={S.card} styles={{ body:{ padding:'20px 22px' } }}>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
-        <div>
-          <Text style={{ color:'#9ca3af', fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.07em', display:'block', marginBottom:10 }}>{label}</Text>
-          <div style={{ color:'#111827', fontSize:26, fontWeight:800, lineHeight:1 }}>{value}</div>
-          {sub && <div style={{ color:'#9ca3af', fontSize:11, marginTop:6 }}>{sub}</div>}
+    <Card className={`ei-card-hover ${borderClass}`} style={S.card} styles={{ body:{ padding:'18px 20px' } }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, minWidth:0 }}>
+        <div style={{ minWidth:0, flex:1 }}>
+          <Text style={{ color:'#9ca3af', fontSize:11, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.07em', display:'block', marginBottom:8, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{label}</Text>
+          <div style={{ color:'#111827', fontSize:24, fontWeight:800, lineHeight:1 }}>{value}</div>
+          {sub && <div style={{ color:'#9ca3af', fontSize:11, marginTop:5 }}>{sub}</div>}
         </div>
-        <div style={{ width:42, height:42, borderRadius:12, background:`${color}18`, border:`1px solid ${color}33`, display:'flex', alignItems:'center', justifyContent:'center', color, fontSize:19 }}>
+        <div style={{ flexShrink:0, width:38, height:38, borderRadius:10, background:`${color}18`, border:`1px solid ${color}33`, display:'flex', alignItems:'center', justifyContent:'center', color, fontSize:17 }}>
           {icon}
         </div>
       </div>
@@ -40,7 +40,7 @@ export default function AdminDashboard() {
     Promise.all([
       api.get('/reports/summary'),
       api.get('/reports/claims-by-status'),
-      api.get('/reports/policies-by-type'),
+      api.get('/reports/enrollments-by-type'),
       api.get('/reports/claims-trend'),
       api.get('/reports/recent-claims'),
     ]).then(([s,cs,pt,tr,rc]) => {
@@ -49,7 +49,7 @@ export default function AdminDashboard() {
       setByType(pt.data.data);
       setTrend(tr.data.data.map(d => ({ month: dayjs(`${d._id.year}-${d._id.month}-1`).format('MMM'), claims: d.count, amount: Math.round(d.totalClaimed/1000) })));
       setRecent(rc.data.claims);
-    }).finally(() => setLoading(false));
+    }).catch(err => console.error('Dashboard load failed:', err)).finally(() => setLoading(false));
   }, []);
 
   if (loading) return <div style={{ display:'flex', justifyContent:'center', paddingTop:80 }}><Spin size="large" /></div>;
@@ -59,19 +59,19 @@ export default function AdminDashboard() {
   return (
     <div>
       {/* Header */}
-      <div style={{ background:'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', border:'1px solid #bfdbfe', borderRadius:16, padding:'22px 28px', marginBottom:24 }}>
-        <Title level={4} style={{ color:'#111827', margin:0, fontWeight:800 }}>System Dashboard</Title>
-        <Text style={{ color:'#9ca3af' }}>Full platform overview · {dayjs().format('MMMM D, YYYY')}</Text>
+      <div style={{ background:'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)', border:'1px solid #1e3a5f', borderRadius:16, padding:'22px 28px', marginBottom:24 }}>
+        <Title level={4} style={{ color:'#fff', margin:0, fontWeight:800 }}>System Dashboard</Title>
+        <Text style={{ color:'rgba(255,255,255,0.7)' }}>Full platform overview · {dayjs().format('MMMM D, YYYY')}</Text>
       </div>
 
-      {/* KPI row */}
+      {/* KPI grid — 3 per row */}
       <Row gutter={[14, 14]} style={{ marginBottom:20 }}>
-        <Col xs={24} sm={12} xl={4}><StatCard label="Customers" value={summary?.totalCustomers||0} sub="Registered" icon={<TeamOutlined />} color="#22c55e" borderClass="stat-card-blue" /></Col>
-        <Col xs={24} sm={12} xl={4}><StatCard label="Agents" value={summary?.totalAgents||0} sub="Active" icon={<UserOutlined />} color="#8b5cf6" borderClass="stat-card-purple" /></Col>
-        <Col xs={24} sm={12} xl={4}><StatCard label="Policies" value={summary?.activePolicies||0} sub={`of ${summary?.totalPolicies||0} total`} icon={<SafetyOutlined />} color="#10b981" borderClass="stat-card-green" /></Col>
-        <Col xs={24} sm={12} xl={4}><StatCard label="Open Claims" value={summary?.openClaims||0} sub="Pending" icon={<AlertOutlined />} color="#f59e0b" borderClass="stat-card-amber" /></Col>
-        <Col xs={24} sm={12} xl={4}><StatCard label="Total Claims" value={summary?.totalClaims||0} sub="All time" icon={<AlertOutlined />} color="#06b6d4" borderClass="stat-card-cyan" /></Col>
-        <Col xs={24} sm={12} xl={4}><StatCard label="MRR" value={`$${(summary?.monthlyRevenue||0).toFixed(0)}`} sub="Monthly recurring" icon={<DollarOutlined />} color="#ec4899" borderClass="stat-card-pink" /></Col>
+        <Col xs={24} sm={12} md={8}><StatCard label="Institutions" value={summary?.totalInstitutions||0} sub="Registered" icon={<TeamOutlined />} color="#22c55e" borderClass="stat-card-blue" /></Col>
+        <Col xs={24} sm={12} md={8}><StatCard label="Providers" value={summary?.totalProviders||0} sub="Network" icon={<UserOutlined />} color="#8b5cf6" borderClass="stat-card-purple" /></Col>
+        <Col xs={24} sm={12} md={8}><StatCard label="Policies" value={summary?.activeEnrollments||0} sub={`of ${summary?.totalEnrollments||0} total`} icon={<SafetyOutlined />} color="#10b981" borderClass="stat-card-green" /></Col>
+        <Col xs={24} sm={12} md={8}><StatCard label="Open Claims" value={summary?.openClaims||0} sub="Pending" icon={<AlertOutlined />} color="#f59e0b" borderClass="stat-card-amber" /></Col>
+        <Col xs={24} sm={12} md={8}><StatCard label="Total Claims" value={summary?.totalClaims||0} sub="All time" icon={<AlertOutlined />} color="#06b6d4" borderClass="stat-card-cyan" /></Col>
+        <Col xs={24} sm={12} md={8}><StatCard label="Revenue (ETB)" value={(summary?.annualRevenue||0).toLocaleString()} sub="Annual premiums" icon={<DollarOutlined />} color="#ec4899" borderClass="stat-card-pink" /></Col>
       </Row>
 
       {/* Charts row 1 */}

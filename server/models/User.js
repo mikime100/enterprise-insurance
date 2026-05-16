@@ -6,20 +6,28 @@ const userSchema = new mongoose.Schema({
   lastName:  { type: String, required: true, trim: true },
   email:     { type: String, required: true, unique: true, lowercase: true, trim: true },
   password:  { type: String, required: true },
-  role:      { type: String, enum: ['customer', 'agent', 'admin'], default: 'customer' },
-  phone:     { type: String, trim: true },
-  dateOfBirth: Date,
-  address: {
-    street:  String,
-    city:    String,
-    state:   String,
-    zip:     String,
-    country: { type: String, default: 'US' },
+  role: {
+    type: String,
+    enum: [
+      'superadmin',
+      'payer_admin',
+      'underwriter',
+      'claims_officer',
+      'finance_officer',
+      'provider_admin',
+      'institution_admin',
+      'sales_broker',
+      'insured_person',
+      'customer_support'
+    ],
+    default: 'insured_person'
   },
-  isActive:      { type: Boolean, default: true },
-  assignedAgent: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  licenseNumber: String,
-  avatar:        String,
+  phone:    { type: String, trim: true },
+  isActive: { type: Boolean, default: true },
+  linkedEntity: {
+    entityType: { type: String, enum: ['Payer', 'Provider', 'Institution', 'InsuredPerson'] },
+    entityId:   { type: mongoose.Schema.Types.ObjectId }
+  }
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {
