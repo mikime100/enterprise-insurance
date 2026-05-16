@@ -9,10 +9,19 @@ const connectDB = require('./config/db');
 
 const app = express();
 
-connectDB().catch(err => {
-  console.error('DB connection failed:', err);
-  process.exit(1);
-});
+const startDB = async (retries = 5) => {
+  for (let i = 1; i <= retries; i++) {
+    try {
+      await connectDB();
+      return;
+    } catch (err) {
+      console.error(`DB connection attempt ${i}/${retries} failed:`, err.message);
+      if (i === retries) { process.exit(1); }
+      await new Promise(r => setTimeout(r, 3000));
+    }
+  }
+};
+startDB();
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(morgan('dev'));
