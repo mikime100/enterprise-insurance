@@ -35,6 +35,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "8d585697-87f4-4e1a-ba52-fd17d861f1ff"
+      }
+    },
+    "owner": "miki8425"
   }
 }
