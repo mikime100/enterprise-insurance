@@ -8,74 +8,28 @@ const morgan = require('morgan');
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
-const app = express();
-
-app.use(helmet({ contentSecurityPolicy: false }));
-app.use(morgan('dev'));
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true,
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Auth
-app.use('/api/auth', require('./routes/auth'));
-
-// Product catalog (multi-role read, payer_admin write)
-app.use('/api/products',   require('./routes/products'));
-app.use('/api/coverages',  require('./routes/coverages'));
-app.use('/api/tiers',      require('./routes/tiers'));
-
-// Core insurance workflows
-app.use('/api/quotes',      require('./routes/quotes'));
-app.use('/api/enrollments', require('./routes/enrollments'));
-app.use('/api/claims',      require('./routes/claims'));
-app.use('/api/payments',    require('./routes/payments'));
-app.use('/api/agreements',  require('./routes/agreements'));
-
-// Analytics
-app.use('/api/reports', require('./routes/reports'));
-
-// Super admin entity management
-app.use('/api/admin', require('./routes/admin'));
-
-app.get('/api/health', (req, res) => res.json({ status: 'ok', db: mongoose.connection.readyState }));
-
-// One-time seed trigger — only works when DB is empty
-app.post('/api/seed-init', async (req, res) => {
-  try {
-    const User = require('./models/User');
-    const count = await User.countDocuments();
-    if (count > 0) return res.json({ message: 'Already seeded', userCount: count });
-    const { spawn } = require('child_process');
-    const seeder = spawn('node', ['seeds/seed.js'], { cwd: __dirname, stdio: 'inherit', env: process.env });
-    seeder.on('exit', code => console.log(`Seed finished (exit ${code})`));
-    res.json({ message: 'Seeding started — wait 60s then try logging in' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.status || 500).json({ message: err.message || 'Internal server error' });
-});
-
 async function start() {
+  // Connect DB first — everything depends on it
   for (let i = 1; i <= 5; i++) {
     try {
       await connectDB();
-      console.log('MongoDB connected');
       break;
     } catch (err) {
-      console.error(`DB attempt ${i}/5 failed:`, err.message);
-      if (i === 5) { process.exit(1); }
+      console.error(`DB attempt ${i}/5:`, err.message);
+      if (i === 5) process.exit(1);
       await new Promise(r => setTimeout(r, 3000));
     }
   }
 
-  // Session store reuses the established mongoose connection — no second connection
+  const app = express();
+
+  app.use(helmet({ contentSecurityPolicy: false }));
+  app.use(morgan('dev'));
+  app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+
+  // Session uses the already-open mongoose connection — no second DB connection
   app.use(session({
     secret: process.env.SESSION_SECRET || 'enterprise-insurance-secret',
     resave: false,
@@ -91,25 +45,54 @@ async function start() {
     },
   }));
 
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    autoSeedIfEmpty();
-  });
-}
+  app.use('/api/auth',        require('./routes/auth'));
+  app.use('/api/products',    require('./routes/products'));
+  app.use('/api/coverages',   require('./routes/coverages'));
+  app.use('/api/tiers',       require('./routes/tiers'));
+  app.use('/api/quotes',      require('./routes/quotes'));
+  app.use('/api/enrollments', require('./routes/enrollments'));
+  app.use('/api/claims',      require('./routes/claims'));
+  app.use('/api/payments',    require('./routes/payments'));
+  app.use('/api/agreements',  require('./routes/agreements'));
+  app.use('/api/reports',     require('./routes/reports'));
+  app.use('/api/admin',       require('./routes/admin'));
 
-async function autoSeedIfEmpty() {
-  try {
-    const User = require('./models/User');
-    const count = await User.countDocuments();
-    if (count > 0) { console.log(`DB has ${count} users — skip seed`); return; }
-    console.log('Empty database — running initial seed...');
-    const { spawn } = require('child_process');
-    const seeder = spawn('node', ['seeds/seed.js'], { cwd: __dirname, stdio: 'inherit', env: process.env });
-    seeder.on('exit', code => console.log(`Seed finished (exit ${code})`));
-  } catch (err) {
-    console.error('autoSeedIfEmpty error:', err.message);
-  }
+  app.get('/api/health', (req, res) => res.json({ status: 'ok', db: mongoose.connection.readyState }));
+
+  app.post('/api/seed-init', async (req, res) => {
+    try {
+      const User = require('./models/User');
+      const count = await User.countDocuments();
+      if (count > 0) return res.json({ message: 'Already seeded', userCount: count });
+      const { spawn } = require('child_process');
+      spawn('node', ['seeds/seed.js'], { cwd: __dirname, stdio: 'inherit', env: process.env })
+        .on('exit', code => console.log(`Seed done (exit ${code})`));
+      res.json({ message: 'Seeding started — wait 60s' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+  });
+
+  app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(err.status || 500).json({ message: err.message || 'Internal server error' });
+  });
+
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, async () => {
+    console.log(`Server running on port ${PORT}`);
+    // Auto-seed if DB is empty
+    try {
+      const User = require('./models/User');
+      const count = await User.countDocuments();
+      if (count === 0) {
+        console.log('Empty DB — seeding...');
+        const { spawn } = require('child_process');
+        spawn('node', ['seeds/seed.js'], { cwd: __dirname, stdio: 'inherit', env: process.env })
+          .on('exit', code => console.log(`Seed done (exit ${code})`));
+      } else {
+        console.log(`DB has ${count} users`);
+      }
+    } catch (e) { console.error('Seed check failed:', e.message); }
+  });
 }
 
 start();

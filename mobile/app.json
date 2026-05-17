@@ -42,6 +42,12 @@
         "projectId": "8d585697-87f4-4e1a-ba52-fd17d861f1ff"
       }
     },
-    "owner": "miki8425"
+    "owner": "miki8425",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/8d585697-87f4-4e1a-ba52-fd17d861f1ff"
+    }
   }
 }
