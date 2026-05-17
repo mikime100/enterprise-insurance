@@ -24,6 +24,15 @@ const userSchema = new mongoose.Schema({
   },
   phone:    { type: String, trim: true },
   isActive: { type: Boolean, default: true },
+  isEmailVerified:        { type: Boolean, default: false },
+  emailVerificationOTP:   { type: String },
+  emailVerificationExpiry:{ type: Date },
+  mustChangePassword:     { type: Boolean, default: false },
+  passwordResetToken:     { type: String },
+  passwordResetExpiry:    { type: Date },
+  brokerStatus:       { type: String, enum: ['pending', 'approved', 'rejected'], default: undefined },
+  registeredByBroker: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  institutionId:      { type: mongoose.Schema.Types.ObjectId, ref: 'Institution' },
   linkedEntity: {
     entityType: { type: String, enum: ['Payer', 'Provider', 'Institution', 'InsuredPerson'] },
     entityId:   { type: mongoose.Schema.Types.ObjectId }

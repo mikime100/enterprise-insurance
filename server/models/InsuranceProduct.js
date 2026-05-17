@@ -21,7 +21,8 @@ const insuranceProductSchema = new mongoose.Schema({
   waitingPeriodMonths: { type: Number, default: 0 },
   features:            [String],
   terms:               String,
-  isActive:            { type: Boolean, default: true }
+  isActive:              { type: Boolean, default: true },
+  availableForIndividual:{ type: Boolean, default: false }
 }, { timestamps: true });
 
 module.exports = mongoose.model('InsuranceProduct', insuranceProductSchema);

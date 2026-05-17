@@ -33,8 +33,10 @@ export default function Login() {
     setLoading(true); setError('');
     try {
       const user = await login(email, password);
-      const PAYER_ROLES = ['payer_admin', 'underwriter', 'claims_officer', 'finance_officer', 'sales_broker', 'customer_support'];
-      if (user.role === 'superadmin') navigate('/admin/dashboard');
+      if (user.mustChangePassword) { navigate('/change-password'); return; }
+      const PAYER_ROLES = ['payer_admin', 'underwriter', 'claims_officer', 'finance_officer', 'customer_support'];
+      if (user.role === 'superadmin')        navigate('/admin/dashboard');
+      else if (user.role === 'sales_broker') navigate('/broker/dashboard');
       else if (PAYER_ROLES.includes(user.role)) navigate('/payer/dashboard');
       else if (user.role === 'provider_admin') navigate('/provider/dashboard');
       else if (user.role === 'institution_admin') navigate('/institution/dashboard');

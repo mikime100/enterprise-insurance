@@ -56,9 +56,9 @@ const NAV = {
     { key: '/payer/reports',     icon: <BarChartOutlined />,  label: 'Financial Reports' },
   ],
   sales_broker: [
-    { key: '/payer/dashboard',   icon: <DashboardOutlined />, label: 'Dashboard' },
-    { key: '/payer/quotes',      icon: <FileTextOutlined />,  label: 'Underwriting' },
-    { key: '/payer/products',    icon: <ShopOutlined />,      label: 'Products' },
+    { key: '/broker/dashboard',         icon: <DashboardOutlined />, label: 'Dashboard' },
+    { key: '/broker/customers',         icon: <TeamOutlined />,      label: 'My Customers' },
+    { key: '/broker/register-customer', icon: <PlusOutlined />,      label: 'Add Customer' },
   ],
   customer_support: [
     { key: '/payer/dashboard',   icon: <DashboardOutlined />, label: 'Dashboard' },
@@ -112,7 +112,7 @@ const CTA_CONFIG = {
   claims_officer: { label: 'New Claim',     path: '/payer/claims' },
   finance_officer:{ label: 'New Claim',     path: '/payer/claims' },
   underwriter:    { label: 'New Quote',     path: '/payer/quotes' },
-  sales_broker:   { label: 'New Quote',     path: '/payer/quotes' },
+  sales_broker:   { label: 'Add Customer', path: '/broker/register-customer' },
   customer_support:{ label: 'New Claim',    path: '/payer/claims' },
   provider_admin: { label: 'Submit Claim',  path: '/provider/submit-claim' },
   institution_admin:{ label: 'Add Employee',path: '/institution/employees' },

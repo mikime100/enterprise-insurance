@@ -6,6 +6,7 @@ const Provider = require('../models/Provider');
 const Institution = require('../models/Institution');
 const InsuredPerson = require('../models/InsuredPerson');
 const { requireAuth, requireRole } = require('../middleware/auth');
+const { sendBrokerApproval } = require('../services/email');
 
 router.use(requireAuth, requireRole('superadmin'));
 
@@ -46,6 +47,41 @@ router.patch('/users/:id/toggle', async (req, res, next) => {
     user.isActive = !user.isActive;
     await user.save();
     res.json({ user });
+  } catch (err) { next(err); }
+});
+
+// ── Broker applications ──────────────────────────────────────────────────────
+router.get('/brokers', async (req, res, next) => {
+  try {
+    const { status } = req.query;
+    const filter = { role: 'sales_broker' };
+    if (status) filter.brokerStatus = status;
+    const brokers = await User.find(filter).select('-password').sort({ createdAt: -1 });
+    res.json({ brokers });
+  } catch (err) { next(err); }
+});
+
+router.patch('/brokers/:id/approve', async (req, res, next) => {
+  try {
+    const broker = await User.findOne({ _id: req.params.id, role: 'sales_broker' });
+    if (!broker) return res.status(404).json({ message: 'Broker not found' });
+    broker.brokerStatus = 'approved';
+    broker.isActive     = true;
+    await broker.save();
+    try { await sendBrokerApproval(broker.email, broker.firstName, true); } catch (e) { console.error(e.message); }
+    res.json({ message: 'Broker approved', broker });
+  } catch (err) { next(err); }
+});
+
+router.patch('/brokers/:id/reject', async (req, res, next) => {
+  try {
+    const broker = await User.findOne({ _id: req.params.id, role: 'sales_broker' });
+    if (!broker) return res.status(404).json({ message: 'Broker not found' });
+    broker.brokerStatus = 'rejected';
+    broker.isActive     = false;
+    await broker.save();
+    try { await sendBrokerApproval(broker.email, broker.firstName, false); } catch (e) { console.error(e.message); }
+    res.json({ message: 'Broker rejected', broker });
   } catch (err) { next(err); }
 });
 

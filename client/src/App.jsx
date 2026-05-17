@@ -20,8 +20,11 @@ class ErrorBoundary extends Component {
   }
 }
 
-import Login    from './pages/auth/Login';
-import Register from './pages/auth/Register';
+import Login              from './pages/auth/Login';
+import Register           from './pages/auth/Register';
+import VerifyEmail        from './pages/auth/VerifyEmail';
+import ForceChangePassword from './pages/auth/ForceChangePassword';
+import BrokerApply        from './pages/auth/BrokerApply';
 
 // Payer portal
 import PayerDashboard    from './pages/payer/Dashboard';
@@ -59,14 +62,21 @@ import AdminInstitutions from './pages/admin/Institutions';
 import AdminUsers        from './pages/admin/Users';
 import AdminReports      from './pages/admin/Reports';
 
-const PAYER_ROLES = ['payer_admin', 'underwriter', 'claims_officer', 'finance_officer', 'sales_broker', 'customer_support'];
+// Broker portal
+import BrokerDashboard        from './pages/broker/Dashboard';
+import BrokerCustomers        from './pages/broker/Customers';
+import BrokerRegisterCustomer from './pages/broker/RegisterCustomer';
+
+const PAYER_ROLES = ['payer_admin', 'underwriter', 'claims_officer', 'finance_officer', 'customer_support'];
 
 function RoleRedirect() {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role === 'superadmin')     return <Navigate to="/admin/dashboard" replace />;
-  if (PAYER_ROLES.includes(user.role)) return <Navigate to="/payer/dashboard" replace />;
-  if (user.role === 'provider_admin')  return <Navigate to="/provider/dashboard" replace />;
+  if (user.mustChangePassword) return <Navigate to="/change-password" replace />;
+  if (user.role === 'superadmin')       return <Navigate to="/admin/dashboard" replace />;
+  if (user.role === 'sales_broker')     return <Navigate to="/broker/dashboard" replace />;
+  if (PAYER_ROLES.includes(user.role))  return <Navigate to="/payer/dashboard" replace />;
+  if (user.role === 'provider_admin')   return <Navigate to="/provider/dashboard" replace />;
   if (user.role === 'institution_admin') return <Navigate to="/institution/dashboard" replace />;
   return <Navigate to="/insured/dashboard" replace />;
 }
@@ -79,6 +89,7 @@ function ProtectedRoute({ children, roles }) {
     </div>
   );
   if (!user) return <Navigate to="/login" replace />;
+  if (user.mustChangePassword) return <Navigate to="/change-password" replace />;
   if (roles && !roles.includes(user.role)) return <RoleRedirect />;
   return children;
 }
@@ -93,9 +104,14 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/login"    element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/"         element={<ProtectedRoute><RoleRedirect /></ProtectedRoute>} />
+      {/* Public auth routes */}
+      <Route path="/login"          element={<Login />} />
+      <Route path="/register"       element={<Register />} />
+      <Route path="/verify-email"   element={<VerifyEmail />} />
+      <Route path="/broker-apply"   element={<BrokerApply />} />
+      <Route path="/change-password" element={<ForceChangePassword />} />
+
+      <Route path="/" element={<ProtectedRoute><RoleRedirect /></ProtectedRoute>} />
 
       {/* Payer Portal */}
       <Route path="/payer" element={<ProtectedRoute roles={PAYER_ROLES}><AppLayout /></ProtectedRoute>}>
@@ -145,6 +161,14 @@ function AppRoutes() {
         <Route path="institutions" element={<AdminInstitutions />} />
         <Route path="users"        element={<AdminUsers />} />
         <Route path="reports"      element={<AdminReports />} />
+        <Route index element={<Navigate to="dashboard" replace />} />
+      </Route>
+
+      {/* Broker Portal */}
+      <Route path="/broker" element={<ProtectedRoute roles={['sales_broker']}><AppLayout /></ProtectedRoute>}>
+        <Route path="dashboard"         element={<BrokerDashboard />} />
+        <Route path="customers"         element={<BrokerCustomers />} />
+        <Route path="register-customer" element={<BrokerRegisterCustomer />} />
         <Route index element={<Navigate to="dashboard" replace />} />
       </Route>
 

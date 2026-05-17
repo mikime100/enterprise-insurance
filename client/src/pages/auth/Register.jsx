@@ -1,91 +1,95 @@
 import { useState } from 'react';
-import { Form, Input, Button, Typography, Alert, DatePicker, Row, Col } from 'antd';
+import { Form, Input, Button, Typography, Alert, Steps, Row, Col } from 'antd';
 import {
-  UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, CheckCircleOutlined,
-  SafetyOutlined, AlertOutlined,
+  UserOutlined, LockOutlined, MailOutlined, PhoneOutlined,
+  SafetyOutlined, AlertOutlined, CheckCircleOutlined,
 } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import dayjs from 'dayjs';
+import axios from 'axios';
 
 const { Title, Text } = Typography;
+const API = import.meta.env.VITE_API_URL || '/api';
 
 const BENEFITS = [
   { icon: <SafetyOutlined />, text: 'Instant digital policy management' },
   { icon: <AlertOutlined />, text: 'Real-time claim tracking & updates' },
-  { icon: <CheckCircleOutlined />, text: '24/7 dedicated agent support' },
+  { icon: <CheckCircleOutlined />, text: '24/7 dedicated support' },
 ];
 
 export default function Register() {
   const [form] = Form.useForm();
+  const [step, setStep] = useState(0); // 0 = form, 1 = verify OTP
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { register } = useAuth();
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
   const navigate = useNavigate();
 
-  const onFinish = async (values) => {
+  const onRegister = async (values) => {
     setLoading(true); setError('');
     try {
-      const payload = { ...values, dateOfBirth: values.dateOfBirth?.toISOString() };
+      const payload = { ...values };
       delete payload.confirmPassword;
-      await register(payload);
-      navigate('/customer/dashboard');
+      await axios.post(`${API}/auth/register`, payload, { withCredentials: true });
+      setEmail(values.email);
+      setStep(1);
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally { setLoading(false); }
   };
 
+  const onVerify = async () => {
+    if (!otp || otp.length !== 6) { setError('Enter the 6-digit code from your email'); return; }
+    setLoading(true); setError('');
+    try {
+      await axios.post(`${API}/auth/verify-email`, { email, otp }, { withCredentials: true });
+      navigate('/insured/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid or expired code');
+    } finally { setLoading(false); }
+  };
+
+  const onResend = async () => {
+    try {
+      await axios.post(`${API}/auth/resend-otp`, { email }, { withCredentials: true });
+      setResendCooldown(60);
+      const t = setInterval(() => setResendCooldown(c => { if (c <= 1) { clearInterval(t); return 0; } return c - 1; }), 1000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not resend code');
+    }
+  };
+
+  const panelStyle = {
+    flex: 1, display: 'none', flexDirection: 'column', justifyContent: 'center',
+    padding: '60px 64px', position: 'relative', overflow: 'hidden',
+    background: 'linear-gradient(160deg, #0a1628 0%, #0d2040 50%, #1a3465 100%)',
+    borderRight: '1px solid #1e3a6e',
+  };
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', background: '#ffffff' }}>
-
-      {/* Left panel — navy matching logo oval */}
-      <div className="login-left-panel" style={{
-        flex: 1, display: 'none', flexDirection: 'column', justifyContent: 'center',
-        padding: '60px 64px', position: 'relative', overflow: 'hidden',
-        background: 'linear-gradient(160deg, #0a1628 0%, #0d2040 50%, #1a3465 100%)',
-        borderRight: '1px solid #1e3a6e',
-      }}>
-        {/* Subtle grid */}
-        <div style={{
-          position: 'absolute', inset: 0, opacity: 0.05,
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-        }} />
-
-        {/* Glow orbs */}
-        <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,78,216,0.3) 0%, transparent 70%)', top: -100, right: -100, pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%)', bottom: -50, left: -50, pointerEvents: 'none' }} />
-
+      {/* Left panel */}
+      <div className="login-left-panel" style={panelStyle}>
+        <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: 'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 56 }}>
-            <img src="/logo.png" alt="Nile Insurance" style={{ height: 60, width: 'auto', objectFit: 'contain' }} />
+            <img src="/logo.png" alt="Nile Insurance" style={{ height: 60, objectFit: 'contain' }} />
             <div>
-              <div style={{ color: '#ffffff', fontSize: 20, fontWeight: 800, lineHeight: 1.1 }}>Nile Insurance</div>
-              <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Management Platform</div>
+              <div style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>Nile Insurance</div>
+              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Management Platform</div>
             </div>
           </div>
-
-          <Title level={2} style={{ color: '#ffffff', fontWeight: 800, lineHeight: 1.2, marginBottom: 12, fontSize: 32 }}>
-            Start Your Coverage<br/>
-            <span style={{ color: '#93c5fd' }}>
-              Journey Today
-            </span>
+          <Title level={2} style={{ color: '#fff', fontWeight: 800, fontSize: 32, marginBottom: 12 }}>
+            Start Your Coverage<br/><span style={{ color: '#93c5fd' }}>Journey Today</span>
           </Title>
           <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 15, display: 'block', marginBottom: 48, lineHeight: 1.7 }}>
-            Join thousands of customers who trust Nile Insurance for complete protection of what matters most.
+            Join thousands of customers who trust Nile Insurance.
           </Text>
-
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {BENEFITS.map((b, i) => (
               <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                  background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.25)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#93c5fd', fontSize: 16,
-                }}>
-                  {b.icon}
-                </div>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#93c5fd', fontSize: 16 }}>{b.icon}</div>
                 <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 14 }}>{b.text}</Text>
               </div>
             ))}
@@ -93,98 +97,104 @@ export default function Register() {
         </div>
       </div>
 
-      {/* Right form panel */}
-      <div style={{ width: '100%', maxWidth: 520, margin: '0 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px 40px', overflowY: 'auto' }}>
-        {/* Mobile logo */}
+      {/* Right panel */}
+      <div style={{ width: '100%', maxWidth: 520, margin: '0 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px', overflowY: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
-          <img src="/logo.png" alt="Nile Insurance" style={{ height: 40, width: 'auto', objectFit: 'contain' }} />
+          <img src="/logo.png" alt="Nile Insurance" style={{ height: 40, objectFit: 'contain' }} />
           <div>
             <div style={{ color: '#111827', fontSize: 14, fontWeight: 700 }}>Nile Insurance</div>
             <div style={{ color: '#6b7280', fontSize: 11 }}>Management Platform</div>
           </div>
         </div>
 
-        <div style={{ marginBottom: 24 }}>
-          <Title level={3} style={{ color: '#111827', margin: 0, fontWeight: 700 }}>Create your account</Title>
-          <Text style={{ color: '#6b7280' }}>Get covered in minutes — no paperwork</Text>
-        </div>
+        <Steps current={step} size="small" style={{ marginBottom: 28 }} items={[{ title: 'Your Details' }, { title: 'Verify Email' }]} />
 
-        {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 20, borderRadius: 8 }} />}
+        {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 20, borderRadius: 8 }} closable onClose={() => setError('')} />}
 
-        <Form form={form} onFinish={onFinish} layout="vertical" size="large">
-          <Row gutter={12}>
-            <Col span={12}>
-              <Form.Item name="firstName" label="First Name" rules={[{ required: true, message: 'Required' }]}>
-                <Input prefix={<UserOutlined style={{ color: '#9ca3af' }} />} placeholder="John"
-                  style={{ background: '#ffffff', borderColor: '#e8edf3', height: 44 }} />
+        {/* Step 0 — Registration form */}
+        {step === 0 && (
+          <>
+            <div style={{ marginBottom: 24 }}>
+              <Title level={3} style={{ color: '#111827', margin: 0, fontWeight: 700 }}>Create your account</Title>
+              <Text style={{ color: '#6b7280' }}>Get covered in minutes — no paperwork</Text>
+            </div>
+            <Form form={form} onFinish={onRegister} layout="vertical" size="large">
+              <Row gutter={12}>
+                <Col span={12}>
+                  <Form.Item name="firstName" label="First Name" rules={[{ required: true, message: 'Required' }]}>
+                    <Input prefix={<UserOutlined style={{ color: '#9ca3af' }} />} placeholder="John" style={{ borderColor: '#e8edf3', height: 44 }} />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="lastName" label="Last Name" rules={[{ required: true, message: 'Required' }]}>
+                    <Input placeholder="Doe" style={{ borderColor: '#e8edf3', height: 44 }} />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Form.Item name="email" label="Email Address" rules={[{ required: true }, { type: 'email', message: 'Enter a valid email' }]}>
+                <Input prefix={<MailOutlined style={{ color: '#9ca3af' }} />} placeholder="you@example.com" style={{ borderColor: '#e8edf3', height: 44 }} />
               </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="lastName" label="Last Name" rules={[{ required: true, message: 'Required' }]}>
-                <Input placeholder="Doe" style={{ background: '#ffffff', borderColor: '#e8edf3', height: 44 }} />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item name="email" label="Email Address" rules={[{ required: true }, { type: 'email', message: 'Enter a valid email' }]}>
-            <Input prefix={<MailOutlined style={{ color: '#9ca3af' }} />} placeholder="you@example.com"
-              style={{ background: '#ffffff', borderColor: '#e8edf3', height: 44 }} />
-          </Form.Item>
-
-          <Row gutter={12}>
-            <Col span={14}>
               <Form.Item name="phone" label="Phone (optional)">
-                <Input prefix={<PhoneOutlined style={{ color: '#9ca3af' }} />} placeholder="555-123-4567"
-                  style={{ background: '#ffffff', borderColor: '#e8edf3', height: 44 }} />
+                <Input prefix={<PhoneOutlined style={{ color: '#9ca3af' }} />} placeholder="+251 91 000 0000" style={{ borderColor: '#e8edf3', height: 44 }} />
               </Form.Item>
-            </Col>
-            <Col span={10}>
-              <Form.Item name="dateOfBirth" label="Date of Birth">
-                <DatePicker style={{ width: '100%', background: '#ffffff', borderColor: '#e8edf3', height: 44 }}
-                  disabledDate={d => d && d > dayjs().subtract(18, 'years')} placeholder="MM/DD/YYYY" />
+              <Form.Item name="password" label="Password" rules={[{ required: true }, { min: 8, message: 'Minimum 8 characters' }]}>
+                <Input.Password prefix={<LockOutlined style={{ color: '#9ca3af' }} />} placeholder="Min. 8 characters" style={{ borderColor: '#e8edf3', height: 44 }} />
               </Form.Item>
-            </Col>
-          </Row>
+              <Form.Item name="confirmPassword" label="Confirm Password" dependencies={['password']}
+                rules={[{ required: true, message: 'Please confirm your password' },
+                  ({ getFieldValue }) => ({ validator(_, v) { return !v || getFieldValue('password') === v ? Promise.resolve() : Promise.reject(new Error('Passwords do not match')); } })
+                ]}>
+                <Input.Password prefix={<LockOutlined style={{ color: '#9ca3af' }} />} placeholder="Repeat password" style={{ borderColor: '#e8edf3', height: 44 }} />
+              </Form.Item>
+              <Button type="primary" htmlType="submit" loading={loading} block style={{ height: 48, fontWeight: 700, fontSize: 15, borderRadius: 10, background: 'linear-gradient(135deg,#1d4ed8,#1e40af)', border: 'none' }}>
+                Create Account
+              </Button>
+            </Form>
+            <div style={{ textAlign: 'center', marginTop: 16 }}>
+              <Text style={{ color: '#6b7280', fontSize: 13 }}>
+                Already have an account? <Link to="/login" style={{ color: '#1d4ed8', fontWeight: 600 }}>Sign in</Link>
+              </Text>
+            </div>
+            <div style={{ textAlign: 'center', marginTop: 8 }}>
+              <Text style={{ color: '#6b7280', fontSize: 13 }}>
+                Are you a broker? <Link to="/broker-apply" style={{ color: '#1d4ed8', fontWeight: 600 }}>Apply here</Link>
+              </Text>
+            </div>
+          </>
+        )}
 
-          <Form.Item name="password" label="Password" rules={[{ required: true }, { min: 8, message: 'Minimum 8 characters' }]}>
-            <Input.Password prefix={<LockOutlined style={{ color: '#9ca3af' }} />} placeholder="Min. 8 characters"
-              style={{ background: '#ffffff', borderColor: '#e8edf3', height: 44 }} />
-          </Form.Item>
-
-          <Form.Item name="confirmPassword" label="Confirm Password" dependencies={['password']}
-            rules={[
-              { required: true, message: 'Please confirm your password' },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue('password') === value) return Promise.resolve();
-                  return Promise.reject(new Error('Passwords do not match'));
-                },
-              }),
-            ]}>
-            <Input.Password prefix={<LockOutlined style={{ color: '#9ca3af' }} />} placeholder="Repeat password"
-              style={{ background: '#ffffff', borderColor: '#e8edf3', height: 44 }} />
-          </Form.Item>
-
-          <Button type="primary" htmlType="submit" loading={loading} block style={{
-            height: 48, fontWeight: 700, fontSize: 15, borderRadius: 10, marginTop: 4,
-            background: 'linear-gradient(135deg, #1d4ed8, #1e40af)',
-            border: 'none', boxShadow: '0 4px 14px rgba(29,78,216,0.35)',
-          }}>
-            Create Account
-          </Button>
-        </Form>
-
-        <div style={{ textAlign: 'center', marginTop: 16 }}>
-          <Text style={{ color: '#6b7280', fontSize: 13 }}>
-            Already have an account?{' '}
-            <Link to="/login" style={{ color: '#1d4ed8', fontWeight: 600 }}>Sign in</Link>
-          </Text>
-        </div>
+        {/* Step 1 — OTP verification */}
+        {step === 1 && (
+          <>
+            <div style={{ marginBottom: 24 }}>
+              <Title level={3} style={{ color: '#111827', margin: 0, fontWeight: 700 }}>Check your email</Title>
+              <Text style={{ color: '#6b7280' }}>We sent a 6-digit code to <strong>{email}</strong></Text>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <Text style={{ fontSize: 13, color: '#374151', display: 'block', marginBottom: 8 }}>Verification Code</Text>
+              <Input
+                size="large"
+                maxLength={6}
+                value={otp}
+                onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
+                placeholder="123456"
+                style={{ fontSize: 28, fontWeight: 800, letterSpacing: 12, textAlign: 'center', height: 60, borderColor: '#e8edf3' }}
+                onPressEnter={onVerify}
+              />
+            </div>
+            <Button type="primary" onClick={onVerify} loading={loading} block style={{ height: 48, fontWeight: 700, fontSize: 15, borderRadius: 10, background: 'linear-gradient(135deg,#1d4ed8,#1e40af)', border: 'none', marginBottom: 12 }}>
+              Verify & Continue
+            </Button>
+            <div style={{ textAlign: 'center' }}>
+              <Button type="link" onClick={onResend} disabled={resendCooldown > 0} style={{ color: resendCooldown > 0 ? '#9ca3af' : '#1d4ed8', fontSize: 13 }}>
+                {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Didn't receive it? Resend code"}
+              </Button>
+            </div>
+          </>
+        )}
       </div>
 
-      <style>{`
-        @media (min-width: 900px) { .login-left-panel { display: flex !important; } }
-      `}</style>
+      <style>{`@media (min-width: 900px) { .login-left-panel { display: flex !important; } }`}</style>
     </div>
   );
 }
