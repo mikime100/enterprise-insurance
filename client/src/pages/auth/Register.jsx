@@ -68,13 +68,13 @@ export default function Register() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', background: '#ffffff' }}>
+    <div style={{ height: '100vh', display: 'flex', background: '#ffffff', overflow: 'hidden' }}>
       {/* Left panel */}
       <div className="login-left-panel" style={panelStyle}>
         <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: 'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 56 }}>
-            <img src="/logo.png" alt="Enterprise Insurance" style={{ height: 60, objectFit: 'contain' }} />
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 22, color: '#fff', flexShrink: 0 }}>E</div>
             <div>
               <div style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>Enterprise Insurance</div>
               <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Management Platform</div>
@@ -98,9 +98,9 @@ export default function Register() {
       </div>
 
       {/* Right panel */}
-      <div style={{ width: '100%', maxWidth: 520, margin: '0 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
-          <img src="/logo.png" alt="Enterprise Insurance" style={{ height: 40, objectFit: 'contain' }} />
+      <div style={{ width: '100%', maxWidth: 520, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', padding: '32px 40px', overflowY: 'auto', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 15, color: '#fff', flexShrink: 0 }}>E</div>
           <div>
             <div style={{ color: '#111827', fontSize: 14, fontWeight: 700 }}>Enterprise Insurance</div>
             <div style={{ color: '#6b7280', fontSize: 11 }}>Management Platform</div>
