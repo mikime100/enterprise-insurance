@@ -1,4 +1,6 @@
 const nodemailer = require('nodemailer');
+const { setDefaultResultOrder } = require('dns');
+setDefaultResultOrder('ipv4first'); // Render cannot reach Gmail over IPv6
 
 function createTransport() {
   return nodemailer.createTransport({
