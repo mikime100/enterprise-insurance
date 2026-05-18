@@ -41,11 +41,11 @@ async function seed() {
 
   // ─── PAYER ───────────────────────────────────────────────────────────────
   const payer = await Payer.create({
-    name: 'Nile Insurance S.C.',
+    name: 'Enterprise Insurance S.C.',
     licenseNumber: 'ETH-INS-0012',
     type: 'composite',
     address: { street: 'Bole Road, Friendship Building', city: 'Addis Ababa', country: 'Ethiopia' },
-    contactEmail: 'info@nileinsurance.com',
+    contactEmail: 'info@enterpriseinsurance.com',
     contactPhone: '+251 11 551 4430'
   });
 
@@ -130,12 +130,12 @@ async function seed() {
   // ─── USERS ───────────────────────────────────────────────────────────────
   const coreUsers = await User.create([
     // Super Admin
-    { firstName: 'System',    lastName: 'Admin',    email: 'admin@nileinsurance.com',       password: 'Admin@123',       role: 'superadmin',        phone: '+251 91 000 0001' },
+    { firstName: 'System',    lastName: 'Admin',    email: 'admin@enterpriseinsurance.com',       password: 'Admin@123',       role: 'superadmin',        phone: '+251 91 000 0001' },
     // Payer staff
-    { firstName: 'Yohannes',  lastName: 'Tesfaye',  email: 'payer.admin@nileinsurance.com', password: 'Payer@123',       role: 'payer_admin',       phone: '+251 91 100 0001', linkedEntity: { entityType: 'Payer', entityId: payer._id } },
-    { firstName: 'Meron',     lastName: 'Bekele',   email: 'underwriter@nileinsurance.com', password: 'Under@123',       role: 'underwriter',       phone: '+251 91 100 0002', linkedEntity: { entityType: 'Payer', entityId: payer._id } },
-    { firstName: 'Dawit',     lastName: 'Haile',    email: 'claims@nileinsurance.com',      password: 'Claims@123',      role: 'claims_officer',    phone: '+251 91 100 0003', linkedEntity: { entityType: 'Payer', entityId: payer._id } },
-    { firstName: 'Tigist',    lastName: 'Wolde',    email: 'finance@nileinsurance.com',     password: 'Finance@123',     role: 'finance_officer',   phone: '+251 91 100 0004', linkedEntity: { entityType: 'Payer', entityId: payer._id } },
+    { firstName: 'Yohannes',  lastName: 'Tesfaye',  email: 'payer.admin@enterpriseinsurance.com', password: 'Payer@123',       role: 'payer_admin',       phone: '+251 91 100 0001', linkedEntity: { entityType: 'Payer', entityId: payer._id } },
+    { firstName: 'Meron',     lastName: 'Bekele',   email: 'underwriter@enterpriseinsurance.com', password: 'Under@123',       role: 'underwriter',       phone: '+251 91 100 0002', linkedEntity: { entityType: 'Payer', entityId: payer._id } },
+    { firstName: 'Dawit',     lastName: 'Haile',    email: 'claims@enterpriseinsurance.com',      password: 'Claims@123',      role: 'claims_officer',    phone: '+251 91 100 0003', linkedEntity: { entityType: 'Payer', entityId: payer._id } },
+    { firstName: 'Tigist',    lastName: 'Wolde',    email: 'finance@enterpriseinsurance.com',     password: 'Finance@123',     role: 'finance_officer',   phone: '+251 91 100 0004', linkedEntity: { entityType: 'Payer', entityId: payer._id } },
     // Provider users
     { firstName: 'Abebe',     lastName: 'Girma',    email: 'billing@stgabriel.com',         password: 'Provider@123',    role: 'provider_admin',    phone: '+251 91 200 0001', linkedEntity: { entityType: 'Provider', entityId: stGabriel._id } },
     { firstName: 'Fikirte',   lastName: 'Alemu',    email: 'billing@blacklion.gov.et',      password: 'Provider@123',    role: 'provider_admin',    phone: '+251 91 200 0002', linkedEntity: { entityType: 'Provider', entityId: blackLion._id } },
@@ -1358,12 +1358,12 @@ async function seed() {
   console.log('\nDemo Login Credentials:');
   console.log('─'.repeat(55));
   console.log('SUPER ADMIN');
-  console.log('  admin@nileinsurance.com         / Admin@123');
-  console.log('\nPAYER STAFF (Nile Insurance)');
-  console.log('  payer.admin@nileinsurance.com   / Payer@123       [Payer Admin]');
-  console.log('  underwriter@nileinsurance.com   / Under@123       [Underwriter]');
-  console.log('  claims@nileinsurance.com        / Claims@123      [Claims Officer]');
-  console.log('  finance@nileinsurance.com       / Finance@123     [Finance Officer]');
+  console.log('  admin@enterpriseinsurance.com         / Admin@123');
+  console.log('\nPAYER STAFF (Enterprise Insurance)');
+  console.log('  payer.admin@enterpriseinsurance.com   / Payer@123       [Payer Admin]');
+  console.log('  underwriter@enterpriseinsurance.com   / Under@123       [Underwriter]');
+  console.log('  claims@enterpriseinsurance.com        / Claims@123      [Claims Officer]');
+  console.log('  finance@enterpriseinsurance.com       / Finance@123     [Finance Officer]');
   console.log('\nPROVIDERS');
   console.log('  billing@stgabriel.com           / Provider@123    [St. Gabriel Hospital]');
   console.log('  billing@blacklion.gov.et        / Provider@123    [Black Lion Hospital]');

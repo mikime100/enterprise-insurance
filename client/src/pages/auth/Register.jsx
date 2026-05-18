@@ -74,9 +74,9 @@ export default function Register() {
         <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: 'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 56 }}>
-            <img src="/logo.png" alt="Nile Insurance" style={{ height: 60, objectFit: 'contain' }} />
+            <img src="/logo.png" alt="Enterprise Insurance" style={{ height: 60, objectFit: 'contain' }} />
             <div>
-              <div style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>Nile Insurance</div>
+              <div style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>Enterprise Insurance</div>
               <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Management Platform</div>
             </div>
           </div>
@@ -84,7 +84,7 @@ export default function Register() {
             Start Your Coverage<br/><span style={{ color: '#93c5fd' }}>Journey Today</span>
           </Title>
           <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 15, display: 'block', marginBottom: 48, lineHeight: 1.7 }}>
-            Join thousands of customers who trust Nile Insurance.
+            Join thousands of customers who trust Enterprise Insurance.
           </Text>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {BENEFITS.map((b, i) => (
@@ -100,9 +100,9 @@ export default function Register() {
       {/* Right panel */}
       <div style={{ width: '100%', maxWidth: 520, margin: '0 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px', overflowY: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
-          <img src="/logo.png" alt="Nile Insurance" style={{ height: 40, objectFit: 'contain' }} />
+          <img src="/logo.png" alt="Enterprise Insurance" style={{ height: 40, objectFit: 'contain' }} />
           <div>
-            <div style={{ color: '#111827', fontSize: 14, fontWeight: 700 }}>Nile Insurance</div>
+            <div style={{ color: '#111827', fontSize: 14, fontWeight: 700 }}>Enterprise Insurance</div>
             <div style={{ color: '#6b7280', fontSize: 11 }}>Management Platform</div>
           </div>
         </div>

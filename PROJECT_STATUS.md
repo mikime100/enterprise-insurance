@@ -1,4 +1,4 @@
-# Nile Insurance — Project Status
+# Enterprise Insurance — Project Status
 
 > **Last updated:** 2026-05-18
 > **Current commit:** ee8d9bf — feat: implement three registration flows with email verification
@@ -8,7 +8,7 @@
 
 ## Project Overview
 
-**Nile Insurance Management Platform** — a full-stack, multi-stakeholder enterprise insurance web application built as a production-grade MVP. Covers the full insurance lifecycle: policy creation, quoting, enrollment, claims processing, and settlement.
+**Enterprise Insurance Management Platform** — a full-stack, multi-stakeholder enterprise insurance web application built as a production-grade MVP. Covers the full insurance lifecycle: policy creation, quoting, enrollment, claims processing, and settlement.
 
 **Working directory:** `d:\Enterpise insurance\` _(note: "Enterpise" is intentional — path typo in original folder name)_
 
@@ -156,7 +156,7 @@ d:\Enterpise insurance\
 | Role | Portal URL | Description |
 |------|-----------|-------------|
 | `superadmin` | `/admin/*` | Full system access: users, payers, providers, institutions, broker approvals |
-| `payer_admin` | `/payer/*` | Nile Insurance staff: products, quotes, enrollments, claims, providers |
+| `payer_admin` | `/payer/*` | Enterprise Insurance staff: products, quotes, enrollments, claims, providers |
 | `underwriter` | `/payer/*` | Quotes & product management |
 | `claims_officer` | `/payer/*` | Claims processing & assessment |
 | `finance_officer` | `/payer/*` | Financial reports & claim settlement |
@@ -218,11 +218,11 @@ Broker → /broker/register-customer → POST /api/broker/register-customer
 
 | Role | Email | Password |
 |------|-------|----------|
-| Super Admin | admin@nileinsurance.com | Admin@123 |
-| Payer Admin | payer.admin@nileinsurance.com | Payer@123 |
-| Underwriter | underwriter@nileinsurance.com | Under@123 |
-| Claims Officer | claims@nileinsurance.com | Claims@123 |
-| Finance Officer | finance@nileinsurance.com | Finance@123 |
+| Super Admin | admin@enterpriseinsurance.com | Admin@123 |
+| Payer Admin | payer.admin@enterpriseinsurance.com | Payer@123 |
+| Underwriter | underwriter@enterpriseinsurance.com | Under@123 |
+| Claims Officer | claims@enterpriseinsurance.com | Claims@123 |
+| Finance Officer | finance@enterpriseinsurance.com | Finance@123 |
 | Provider (St. Gabriel Hospital) | billing@stgabriel.com | Provider@123 |
 | Institution HR (Ethio Telecom) | hr@ethiotelecom.et | Institution@123 |
 | Institution HR (CBE) | hr@cbe.com.et | Institution@123 |
@@ -329,7 +329,7 @@ node seeds/seed.js
 | `aefedac` | Initial commit: Enterprise Insurance MVP |
 | `b716a10` | Update color palette to light theme with green accent |
 | `457a48a` | Fix: restore visible text on dark page banners |
-| `0f17a91` | Rebrand to Nile Insurance with blue color palette |
+| `0f17a91` | Rebrand to Enterprise Insurance with blue color palette |
 | `185436d` | Fix: restore EAS update config, server session/DB init order |
 | `6fc94b9` | Fix: .npmrc legacy-peer-deps for EAS Build |
 | `ee8d9bf` | **Feat: implement three registration flows with email verification** ← current |

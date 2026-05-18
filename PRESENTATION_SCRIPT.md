@@ -1,4 +1,4 @@
-# Nile Insurance Platform — Client Presentation Script
+# Enterprise Insurance Platform — Client Presentation Script
 ### Word-for-Word Delivery Guide
 
 ---
@@ -21,7 +21,7 @@ Good morning, everyone. Thank you for being here today.
 
 My name is [YOUR NAME], and over the next thirty to forty minutes, I am going to walk you through something that I believe will fundamentally change the way your organization manages insurance — from the first quote all the way through to the final settlement payment.
 
-What you are about to see is the **Nile Insurance Platform** — a fully integrated, enterprise-grade insurance management system built specifically for the African market, with Ethiopia at its center.
+What you are about to see is the **Enterprise Insurance Platform** — a fully integrated, enterprise-grade insurance management system built specifically for the African market, with Ethiopia at its center.
 
 Before I show you the platform, let me ask you a question that I think will resonate with everyone in this room.
 
@@ -29,7 +29,7 @@ How many different systems does your team currently use to manage a single insur
 
 That is not a workflow. That is organized chaos. And it costs you time, money, and — most importantly — it costs your clients their trust.
 
-Nile Insurance solves exactly that problem. It is one platform. One login. One source of truth — for every stakeholder in the insurance value chain.
+Enterprise Insurance solves exactly that problem. It is one platform. One login. One source of truth — for every stakeholder in the insurance value chain.
 
 Let me show you how.
 
@@ -41,7 +41,7 @@ Let me show you how.
 
 **[SLIDE or verbal overview]**
 
-At its core, the Nile Insurance Platform is a multi-tenant, role-based insurance management system. What that means in plain language is this: every type of organization that touches an insurance policy — the insurance company, the employer, the hospital, the individual customer — all of them have their own dedicated workspace inside a single unified platform.
+At its core, the Enterprise Insurance Platform is a multi-tenant, role-based insurance management system. What that means in plain language is this: every type of organization that touches an insurance policy — the insurance company, the employer, the hospital, the individual customer — all of them have their own dedicated workspace inside a single unified platform.
 
 The platform currently supports five distinct types of users, each with their own tailored portal.
 
@@ -115,7 +115,8 @@ We start with the product catalog. An insurance company can define as many produ
 
 **[Click into a product]**
 
-Inside each product, you define your tiers. This is one of the most powerful features of the platform. A single health insurance product can have a Basic tier, a Standard tier, a Premium tier, and an Executive tier — each with a different annual premium, different coverage limits, and different employer contribution percentages.
+Inside each product, you define your tiers. This is one of the most powerful features of the platform. A single health insurance product can have a Basic t
+ier, a Standard tier, a Premium tier, and an Executive tier — each with a different annual premium, different coverage limits, and different employer contribution percentages.
 
 **[Coverage screen]**
 
@@ -141,7 +142,7 @@ The Payer admin can add insured persons to an enrollment, record premium payment
 
 And now we come to claims — the moment of truth for any insurance platform.
 
-I want to walk you through the complete claims workflow, because this is where Nile Insurance genuinely stands apart.
+I want to walk you through the complete claims workflow, because this is where Enterprise Insurance genuinely stands apart.
 
 A claim enters the system in one of two ways: either an insured person files it themselves through their portal, or a provider submits it directly on behalf of a patient through the provider portal. Either way, it arrives here, in the claims queue.
 
@@ -213,7 +214,7 @@ Now let me show you the provider experience — in this case, a hospital or clin
 
 Traditionally, when a patient receives treatment, the provider fills out a paper claim form, attaches documents, sends it to the insurance company, and then waits — often for weeks — with no visibility into whether the claim has been received, whether it is being reviewed, or when payment will arrive.
 
-The Nile Insurance Provider Portal eliminates that entirely.
+The Enterprise Insurance Provider Portal eliminates that entirely.
 
 A provider admin logs in to their dedicated portal. On their dashboard, they see three key numbers: open claims awaiting payment, settled claims that have been paid, and active agreements with insurance companies.
 
@@ -289,7 +290,7 @@ All of these reports are live, pulling from real data in real time. There is no 
 
 Let me take a moment to walk you through the payment infrastructure, because this is often where enterprise platforms fall short.
 
-The Nile Insurance Platform tracks four distinct types of financial transactions.
+The Enterprise Insurance Platform tracks four distinct types of financial transactions.
 
 The first is **premium collection** — institutions or individual insured persons paying their premiums to the insurance company. When a premium payment is recorded, the system updates the enrollment status and appends the payment to the policy's history.
 
@@ -353,7 +354,7 @@ Let me step back and summarize why this platform represents a significant leap f
 
 ---
 
-What you have seen today is version one of the Nile Insurance Platform. And we have a clear roadmap for what comes next.
+What you have seen today is version one of the Enterprise Insurance Platform. And we have a clear roadmap for what comes next.
 
 The mobile application is the immediate next milestone. The scaffolding is in place. The next development phase will bring the full insured-person experience — claim filing, coverage viewing, dependent management, and real-time status tracking — to iOS and Android devices.
 
@@ -371,7 +372,7 @@ Let me close with this.
 
 Insurance is fundamentally a promise. A person or an organization pays a premium today, trusting that when something goes wrong, the promise will be kept. The quality of that experience — the speed of the claims process, the clarity of the communication, the accuracy of the payment — that is what determines whether your client renews their policy or moves to a competitor.
 
-The Nile Insurance Platform is built around that promise. It is built to make the internal operations that support that promise — the quoting, the enrollment, the claims review, the payment — as fast, as transparent, and as reliable as possible.
+The Enterprise Insurance Platform is built around that promise. It is built to make the internal operations that support that promise — the quoting, the enrollment, the claims review, the payment — as fast, as transparent, and as reliable as possible.
 
 What we have shown you today is a fully functional platform. It is not a prototype. It is not a wireframe. The database is seeded with real product definitions, real claim workflows, and real role-based access controls. Everything you saw in this demonstration is live, working software.
 

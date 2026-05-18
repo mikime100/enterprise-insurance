@@ -12,7 +12,7 @@ function createTransport() {
   });
 }
 
-const FROM = `"Nile Insurance" <${process.env.SMTP_USER || 'noreply@nileinsurance.com'}>`;
+const FROM = `"Enterprise Insurance" <${process.env.SMTP_USER || 'noreply@enterpriseinsurance.com'}>`;
 
 function baseTemplate(title, bodyHtml) {
   return `
@@ -32,11 +32,11 @@ function baseTemplate(title, bodyHtml) {
 </style></head><body>
 <div class="wrap">
   <div class="header">
-    <h1>Nile Insurance</h1>
+    <h1>Enterprise Insurance</h1>
     <p>Enterprise Insurance Platform</p>
   </div>
   <div class="body">${bodyHtml}</div>
-  <div class="footer">© 2026 Nile Insurance S.C. &nbsp;·&nbsp; Addis Ababa, Ethiopia</div>
+  <div class="footer">© 2026 Enterprise Insurance S.C. &nbsp;·&nbsp; Addis Ababa, Ethiopia</div>
 </div>
 </body></html>`;
 }
@@ -44,19 +44,19 @@ function baseTemplate(title, bodyHtml) {
 async function sendOTPVerification(to, firstName, otp) {
   const html = baseTemplate('Verify Your Email', `
     <h2 style="color:#111827;margin-top:0">Hi ${firstName},</h2>
-    <p style="color:#374151">Welcome to Nile Insurance! Use the verification code below to confirm your email address.</p>
+    <p style="color:#374151">Welcome to Enterprise Insurance! Use the verification code below to confirm your email address.</p>
     <div class="otp"><span>${otp}</span></div>
     <p style="color:#6b7280;font-size:13px;text-align:center">This code expires in <strong>15 minutes</strong>.</p>
-    <div class="note">If you did not create an account with Nile Insurance, please ignore this email.</div>
+    <div class="note">If you did not create an account with Enterprise Insurance, please ignore this email.</div>
   `);
-  await createTransport().sendMail({ from: FROM, to, subject: 'Your Nile Insurance verification code', html });
+  await createTransport().sendMail({ from: FROM, to, subject: 'Your Enterprise Insurance verification code', html });
 }
 
 async function sendEmployeeInvitation(to, firstName, tempPassword, institutionName) {
   const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/login`;
   const html = baseTemplate('You are Invited', `
     <h2 style="color:#111827;margin-top:0">Hi ${firstName},</h2>
-    <p style="color:#374151">You have been enrolled in the <strong>${institutionName}</strong> insurance plan on Nile Insurance.</p>
+    <p style="color:#374151">You have been enrolled in the <strong>${institutionName}</strong> insurance plan on Enterprise Insurance.</p>
     <p style="color:#374151">Use the credentials below to log in for the first time:</p>
     <div class="otp" style="text-align:left;padding:16px 24px;">
       <p style="margin:4px 0;color:#374151;font-size:14px;"><strong>Email:</strong> ${to}</p>
@@ -65,14 +65,14 @@ async function sendEmployeeInvitation(to, firstName, tempPassword, institutionNa
     <a href="${loginUrl}" class="btn">Log In Now</a>
     <div class="note">You will be asked to change your password immediately after your first login. This temporary password expires in <strong>7 days</strong>.</div>
   `);
-  await createTransport().sendMail({ from: FROM, to, subject: `Your Nile Insurance account — ${institutionName}`, html });
+  await createTransport().sendMail({ from: FROM, to, subject: `Your Enterprise Insurance account — ${institutionName}`, html });
 }
 
 async function sendBrokerCustomerInvitation(to, firstName, tempPassword, brokerName) {
   const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/login`;
   const html = baseTemplate('Your Insurance Account is Ready', `
     <h2 style="color:#111827;margin-top:0">Hi ${firstName},</h2>
-    <p style="color:#374151">Your insurance account has been set up by <strong>${brokerName}</strong> through Nile Insurance.</p>
+    <p style="color:#374151">Your insurance account has been set up by <strong>${brokerName}</strong> through Enterprise Insurance.</p>
     <p style="color:#374151">Use the credentials below to access your account:</p>
     <div class="otp" style="text-align:left;padding:16px 24px;">
       <p style="margin:4px 0;color:#374151;font-size:14px;"><strong>Email:</strong> ${to}</p>
@@ -81,7 +81,7 @@ async function sendBrokerCustomerInvitation(to, firstName, tempPassword, brokerN
     <a href="${loginUrl}" class="btn">Access My Account</a>
     <div class="note">You will be required to set your own password on first login. This temporary password expires in <strong>7 days</strong>.</div>
   `);
-  await createTransport().sendMail({ from: FROM, to, subject: 'Your Nile Insurance account is ready', html });
+  await createTransport().sendMail({ from: FROM, to, subject: 'Your Enterprise Insurance account is ready', html });
 }
 
 async function sendBrokerApproval(to, firstName, approved) {
@@ -89,16 +89,16 @@ async function sendBrokerApproval(to, firstName, approved) {
   const html = approved
     ? baseTemplate('Application Approved', `
         <h2 style="color:#111827;margin-top:0">Congratulations, ${firstName}!</h2>
-        <p style="color:#374151">Your application to become a Nile Insurance sales broker has been <strong style="color:#16a34a">approved</strong>.</p>
+        <p style="color:#374151">Your application to become a Enterprise Insurance sales broker has been <strong style="color:#16a34a">approved</strong>.</p>
         <p style="color:#374151">You can now log in and start registering customers.</p>
         <a href="${loginUrl}" class="btn">Go to Broker Portal</a>
       `)
     : baseTemplate('Application Update', `
         <h2 style="color:#111827;margin-top:0">Hi ${firstName},</h2>
         <p style="color:#374151">After review, your broker application has not been approved at this time.</p>
-        <p style="color:#374151">Please contact <a href="mailto:info@nileinsurance.com">info@nileinsurance.com</a> for more information.</p>
+        <p style="color:#374151">Please contact <a href="mailto:info@enterpriseinsurance.com">info@enterpriseinsurance.com</a> for more information.</p>
       `);
-  const subject = approved ? 'Broker application approved — Nile Insurance' : 'Broker application update — Nile Insurance';
+  const subject = approved ? 'Broker application approved — Enterprise Insurance' : 'Broker application update — Enterprise Insurance';
   await createTransport().sendMail({ from: FROM, to, subject, html });
 }
 

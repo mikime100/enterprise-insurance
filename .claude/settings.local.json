@@ -13,7 +13,11 @@
       "Read(//c/Users/windows 10/.claude/skills/everything-claude-code/.git/**)",
       "Read(//c/Users/windows 10/.claude/skills/**)",
       "PowerShell(node --version)",
-      "PowerShell(npm --version)"
+      "PowerShell(npm --version)",
+      "Bash(netstat -ano)",
+      "Bash(findstr \":5173\")",
+      "Bash(findstr \":5000\")",
+      "Bash(taskkill /PID 11460 /F)"
     ]
   }
 }

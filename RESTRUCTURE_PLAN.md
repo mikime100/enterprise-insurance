@@ -44,7 +44,7 @@ Update server.js to mount all new routes.
 
 ## Phase 3 — New Seed Data (server/seeds/seed.js)
 
-- Payer: "Nile Insurance S.C." with 4 staff users
+- Payer: "Enterprise Insurance S.C." with 4 staff users
 - Provider: "St. Gabriel Hospital" + "AutoFix Garage"  
 - Institution: "Ethio Telecom" with HR admin + 3 employees
 - 2 Products: NileCare Health Plan + NileAuto Comprehensive

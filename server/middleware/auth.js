@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'nile-insurance-mobile-jwt-secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'enterprise-insurance-mobile-jwt-secret';
 
 const requireAuth = async (req, res, next) => {
   // JWT auth for mobile clients

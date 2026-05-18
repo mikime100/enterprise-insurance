@@ -13,8 +13,7 @@ Customer opens:
 
 Mobile App
 Web Portal
-Mini App inside superapps
-↓
+
 Customer browses products
 ↓
 Customer compares coverages
