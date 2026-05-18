@@ -23,12 +23,14 @@ async function start() {
 
   const app = express();
 
+  // Trust Render/Cloudflare reverse proxy so req.secure = true and Secure cookies work
+  app.set('trust proxy', 1);
+
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(morgan('dev'));
   const allowedOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
   app.use(cors({
     origin: (origin, cb) => {
-      // Allow requests with no origin (curl, mobile) or matching allowed origin or any localhost port in dev
       if (!origin || origin === allowedOrigin || (process.env.NODE_ENV !== 'production' && /^http:\/\/localhost:\d+$/.test(origin))) {
         cb(null, true);
       } else {
@@ -40,14 +42,14 @@ async function start() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  // Session uses the already-open mongoose connection — no second DB connection
   app.use(session({
     secret: process.env.SESSION_SECRET || 'enterprise-insurance-secret',
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      client: mongoose.connection.getClient(),
+      mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/enterprise_insurance',
       ttl: 24 * 60 * 60,
+      collectionName: 'sessions',
     }),
     cookie: {
       secure: process.env.NODE_ENV === 'production',

@@ -31,7 +31,10 @@ router.post('/login', async (req, res, next) => {
     }
 
     req.session.userId = user._id;
-    res.json({ user, mustChangePassword: user.mustChangePassword });
+    req.session.save(err => {
+      if (err) return next(err);
+      res.json({ user, mustChangePassword: user.mustChangePassword });
+    });
   } catch (err) { next(err); }
 });
 
@@ -93,7 +96,10 @@ router.post('/verify-email', async (req, res, next) => {
     await user.save();
 
     req.session.userId = user._id;
-    res.json({ message: 'Email verified successfully', user });
+    req.session.save(err => {
+      if (err) return next(err);
+      res.json({ message: 'Email verified successfully', user });
+    });
   } catch (err) { next(err); }
 });
 
