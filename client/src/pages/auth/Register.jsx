@@ -6,6 +6,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
 
 const { Title, Text } = Typography;
 const API = import.meta.env.VITE_API_URL || '/api';
@@ -25,6 +26,7 @@ export default function Register() {
   const [otp, setOtp] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
 
   const onRegister = async (values) => {
     setLoading(true); setError('');
@@ -44,6 +46,7 @@ export default function Register() {
     setLoading(true); setError('');
     try {
       await axios.post(`${API}/auth/verify-email`, { email, otp }, { withCredentials: true });
+      await refreshUser();
       navigate('/insured/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid or expired code');
