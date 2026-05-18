@@ -12,6 +12,7 @@ function createTransport() {
     connectionTimeout: 8000,
     greetingTimeout:   8000,
     socketTimeout:     8000,
+    family:            4, // force IPv4 — Render cannot reach Gmail over IPv6
   });
 }
 
