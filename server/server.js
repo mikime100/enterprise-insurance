@@ -25,7 +25,18 @@ async function start() {
 
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(morgan('dev'));
-  app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
+  const allowedOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
+  app.use(cors({
+    origin: (origin, cb) => {
+      // Allow requests with no origin (curl, mobile) or matching allowed origin or any localhost port in dev
+      if (!origin || origin === allowedOrigin || (process.env.NODE_ENV !== 'production' && /^http:\/\/localhost:\d+$/.test(origin))) {
+        cb(null, true);
+      } else {
+        cb(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
@@ -42,6 +53,7 @@ async function start() {
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000,
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     },
   }));
 
