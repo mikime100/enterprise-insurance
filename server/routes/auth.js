@@ -217,4 +217,17 @@ router.post('/broker-apply', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// ── SMTP test (dev/admin use only) ───────────────────────────────────────────
+router.post('/test-smtp', async (req, res, next) => {
+  const { to, secret } = req.body;
+  if (secret !== (process.env.SESSION_SECRET || '')) return res.status(403).json({ message: 'Forbidden' });
+  if (!to) return res.status(400).json({ message: 'to email required' });
+  try {
+    await sendOTPVerification(to, 'Test', '123456');
+    res.json({ message: `Test email sent to ${to}` });
+  } catch (err) {
+    res.status(500).json({ message: 'SMTP failed', error: err.message });
+  }
+});
+
 module.exports = router;
