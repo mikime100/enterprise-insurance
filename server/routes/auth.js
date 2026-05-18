@@ -21,10 +21,20 @@ router.post('/login', async (req, res, next) => {
     if (!email || !password) return res.status(400).json({ message: 'Email and password are required' });
 
     const user = await User.findOne({ email: email.toLowerCase().trim() });
-    if (!user || !user.isActive) return res.status(401).json({ message: 'Invalid credentials' });
+    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
     const match = await user.comparePassword(password);
     if (!match) return res.status(401).json({ message: 'Invalid credentials' });
+
+    // Broker-specific gate: verify email first, then wait for admin approval
+    if (user.role === 'sales_broker') {
+      if (!user.isEmailVerified)
+        return res.status(403).json({ message: 'Please verify your email first. Check your inbox for the verification code.', code: 'EMAIL_NOT_VERIFIED' });
+      if (!user.isActive)
+        return res.status(403).json({ message: 'Your broker application is pending admin approval.', code: 'PENDING_APPROVAL' });
+    }
+
+    if (!user.isActive) return res.status(401).json({ message: 'Invalid credentials' });
 
     if (!user.isEmailVerified && user.role === 'insured_person' && !user.mustChangePassword) {
       return res.status(403).json({ message: 'Please verify your email before logging in', code: 'EMAIL_NOT_VERIFIED' });
@@ -90,10 +100,15 @@ router.post('/verify-email', async (req, res, next) => {
     if (user.emailVerificationExpiry < new Date())
       return res.status(400).json({ message: 'Verification code has expired. Request a new one.' });
 
-    user.isEmailVerified       = true;
-    user.emailVerificationOTP  = undefined;
+    user.isEmailVerified         = true;
+    user.emailVerificationOTP    = undefined;
     user.emailVerificationExpiry = undefined;
     await user.save();
+
+    // Brokers need admin approval — don't open a session, just confirm email is verified
+    if (user.role === 'sales_broker') {
+      return res.json({ message: 'Email verified. Your application is under review.', pendingApproval: true });
+    }
 
     req.session.userId = user._id;
     req.session.save(err => {
@@ -182,15 +197,23 @@ router.post('/broker-apply', async (req, res, next) => {
     const exists = await User.findOne({ email: email.toLowerCase().trim() });
     if (exists) return res.status(409).json({ message: 'An account with this email already exists' });
 
+    const otp    = generateOTP();
+    const expiry = new Date(Date.now() + 15 * 60 * 1000);
+
     const user = new User({
       firstName, lastName, email, password, phone,
       role: 'sales_broker',
-      isEmailVerified: true,
-      isActive: false,        // inactive until admin approves
+      isEmailVerified: false,
+      isActive: false,
       brokerStatus: 'pending',
+      emailVerificationOTP: otp,
+      emailVerificationExpiry: expiry,
     });
     await user.save();
-    res.status(201).json({ message: 'Application submitted. You will be notified once approved.' });
+
+    try { await sendOTPVerification(email, firstName, otp); } catch (e) { console.error('Email send failed:', e.message); }
+
+    res.status(201).json({ message: 'Application submitted. Check your email for the verification code.', email });
   } catch (err) { next(err); }
 });
 

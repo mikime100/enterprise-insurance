@@ -56,6 +56,7 @@ router.get('/brokers', async (req, res, next) => {
     const { status } = req.query;
     const filter = { role: 'sales_broker' };
     if (status) filter.brokerStatus = status;
+    if (status === 'pending') filter.isEmailVerified = true; // only show brokers who completed email verification
     const brokers = await User.find(filter).select('-password').sort({ createdAt: -1 });
     res.json({ brokers });
   } catch (err) { next(err); }

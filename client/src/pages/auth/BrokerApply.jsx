@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Form, Input, Button, Typography, Alert, Result } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Typography, Alert, Steps, Result } from 'antd';
+import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
@@ -11,27 +11,52 @@ export default function BrokerApply() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [step, setStep] = useState(0); // 0=form, 1=verify-otp, 2=pending-approval
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
 
-  const onFinish = async (values) => {
+  const onSubmit = async (values) => {
     setLoading(true); setError('');
     try {
       const payload = { ...values };
       delete payload.confirmPassword;
       await axios.post(`${API}/auth/broker-apply`, payload, { withCredentials: true });
-      setSubmitted(true);
+      setEmail(values.email);
+      setStep(1);
     } catch (err) {
       setError(err.response?.data?.message || 'Application failed. Please try again.');
     } finally { setLoading(false); }
   };
 
-  if (submitted) {
+  const onVerify = async () => {
+    if (!otp || otp.length !== 6) { setError('Enter the 6-digit code from your email'); return; }
+    setLoading(true); setError('');
+    try {
+      await axios.post(`${API}/auth/verify-email`, { email, otp }, { withCredentials: true });
+      setStep(2);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid or expired code');
+    } finally { setLoading(false); }
+  };
+
+  const onResend = async () => {
+    try {
+      await axios.post(`${API}/auth/resend-otp`, { email }, { withCredentials: true });
+      setResendCooldown(60);
+      const t = setInterval(() => setResendCooldown(c => { if (c <= 1) { clearInterval(t); return 0; } return c - 1; }), 1000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not resend code');
+    }
+  };
+
+  if (step === 2) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f7fa' }}>
         <Result
-          icon={<CheckCircleOutlined style={{ color: '#1d4ed8' }} />}
-          title="Application Submitted!"
-          subTitle="Your broker application is under review. You'll receive an email once it's approved — usually within 1–2 business days."
+          icon={<ClockCircleOutlined style={{ color: '#1d4ed8', fontSize: 56 }} />}
+          title="Email Verified — Application Under Review"
+          subTitle="Your email has been confirmed. Our team will review your broker application and notify you by email once approved — usually within 1–2 business days."
           extra={<Link to="/login"><Button type="primary" style={{ background: '#1d4ed8', border: 'none', borderRadius: 8 }}>Back to Login</Button></Link>}
         />
       </div>
@@ -83,52 +108,87 @@ export default function BrokerApply() {
           </div>
         </div>
 
-        <div style={{ marginBottom: 24 }}>
-          <Title level={3} style={{ color: '#111827', margin: 0, fontWeight: 700 }}>Broker Application</Title>
-          <Text style={{ color: '#6b7280' }}>Fill in your details — our team will review and get back to you</Text>
-        </div>
+        <Steps current={step} size="small" style={{ marginBottom: 24 }} items={[{ title: 'Your Details' }, { title: 'Verify Email' }]} />
 
-        {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 20, borderRadius: 8 }} closable onClose={() => setError('')} />}
+        {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 16, borderRadius: 8 }} closable onClose={() => setError('')} />}
 
-        <Form form={form} onFinish={onFinish} layout="vertical" size="large">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <Form.Item name="firstName" label="First Name" rules={[{ required: true, message: 'Required' }]} style={{ marginBottom: 12 }}>
-              <Input prefix={<UserOutlined style={{ color: '#9ca3af' }} />} placeholder="John" style={{ borderColor: '#e8edf3', height: 44 }} />
-            </Form.Item>
-            <Form.Item name="lastName" label="Last Name" rules={[{ required: true, message: 'Required' }]} style={{ marginBottom: 12 }}>
-              <Input placeholder="Doe" style={{ borderColor: '#e8edf3', height: 44 }} />
-            </Form.Item>
-          </div>
-          <Form.Item name="email" label="Email Address" rules={[{ required: true }, { type: 'email', message: 'Enter a valid email' }]} style={{ marginBottom: 12 }}>
-            <Input prefix={<MailOutlined style={{ color: '#9ca3af' }} />} placeholder="you@example.com" style={{ borderColor: '#e8edf3', height: 44 }} />
-          </Form.Item>
-          <Form.Item name="phone" label="Phone (optional)" style={{ marginBottom: 12 }}>
-            <Input prefix={<PhoneOutlined style={{ color: '#9ca3af' }} />} placeholder="+251 91 000 0000" style={{ borderColor: '#e8edf3', height: 44 }} />
-          </Form.Item>
-          <Form.Item name="password" label="Password" rules={[{ required: true }, { min: 8, message: 'Minimum 8 characters' }]} style={{ marginBottom: 12 }}>
-            <Input.Password prefix={<LockOutlined style={{ color: '#9ca3af' }} />} placeholder="Min. 8 characters" style={{ borderColor: '#e8edf3', height: 44 }} />
-          </Form.Item>
-          <Form.Item name="confirmPassword" label="Confirm Password" dependencies={['password']} style={{ marginBottom: 16 }}
-            rules={[{ required: true, message: 'Please confirm your password' },
-              ({ getFieldValue }) => ({ validator(_, v) { return !v || getFieldValue('password') === v ? Promise.resolve() : Promise.reject(new Error('Passwords do not match')); } })
-            ]}>
-            <Input.Password prefix={<LockOutlined style={{ color: '#9ca3af' }} />} placeholder="Repeat password" style={{ borderColor: '#e8edf3', height: 44 }} />
-          </Form.Item>
-          <Button type="primary" htmlType="submit" loading={loading} block style={{ height: 48, fontWeight: 700, fontSize: 15, borderRadius: 10, background: 'linear-gradient(135deg,#1d4ed8,#1e40af)', border: 'none' }}>
-            Submit Application
-          </Button>
-        </Form>
+        {/* Step 0 — Application form */}
+        {step === 0 && (
+          <>
+            <div style={{ marginBottom: 20 }}>
+              <Title level={3} style={{ color: '#111827', margin: 0, fontWeight: 700 }}>Broker Application</Title>
+              <Text style={{ color: '#6b7280' }}>Fill in your details — our team will review and approve your account</Text>
+            </div>
+            <Form form={form} onFinish={onSubmit} layout="vertical" size="large">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <Form.Item name="firstName" label="First Name" rules={[{ required: true, message: 'Required' }]} style={{ marginBottom: 12 }}>
+                  <Input prefix={<UserOutlined style={{ color: '#9ca3af' }} />} placeholder="John" style={{ borderColor: '#e8edf3', height: 44 }} />
+                </Form.Item>
+                <Form.Item name="lastName" label="Last Name" rules={[{ required: true, message: 'Required' }]} style={{ marginBottom: 12 }}>
+                  <Input placeholder="Doe" style={{ borderColor: '#e8edf3', height: 44 }} />
+                </Form.Item>
+              </div>
+              <Form.Item name="email" label="Email Address" rules={[{ required: true }, { type: 'email', message: 'Enter a valid email' }]} style={{ marginBottom: 12 }}>
+                <Input prefix={<MailOutlined style={{ color: '#9ca3af' }} />} placeholder="you@example.com" style={{ borderColor: '#e8edf3', height: 44 }} />
+              </Form.Item>
+              <Form.Item name="phone" label="Phone (optional)" style={{ marginBottom: 12 }}>
+                <Input prefix={<PhoneOutlined style={{ color: '#9ca3af' }} />} placeholder="+251 91 000 0000" style={{ borderColor: '#e8edf3', height: 44 }} />
+              </Form.Item>
+              <Form.Item name="password" label="Password" rules={[{ required: true }, { min: 8, message: 'Minimum 8 characters' }]} style={{ marginBottom: 12 }}>
+                <Input.Password prefix={<LockOutlined style={{ color: '#9ca3af' }} />} placeholder="Min. 8 characters" style={{ borderColor: '#e8edf3', height: 44 }} />
+              </Form.Item>
+              <Form.Item name="confirmPassword" label="Confirm Password" dependencies={['password']} style={{ marginBottom: 16 }}
+                rules={[{ required: true, message: 'Please confirm your password' },
+                  ({ getFieldValue }) => ({ validator(_, v) { return !v || getFieldValue('password') === v ? Promise.resolve() : Promise.reject(new Error('Passwords do not match')); } })
+                ]}>
+                <Input.Password prefix={<LockOutlined style={{ color: '#9ca3af' }} />} placeholder="Repeat password" style={{ borderColor: '#e8edf3', height: 44 }} />
+              </Form.Item>
+              <Button type="primary" htmlType="submit" loading={loading} block style={{ height: 48, fontWeight: 700, fontSize: 15, borderRadius: 10, background: 'linear-gradient(135deg,#1d4ed8,#1e40af)', border: 'none' }}>
+                Submit Application
+              </Button>
+            </Form>
+            <div style={{ textAlign: 'center', marginTop: 16 }}>
+              <Text style={{ color: '#6b7280', fontSize: 13 }}>
+                Already have an account? <Link to="/login" style={{ color: '#1d4ed8', fontWeight: 600 }}>Sign in</Link>
+              </Text>
+            </div>
+            <div style={{ textAlign: 'center', marginTop: 8 }}>
+              <Text style={{ color: '#6b7280', fontSize: 13 }}>
+                Looking for individual coverage? <Link to="/register" style={{ color: '#1d4ed8', fontWeight: 600 }}>Register here</Link>
+              </Text>
+            </div>
+          </>
+        )}
 
-        <div style={{ textAlign: 'center', marginTop: 16 }}>
-          <Text style={{ color: '#6b7280', fontSize: 13 }}>
-            Already have an account? <Link to="/login" style={{ color: '#1d4ed8', fontWeight: 600 }}>Sign in</Link>
-          </Text>
-        </div>
-        <div style={{ textAlign: 'center', marginTop: 8 }}>
-          <Text style={{ color: '#6b7280', fontSize: 13 }}>
-            Looking for individual coverage? <Link to="/register" style={{ color: '#1d4ed8', fontWeight: 600 }}>Register here</Link>
-          </Text>
-        </div>
+        {/* Step 1 — OTP verification */}
+        {step === 1 && (
+          <>
+            <div style={{ marginBottom: 20 }}>
+              <Title level={3} style={{ color: '#111827', margin: 0, fontWeight: 700 }}>Check your email</Title>
+              <Text style={{ color: '#6b7280' }}>We sent a 6-digit code to <strong>{email}</strong></Text>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <Text style={{ fontSize: 13, color: '#374151', display: 'block', marginBottom: 8 }}>Verification Code</Text>
+              <Input
+                size="large"
+                maxLength={6}
+                value={otp}
+                onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
+                placeholder="123456"
+                style={{ fontSize: 28, fontWeight: 800, letterSpacing: 12, textAlign: 'center', height: 60, borderColor: '#e8edf3' }}
+                onPressEnter={onVerify}
+              />
+            </div>
+            <Button type="primary" onClick={onVerify} loading={loading} block style={{ height: 48, fontWeight: 700, fontSize: 15, borderRadius: 10, background: 'linear-gradient(135deg,#1d4ed8,#1e40af)', border: 'none', marginBottom: 12 }}>
+              Verify Email
+            </Button>
+            <div style={{ textAlign: 'center' }}>
+              <Button type="link" onClick={onResend} disabled={resendCooldown > 0} style={{ color: resendCooldown > 0 ? '#9ca3af' : '#1d4ed8', fontSize: 13 }}>
+                {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Didn't receive it? Resend code"}
+              </Button>
+            </div>
+          </>
+        )}
       </div>
 
       <style>{`@media (min-width: 900px) { .login-left-panel { display: flex !important; } }`}</style>
