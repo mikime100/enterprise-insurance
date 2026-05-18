@@ -1,7 +1,7 @@
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-const FROM = process.env.SMTP_USER || 'noreply@enterpriseinsurance.com';
+const FROM = process.env.SENDGRID_FROM || process.env.SMTP_USER || 'noreply@enterpriseinsurance.com';
 
 function baseTemplate(title, bodyHtml) {
   return `
