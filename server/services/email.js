@@ -1,24 +1,7 @@
-const nodemailer = require('nodemailer');
-const { setDefaultResultOrder } = require('dns');
-setDefaultResultOrder('ipv4first'); // Render cannot reach Gmail over IPv6
+const sgMail = require('@sendgrid/mail');
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-function createTransport() {
-  return nodemailer.createTransport({
-    host:   process.env.SMTP_HOST || 'smtp.gmail.com',
-    port:   parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_PORT === '465',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-    connectionTimeout: 8000,
-    greetingTimeout:   8000,
-    socketTimeout:     8000,
-    family:            4, // force IPv4 — Render cannot reach Gmail over IPv6
-  });
-}
-
-const FROM = `"Enterprise Insurance" <${process.env.SMTP_USER || 'noreply@enterpriseinsurance.com'}>`;
+const FROM = process.env.SMTP_USER || 'noreply@enterpriseinsurance.com';
 
 function baseTemplate(title, bodyHtml) {
   return `
@@ -55,7 +38,7 @@ async function sendOTPVerification(to, firstName, otp) {
     <p style="color:#6b7280;font-size:13px;text-align:center">This code expires in <strong>15 minutes</strong>.</p>
     <div class="note">If you did not create an account with Enterprise Insurance, please ignore this email.</div>
   `);
-  await createTransport().sendMail({ from: FROM, to, subject: 'Your Enterprise Insurance verification code', html });
+  await sgMail.send({ from: FROM, to, subject: 'Your Enterprise Insurance verification code', html });
 }
 
 async function sendEmployeeInvitation(to, firstName, tempPassword, institutionName) {
@@ -71,7 +54,7 @@ async function sendEmployeeInvitation(to, firstName, tempPassword, institutionNa
     <a href="${loginUrl}" class="btn">Log In Now</a>
     <div class="note">You will be asked to change your password immediately after your first login. This temporary password expires in <strong>7 days</strong>.</div>
   `);
-  await createTransport().sendMail({ from: FROM, to, subject: `Your Enterprise Insurance account — ${institutionName}`, html });
+  await sgMail.send({ from: FROM, to, subject: `Your Enterprise Insurance account — ${institutionName}`, html });
 }
 
 async function sendBrokerCustomerInvitation(to, firstName, tempPassword, brokerName) {
@@ -87,7 +70,7 @@ async function sendBrokerCustomerInvitation(to, firstName, tempPassword, brokerN
     <a href="${loginUrl}" class="btn">Access My Account</a>
     <div class="note">You will be required to set your own password on first login. This temporary password expires in <strong>7 days</strong>.</div>
   `);
-  await createTransport().sendMail({ from: FROM, to, subject: 'Your Enterprise Insurance account is ready', html });
+  await sgMail.send({ from: FROM, to, subject: 'Your Enterprise Insurance account is ready', html });
 }
 
 async function sendBrokerApproval(to, firstName, approved) {
@@ -105,7 +88,7 @@ async function sendBrokerApproval(to, firstName, approved) {
         <p style="color:#374151">Please contact <a href="mailto:info@enterpriseinsurance.com">info@enterpriseinsurance.com</a> for more information.</p>
       `);
   const subject = approved ? 'Broker application approved — Enterprise Insurance' : 'Broker application update — Enterprise Insurance';
-  await createTransport().sendMail({ from: FROM, to, subject, html });
+  await sgMail.send({ from: FROM, to, subject, html });
 }
 
 module.exports = { sendOTPVerification, sendEmployeeInvitation, sendBrokerCustomerInvitation, sendBrokerApproval };
