@@ -20,6 +20,7 @@ class ErrorBoundary extends Component {
   }
 }
 
+import Landing            from './pages/Landing';
 import Login              from './pages/auth/Login';
 import Register           from './pages/auth/Register';
 import VerifyEmail        from './pages/auth/VerifyEmail';
@@ -81,6 +82,17 @@ function RoleRedirect() {
   return <Navigate to="/insured/dashboard" replace />;
 }
 
+function PublicOrRedirect() {
+  const { user, loading } = useAuth();
+  if (loading) return (
+    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f6fa' }}>
+      <Spin size="large" />
+    </div>
+  );
+  if (user) return <RoleRedirect />;
+  return <Landing />;
+}
+
 function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
   if (loading) return (
@@ -111,7 +123,7 @@ function AppRoutes() {
       <Route path="/broker-apply"   element={<BrokerApply />} />
       <Route path="/change-password" element={<ForceChangePassword />} />
 
-      <Route path="/" element={<ProtectedRoute><RoleRedirect /></ProtectedRoute>} />
+      <Route path="/" element={<PublicOrRedirect />} />
 
       {/* Payer Portal */}
       <Route path="/payer" element={<ProtectedRoute roles={PAYER_ROLES}><AppLayout /></ProtectedRoute>}>
