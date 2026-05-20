@@ -9,7 +9,9 @@ const api = axios.create({
 api.interceptors.response.use(
   res => res,
   err => {
-    if (err.response?.status === 401 && window.location.pathname !== '/login') {
+    const isAuthCheck = err.config?.url?.includes('/auth/me');
+    const isPublicPath = ['/', '/login', '/register', '/broker-apply'].includes(window.location.pathname);
+    if (err.response?.status === 401 && !isAuthCheck && !isPublicPath) {
       window.location.href = '/login';
     }
     return Promise.reject(err);
