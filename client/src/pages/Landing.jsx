@@ -442,31 +442,74 @@ export default function Landing() {
         </div>
 
         {/* Dashboard mockup card */}
-        <div className="hero-mockup" style={{ flex: 1, maxWidth: 420, position: 'relative', zIndex: 1 }}>
-          <div style={{ background: '#fff', borderRadius: 18, padding: 24, boxShadow: '0 24px 80px rgba(0,0,0,0.35)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div className="hero-mockup" style={{ flex: 1, maxWidth: 460, position: 'relative', zIndex: 1 }}>
+          <div style={{ background: '#fff', borderRadius: 20, padding: '20px 22px', boxShadow: '0 32px 80px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
+
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <div>
-                <div style={{ fontWeight: 700, color: '#111827', fontSize: 15 }}>Admin Dashboard</div>
-                <div style={{ color: '#9ca3af', fontSize: 12 }}>Live System Status</div>
+                <div style={{ fontWeight: 800, color: '#111827', fontSize: 15 }}>System Overview</div>
+                <div style={{ color: '#9ca3af', fontSize: 11 }}>Enterprise Insurance · May 2026</div>
               </div>
-              <span style={{ background: '#dcfce7', color: '#16a34a', borderRadius: 20, padding: '4px 12px', fontSize: 12, fontWeight: 600 }}>● Online</span>
+              <span style={{ background: '#dcfce7', color: '#16a34a', borderRadius: 20, padding: '4px 11px', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} />Live
+              </span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+
+            {/* 4-stat grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
               {[
-                { label: 'Active Policies', value: '1,240', sub: '+12% this month', sc: GREEN },
-                { label: 'Claims Resolved', value: '94%', sub: 'Industry leading', sc: BLUE },
+                { label: 'Active Members', value: '5,240', sub: '↑ 8.3% this month', color: GREEN,   bg: '#f0fdf4' },
+                { label: 'Active Policies', value: '1,240', sub: '↑ 12% this month',  color: BLUE,    bg: '#eff6ff' },
+                { label: 'Claims Resolved', value: '94%',   sub: 'Industry leading',  color: '#8b5cf6', bg: '#f5f3ff' },
+                { label: 'ETB Paid Out',    value: '8.2M',  sub: 'This fiscal year',  color: '#f59e0b', bg: '#fffbeb' },
               ].map(s => (
-                <div key={s.label} style={{ background: '#f9fafb', borderRadius: 10, padding: '14px 16px' }}>
-                  <div style={{ color: '#9ca3af', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{s.label}</div>
-                  <div style={{ fontSize: 26, fontWeight: 900, color: '#111827' }}>{s.value}</div>
-                  <div style={{ fontSize: 12, color: s.sc, fontWeight: 600, marginTop: 2 }}>{s.sub}</div>
+                <div key={s.label} style={{ background: s.bg, borderRadius: 12, padding: '12px 14px' }}>
+                  <div style={{ color: '#9ca3af', fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{s.label}</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: '#111827', lineHeight: 1 }}>{s.value}</div>
+                  <div style={{ fontSize: 11, color: s.color, fontWeight: 600, marginTop: 4 }}>{s.sub}</div>
                 </div>
               ))}
             </div>
-            <div style={{ background: '#f9fafb', borderRadius: 10, padding: '16px 18px' }}>
-              <div style={{ color: '#9ca3af', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Total ETB Paid</div>
-              <div style={{ fontSize: 32, fontWeight: 900, color: BLUE }}>8.2M ETB</div>
+
+            {/* Mini bar chart — weekly claims */}
+            <div style={{ background: '#f9fafb', borderRadius: 12, padding: '12px 14px', marginBottom: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#374151' }}>Claims This Week</span>
+                <span style={{ fontSize: 11, color: GREEN, fontWeight: 600 }}>47 total</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 44 }}>
+                {[55, 80, 45, 100, 70, 90, 60].map((h, i) => (
+                  <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                    <div style={{ width: '100%', height: `${h * 0.4}px`, borderRadius: 4, background: i === 3 ? BLUE : i === 5 ? GREEN : '#d1d5db' }} />
+                    <span style={{ fontSize: 9, color: '#9ca3af' }}>{'MTWTFSS'[i]}</span>
+                  </div>
+                ))}
+              </div>
             </div>
+
+            {/* Recent activity feed */}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 8 }}>Recent Activity</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                {[
+                  { dot: '#16a34a', text: 'Claim #CLM-2847 approved', sub: 'Biruk A. · ETB 45,000', time: '2m ago' },
+                  { dot: BLUE,      text: 'New policy enrolled',       sub: 'Daniel T. · Health Standard', time: '18m ago' },
+                  { dot: '#8b5cf6', text: 'Broker application approved', sub: 'Kebede W. · Sales Broker', time: '1h ago' },
+                  { dot: '#f59e0b', text: 'Claim #CLM-2851 under review', sub: 'Hanna M. · ETB 12,400', time: '2h ago' },
+                ].map((a, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: a.dot, flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.text}</div>
+                      <div style={{ fontSize: 10, color: '#9ca3af' }}>{a.sub}</div>
+                    </div>
+                    <span style={{ fontSize: 10, color: '#d1d5db', flexShrink: 0 }}>{a.time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
