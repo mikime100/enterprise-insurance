@@ -7,14 +7,16 @@ import { useAuth } from '../../contexts/AuthContext';
 const { Title, Text } = Typography;
 
 const DEMOS = [
-  { role: 'Super Admin',     email: 'admin@nileinsurance.com',       password: 'Admin@123',       color: '#22c55e', desc: 'Full system access' },
-  { role: 'Payer Admin',     email: 'payer.admin@nileinsurance.com', password: 'Payer@123',       color: '#1e3a5f', desc: 'Yohannes Tesfaye' },
-  { role: 'Underwriter',     email: 'underwriter@nileinsurance.com', password: 'Under@123',       color: '#8b5cf6', desc: 'Meron Bekele' },
-  { role: 'Claims Officer',  email: 'claims@nileinsurance.com',      password: 'Claims@123',      color: '#f59e0b', desc: 'Dawit Haile' },
-  { role: 'Finance Officer', email: 'finance@nileinsurance.com',     password: 'Finance@123',     color: '#14b8a6', desc: 'Tigist Wolde' },
-  { role: 'Provider',        email: 'billing@stgabriel.com',         password: 'Provider@123',    color: '#ec4899', desc: 'St. Gabriel Hospital' },
-  { role: 'Institution HR',  email: 'hr@ethiotelecom.et',            password: 'Institution@123', color: '#f97316', desc: 'Ethio Telecom HR' },
-  { role: 'Insured Person',  email: 'biruk@ethiotelecom.et',         password: 'Insured@123',     color: '#06b6d4', desc: 'Biruk Assefa · Ethio Telecom' },
+  { role: 'Super Admin',          email: 'admin@enterpriseinsurance.com',       password: 'Admin@123',       color: '#22c55e', desc: 'Full system access' },
+  { role: 'Payer Admin',          email: 'payer.admin@enterpriseinsurance.com', password: 'Payer@123',       color: '#1e3a5f', desc: 'Yohannes Tesfaye' },
+  { role: 'Underwriter',          email: 'underwriter@enterpriseinsurance.com', password: 'Under@123',       color: '#8b5cf6', desc: 'Meron Bekele' },
+  { role: 'Claims Officer',       email: 'claims@enterpriseinsurance.com',      password: 'Claims@123',      color: '#f59e0b', desc: 'Dawit Haile' },
+  { role: 'Finance Officer',      email: 'finance@enterpriseinsurance.com',     password: 'Finance@123',     color: '#14b8a6', desc: 'Tigist Wolde' },
+  { role: 'Sales Broker',         email: 'broker@enterpriseinsurance.com',      password: 'Broker@123',      color: '#a855f7', desc: 'Kebede Worku · Approved' },
+  { role: 'Provider',             email: 'billing@stgabriel.com',               password: 'Provider@123',    color: '#ec4899', desc: 'St. Gabriel Hospital' },
+  { role: 'Institution HR',       email: 'hr@ethiotelecom.et',                  password: 'Institution@123', color: '#f97316', desc: 'Ethio Telecom HR' },
+  { role: 'Insured (Employee)',   email: 'biruk@ethiotelecom.et',               password: 'Insured@123',     color: '#06b6d4', desc: 'Biruk Assefa · Ethio Telecom' },
+  { role: 'Insured (Individual)', email: 'daniel.tesfaye@gmail.com',            password: 'Insured@123',     color: '#0ea5e9', desc: 'Daniel Tesfaye · Self-registered' },
 ];
 
 const FEATURES = [
