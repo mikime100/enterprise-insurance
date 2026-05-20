@@ -557,7 +557,7 @@ export default function Landing() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 40 }}>
             {STEPS.map((s, i) => (
               <div key={i}>
-                <div style={{ fontSize: 64, fontWeight: 900, color: `${GREEN}22`, lineHeight: 1, marginBottom: 14 }}>{s.num}</div>
+                <div style={{ fontSize: 64, fontWeight: 900, color: `${GREEN}99`, lineHeight: 1, marginBottom: 14 }}>{s.num}</div>
                 <h3 style={{ fontWeight: 800, color: '#111827', marginBottom: 10, fontSize: 19 }}>{s.title}</h3>
                 <p style={{ color: '#6b7280', fontSize: 15, lineHeight: 1.7, margin: 0 }}>{s.desc}</p>
               </div>
