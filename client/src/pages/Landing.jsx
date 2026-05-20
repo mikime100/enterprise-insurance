@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Tabs, Collapse, Alert } from 'antd';
 import {
-  ShieldOutlined, TeamOutlined, BankOutlined, FileSearchOutlined,
+  SafetyOutlined, TeamOutlined, BankOutlined, FileSearchOutlined,
   WalletOutlined, CheckCircleOutlined, ClockCircleOutlined,
   PhoneOutlined, MailOutlined, LockOutlined, UserOutlined,
 } from '@ant-design/icons';
@@ -20,7 +20,7 @@ const FEATURES = [
   { icon: <TeamOutlined />,       title: 'Broker Network',           desc: 'Apply to join, get admin-approved, and manage your entire client portfolio from a dedicated portal.' },
   { icon: <BankOutlined />,       title: 'Institution Group Plans',  desc: 'HR administrators can bulk-enroll employees and manage benefits for entire workforces at once.' },
   { icon: <FileSearchOutlined />, title: 'Real-Time Claims',         desc: 'File a claim, attach documents, and track every status update in real time from any device.' },
-  { icon: <ShieldOutlined />,     title: 'Dependent Management',     desc: 'Add spouses, children, and beneficiaries directly from your personal insured dashboard.' },
+  { icon: <SafetyOutlined />,     title: 'Dependent Management',     desc: 'Add spouses, children, and beneficiaries directly from your personal insured dashboard.' },
   { icon: <WalletOutlined />,     title: 'ETB Wallet & Payments',    desc: 'All premiums and payouts in Ethiopian Birr, fully compliant with local financial regulations.' },
 ];
 
