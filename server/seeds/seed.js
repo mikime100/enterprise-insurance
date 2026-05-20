@@ -130,27 +130,34 @@ async function seed() {
   // ─── USERS ───────────────────────────────────────────────────────────────
   const coreUsers = await User.create([
     // Super Admin
-    { firstName: 'System',    lastName: 'Admin',    email: 'admin@enterpriseinsurance.com',       password: 'Admin@123',       role: 'superadmin',        phone: '+251 91 000 0001' },
+    { firstName: 'System',    lastName: 'Admin',    email: 'admin@enterpriseinsurance.com',       password: 'Admin@123',       role: 'superadmin',        phone: '+251 91 000 0001', isEmailVerified: true, isActive: true },
     // Payer staff
-    { firstName: 'Yohannes',  lastName: 'Tesfaye',  email: 'payer.admin@enterpriseinsurance.com', password: 'Payer@123',       role: 'payer_admin',       phone: '+251 91 100 0001', linkedEntity: { entityType: 'Payer', entityId: payer._id } },
-    { firstName: 'Meron',     lastName: 'Bekele',   email: 'underwriter@enterpriseinsurance.com', password: 'Under@123',       role: 'underwriter',       phone: '+251 91 100 0002', linkedEntity: { entityType: 'Payer', entityId: payer._id } },
-    { firstName: 'Dawit',     lastName: 'Haile',    email: 'claims@enterpriseinsurance.com',      password: 'Claims@123',      role: 'claims_officer',    phone: '+251 91 100 0003', linkedEntity: { entityType: 'Payer', entityId: payer._id } },
-    { firstName: 'Tigist',    lastName: 'Wolde',    email: 'finance@enterpriseinsurance.com',     password: 'Finance@123',     role: 'finance_officer',   phone: '+251 91 100 0004', linkedEntity: { entityType: 'Payer', entityId: payer._id } },
+    { firstName: 'Yohannes',  lastName: 'Tesfaye',  email: 'payer.admin@enterpriseinsurance.com', password: 'Payer@123',       role: 'payer_admin',       phone: '+251 91 100 0001', isEmailVerified: true, isActive: true, linkedEntity: { entityType: 'Payer', entityId: payer._id } },
+    { firstName: 'Meron',     lastName: 'Bekele',   email: 'underwriter@enterpriseinsurance.com', password: 'Under@123',       role: 'underwriter',       phone: '+251 91 100 0002', isEmailVerified: true, isActive: true, linkedEntity: { entityType: 'Payer', entityId: payer._id } },
+    { firstName: 'Dawit',     lastName: 'Haile',    email: 'claims@enterpriseinsurance.com',      password: 'Claims@123',      role: 'claims_officer',    phone: '+251 91 100 0003', isEmailVerified: true, isActive: true, linkedEntity: { entityType: 'Payer', entityId: payer._id } },
+    { firstName: 'Tigist',    lastName: 'Wolde',    email: 'finance@enterpriseinsurance.com',     password: 'Finance@123',     role: 'finance_officer',   phone: '+251 91 100 0004', isEmailVerified: true, isActive: true, linkedEntity: { entityType: 'Payer', entityId: payer._id } },
     // Provider users
-    { firstName: 'Abebe',     lastName: 'Girma',    email: 'billing@stgabriel.com',         password: 'Provider@123',    role: 'provider_admin',    phone: '+251 91 200 0001', linkedEntity: { entityType: 'Provider', entityId: stGabriel._id } },
-    { firstName: 'Fikirte',   lastName: 'Alemu',    email: 'billing@blacklion.gov.et',      password: 'Provider@123',    role: 'provider_admin',    phone: '+251 91 200 0002', linkedEntity: { entityType: 'Provider', entityId: blackLion._id } },
+    { firstName: 'Abebe',     lastName: 'Girma',    email: 'billing@stgabriel.com',         password: 'Provider@123',    role: 'provider_admin',    phone: '+251 91 200 0001', isEmailVerified: true, isActive: true, linkedEntity: { entityType: 'Provider', entityId: stGabriel._id } },
+    { firstName: 'Fikirte',   lastName: 'Alemu',    email: 'billing@blacklion.gov.et',      password: 'Provider@123',    role: 'provider_admin',    phone: '+251 91 200 0002', isEmailVerified: true, isActive: true, linkedEntity: { entityType: 'Provider', entityId: blackLion._id } },
     // Institution HR users
-    { firstName: 'Selam',     lastName: 'Tadesse',  email: 'hr@ethiotelecom.et',            password: 'Institution@123', role: 'institution_admin', phone: '+251 91 300 0001', linkedEntity: { entityType: 'Institution', entityId: ethioTelecom._id } },
-    { firstName: 'Tsehay',    lastName: 'Girma',    email: 'hr@cbe.com.et',                 password: 'Institution@123', role: 'institution_admin', phone: '+251 91 300 0002', linkedEntity: { entityType: 'Institution', entityId: cbe._id } },
-    { firstName: 'Robel',     lastName: 'Hailu',    email: 'hr@ethiopianairlines.com',      password: 'Institution@123', role: 'institution_admin', phone: '+251 91 300 0003', linkedEntity: { entityType: 'Institution', entityId: ethioAirlines._id } },
-    // Insured — demo login
-    { firstName: 'Biruk',     lastName: 'Assefa',   email: 'biruk@ethiotelecom.et',         password: 'Insured@123',     role: 'insured_person',    phone: '+251 91 400 0001' },
+    { firstName: 'Selam',     lastName: 'Tadesse',  email: 'hr@ethiotelecom.et',            password: 'Institution@123', role: 'institution_admin', phone: '+251 91 300 0001', isEmailVerified: true, isActive: true, linkedEntity: { entityType: 'Institution', entityId: ethioTelecom._id } },
+    { firstName: 'Tsehay',    lastName: 'Girma',    email: 'hr@cbe.com.et',                 password: 'Institution@123', role: 'institution_admin', phone: '+251 91 300 0002', isEmailVerified: true, isActive: true, linkedEntity: { entityType: 'Institution', entityId: cbe._id } },
+    { firstName: 'Robel',     lastName: 'Hailu',    email: 'hr@ethiopianairlines.com',      password: 'Institution@123', role: 'institution_admin', phone: '+251 91 300 0003', isEmailVerified: true, isActive: true, linkedEntity: { entityType: 'Institution', entityId: ethioAirlines._id } },
+    // Insured — demo login (institution employee)
+    { firstName: 'Biruk',     lastName: 'Assefa',   email: 'biruk@ethiotelecom.et',         password: 'Insured@123',     role: 'insured_person',    phone: '+251 91 400 0001', isEmailVerified: true, isActive: true },
+    // Sales broker — demo
+    { firstName: 'Kebede',    lastName: 'Worku',    email: 'broker@enterpriseinsurance.com', password: 'Broker@123',     role: 'sales_broker',      phone: '+251 91 500 0001', isEmailVerified: true, isActive: true, brokerStatus: 'approved' },
+    // Individual self-registered insured persons (no institution)
+    { firstName: 'Daniel',    lastName: 'Tesfaye',  email: 'daniel.tesfaye@gmail.com',      password: 'Insured@123',     role: 'insured_person',    phone: '+251 91 600 0001', isEmailVerified: true, isActive: true },
+    { firstName: 'Helen',     lastName: 'Girma',    email: 'helen.girma@gmail.com',         password: 'Insured@123',     role: 'insured_person',    phone: '+251 91 600 0002', isEmailVerified: true, isActive: true },
+    { firstName: 'Yonas',     lastName: 'Alemu',    email: 'yonas.alemu@gmail.com',         password: 'Insured@123',     role: 'insured_person',    phone: '+251 91 600 0003', isEmailVerified: true, isActive: true },
   ]);
 
   const [superAdmin, payerAdmin, underwriter, claimsOfficer, financeOfficer,
          stGabrielUser, blackLionUser,
          etHrUser, cbeHrUser, ethioAirHrUser,
-         insuredDemo] = coreUsers;
+         insuredDemo, brokerUser,
+         danielUser, helenUser, yonasUser] = coreUsers;
 
   // ─── INSURED PERSON USERS (bulk) ─────────────────────────────────────────
   const ipUserData = [
@@ -193,7 +200,8 @@ async function seed() {
   const ipUsers = await User.insertMany(
     ipUserData.map(u => ({
       firstName: u.firstName, lastName: u.lastName, email: u.email,
-      password: 'Insured@123', role: 'insured_person', phone: '+251 91 400 0000'
+      password: 'Insured@123', role: 'insured_person', phone: '+251 91 400 0000',
+      isEmailVerified: true, isActive: true,
     }))
   );
 
@@ -245,12 +253,76 @@ async function seed() {
     }))
   );
 
-  // Link users to insured person records
+  // Link bulk users to insured person records
   await Promise.all(ipUsers.map((u, i) =>
     User.updateOne({ _id: u._id }, { 'linkedEntity.entityType': 'InsuredPerson', 'linkedEntity.entityId': ipRecords[i]._id })
   ));
 
-  console.log('Created stakeholders: 4 institutions, 6 providers, 41 insured persons');
+  // ─── INDIVIDUAL (SELF-REGISTERED) INSURED PERSONS ────────────────────────
+  const [danielIP, helenIP, yonasIP] = await InsuredPerson.insertMany([
+    {
+      user: danielUser._id,
+      firstName: 'Daniel', lastName: 'Tesfaye',
+      email: 'daniel.tesfaye@gmail.com', phone: '+251 91 600 0001',
+      dateOfBirth: new Date('1991-03-14'), gender: 'male',
+      nationalId: 'ETH-IND-000001',
+      address: { city: 'Addis Ababa', country: 'Ethiopia' },
+      dependents: [
+        { firstName: 'Mekdes', lastName: 'Tesfaye', dateOfBirth: new Date('1993-07-22'), gender: 'female', relationship: 'spouse' },
+        { firstName: 'Nathan', lastName: 'Tesfaye', dateOfBirth: new Date('2018-11-05'), gender: 'male', relationship: 'child' },
+      ],
+    },
+    {
+      user: helenUser._id,
+      firstName: 'Helen', lastName: 'Girma',
+      email: 'helen.girma@gmail.com', phone: '+251 91 600 0002',
+      dateOfBirth: new Date('1995-08-30'), gender: 'female',
+      nationalId: 'ETH-IND-000002',
+      address: { city: 'Addis Ababa', country: 'Ethiopia' },
+      dependents: [],
+    },
+    {
+      user: yonasUser._id,
+      firstName: 'Yonas', lastName: 'Alemu',
+      email: 'yonas.alemu@gmail.com', phone: '+251 91 600 0003',
+      dateOfBirth: new Date('1988-05-19'), gender: 'male',
+      nationalId: 'ETH-IND-000003',
+      address: { city: 'Dire Dawa', country: 'Ethiopia' },
+      dependents: [
+        { firstName: 'Rahel', lastName: 'Alemu', dateOfBirth: new Date('2016-02-10'), gender: 'female', relationship: 'child' },
+      ],
+    },
+  ]);
+  await Promise.all([
+    User.updateOne({ _id: danielUser._id }, { 'linkedEntity.entityType': 'InsuredPerson', 'linkedEntity.entityId': danielIP._id }),
+    User.updateOne({ _id: helenUser._id },  { 'linkedEntity.entityType': 'InsuredPerson', 'linkedEntity.entityId': helenIP._id }),
+    User.updateOne({ _id: yonasUser._id },  { 'linkedEntity.entityType': 'InsuredPerson', 'linkedEntity.entityId': yonasIP._id }),
+  ]);
+
+  // ─── BROKER CUSTOMERS (registered by broker) ─────────────────────────────
+  const brokerCustomerData = [
+    { firstName: 'Firehiwot', lastName: 'Bekele',  email: 'firehiwot.b@gmail.com', phone: '+251 91 700 0001', dob: '1990-06-12', gender: 'female' },
+    { firstName: 'Muluken',   lastName: 'Tadesse',  email: 'muluken.t@gmail.com',   phone: '+251 91 700 0002', dob: '1985-09-25', gender: 'male' },
+    { firstName: 'Bethlehem', lastName: 'Solomon',  email: 'bethlehem.s@gmail.com', phone: '+251 91 700 0003', dob: '1993-01-17', gender: 'female' },
+  ];
+  const brokerCustomerUsers = await User.insertMany(brokerCustomerData.map(c => ({
+    firstName: c.firstName, lastName: c.lastName, email: c.email, phone: c.phone,
+    password: 'Insured@123', role: 'insured_person', isEmailVerified: true, isActive: true, mustChangePassword: false,
+  })));
+  const brokerCustomerIPs = await InsuredPerson.insertMany(brokerCustomerData.map((c, i) => ({
+    user: brokerCustomerUsers[i]._id,
+    firstName: c.firstName, lastName: c.lastName, email: c.email, phone: c.phone,
+    dateOfBirth: new Date(c.dob), gender: c.gender,
+    nationalId: `ETH-BRK-${(20000 + i).toString()}`,
+    address: { city: 'Addis Ababa', country: 'Ethiopia' },
+    registeredByBroker: brokerUser._id,
+    dependents: i === 0 ? [{ firstName: 'Amir', lastName: 'Bekele', dateOfBirth: new Date('2019-04-03'), gender: 'male', relationship: 'child' }] : [],
+  })));
+  await Promise.all(brokerCustomerUsers.map((u, i) =>
+    User.updateOne({ _id: u._id }, { 'linkedEntity.entityType': 'InsuredPerson', 'linkedEntity.entityId': brokerCustomerIPs[i]._id })
+  ));
+
+  console.log('Created stakeholders: 4 institutions, 6 providers, 30 group + 3 individual + 3 broker-registered insured persons');
 
   // Convenient refs
   const [etIP1, etIP2, etIP3, etIP4, etIP5, etIP6, etIP7, etIP8, etIP9, etIP10,
@@ -273,7 +345,7 @@ async function seed() {
   // ─── INSURANCE PRODUCTS ──────────────────────────────────────────────────
   const [healthProduct, autoProduct] = await InsuranceProduct.create([
     {
-      name: 'NileCare Group Health Plan', payer: payer._id, productType: 'health',
+      name: 'EnterpriseCare Group Health Plan', payer: payer._id, productType: 'health',
       description: 'Comprehensive group health insurance for corporate clients. Covers inpatient, outpatient, dental, and optical.',
       targetMarkets: ['Corporate', 'Government'],
       ageRange: { min: 18, max: 65 }, baseAnnualPremium: 8400, waitingPeriodMonths: 1,
@@ -281,7 +353,7 @@ async function seed() {
       terms: 'Annual renewable. Waiting period 1 month. Pre-existing conditions covered after 12 months.'
     },
     {
-      name: 'NileAuto Comprehensive Cover', payer: payer._id, productType: 'auto',
+      name: 'EnterpriseAuto Comprehensive Cover', payer: payer._id, productType: 'auto',
       description: 'Full comprehensive motor insurance for corporate fleets and individuals.',
       targetMarkets: ['Corporate', 'SME'],
       ageRange: { min: 18, max: 70 }, baseAnnualPremium: 3600,
@@ -1354,26 +1426,34 @@ async function seed() {
   }
 
   console.log('\n========== SEED COMPLETE ==========');
-  console.log(`\n  4 institutions | 6 providers | 41 insured persons | ${createdClaims.length} claims`);
+  console.log(`\n  4 institutions | 6 providers | 36 insured persons (30 group + 3 individual + 3 broker-registered) | ${createdClaims.length} claims`);
   console.log('\nDemo Login Credentials:');
-  console.log('─'.repeat(55));
+  console.log('─'.repeat(62));
   console.log('SUPER ADMIN');
-  console.log('  admin@enterpriseinsurance.com         / Admin@123');
-  console.log('\nPAYER STAFF (Enterprise Insurance)');
-  console.log('  payer.admin@enterpriseinsurance.com   / Payer@123       [Payer Admin]');
-  console.log('  underwriter@enterpriseinsurance.com   / Under@123       [Underwriter]');
-  console.log('  claims@enterpriseinsurance.com        / Claims@123      [Claims Officer]');
-  console.log('  finance@enterpriseinsurance.com       / Finance@123     [Finance Officer]');
+  console.log('  admin@enterpriseinsurance.com          / Admin@123');
+  console.log('\nPAYER STAFF');
+  console.log('  payer.admin@enterpriseinsurance.com    / Payer@123       [Payer Admin]');
+  console.log('  underwriter@enterpriseinsurance.com    / Under@123       [Underwriter]');
+  console.log('  claims@enterpriseinsurance.com         / Claims@123      [Claims Officer]');
+  console.log('  finance@enterpriseinsurance.com        / Finance@123     [Finance Officer]');
   console.log('\nPROVIDERS');
-  console.log('  billing@stgabriel.com           / Provider@123    [St. Gabriel Hospital]');
-  console.log('  billing@blacklion.gov.et        / Provider@123    [Black Lion Hospital]');
-  console.log('\nINSTITUTIONS');
-  console.log('  hr@ethiotelecom.et              / Institution@123 [Ethio Telecom HR]');
-  console.log('  hr@cbe.com.et                   / Institution@123 [CBE HR]');
-  console.log('  hr@ethiopianairlines.com        / Institution@123 [Ethiopian Airlines HR]');
-  console.log('\nINSURED PERSON (demo)');
-  console.log('  biruk@ethiotelecom.et           / Insured@123');
-  console.log('─'.repeat(55));
+  console.log('  billing@stgabriel.com            / Provider@123    [St. Gabriel Hospital]');
+  console.log('  billing@blacklion.gov.et         / Provider@123    [Black Lion Hospital]');
+  console.log('\nINSTITUTION HR');
+  console.log('  hr@ethiotelecom.et               / Institution@123 [Ethio Telecom HR]');
+  console.log('  hr@cbe.com.et                    / Institution@123 [CBE HR]');
+  console.log('  hr@ethiopianairlines.com         / Institution@123 [Ethiopian Airlines HR]');
+  console.log('\nSALES BROKER');
+  console.log('  broker@enterpriseinsurance.com   / Broker@123');
+  console.log('\nINSURED PERSONS');
+  console.log('  biruk@ethiotelecom.et            / Insured@123     [Institution employee — with claims]');
+  console.log('  daniel.tesfaye@gmail.com         / Insured@123     [Self-registered individual]');
+  console.log('  helen.girma@gmail.com            / Insured@123     [Self-registered individual]');
+  console.log('  yonas.alemu@gmail.com            / Insured@123     [Self-registered individual]');
+  console.log('  firehiwot.b@gmail.com            / Insured@123     [Broker-registered customer]');
+  console.log('  muluken.t@gmail.com              / Insured@123     [Broker-registered customer]');
+  console.log('  bethlehem.s@gmail.com            / Insured@123     [Broker-registered customer]');
+  console.log('─'.repeat(62));
 
   await mongoose.disconnect();
 }

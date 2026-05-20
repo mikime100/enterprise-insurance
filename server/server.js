@@ -77,13 +77,16 @@ async function start() {
 
   app.post('/api/seed-init', async (req, res) => {
     try {
+      const { secret, force } = req.body;
+      if (force && secret !== (process.env.SESSION_SECRET || ''))
+        return res.status(403).json({ message: 'Forbidden' });
       const User = require('./models/User');
       const count = await User.countDocuments();
-      if (count > 0) return res.json({ message: 'Already seeded', userCount: count });
+      if (count > 0 && !force) return res.json({ message: 'Already seeded', userCount: count });
       const { spawn } = require('child_process');
       spawn('node', ['seeds/seed.js'], { cwd: __dirname, stdio: 'inherit', env: process.env })
         .on('exit', code => console.log(`Seed done (exit ${code})`));
-      res.json({ message: 'Seeding started — wait 60s' });
+      res.json({ message: force ? 'Force-reseeding started — wait 90s then refresh' : 'Seeding started — wait 60s' });
     } catch (err) { res.status(500).json({ message: err.message }); }
   });
 
