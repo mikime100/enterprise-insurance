@@ -371,6 +371,28 @@ export default function Landing() {
 
   return (
     <div style={{ fontFamily: 'Inter, -apple-system, Arial, sans-serif', overflowX: 'hidden' }}>
+      <style>{`
+        @keyframes heroFloat {
+          0%   { transform: translateY(0px) rotate(-1deg); }
+          50%  { transform: translateY(-18px) rotate(1deg); }
+          100% { transform: translateY(0px) rotate(-1deg); }
+        }
+        @keyframes glowPulse {
+          0%   { box-shadow: 0 32px 80px rgba(0,0,0,0.4), 0 0 0 0 rgba(34,197,94,0); }
+          50%  { box-shadow: 0 48px 100px rgba(0,0,0,0.45), 0 0 60px 10px rgba(34,197,94,0.12); }
+          100% { box-shadow: 0 32px 80px rgba(0,0,0,0.4), 0 0 0 0 rgba(34,197,94,0); }
+        }
+        .hero-mockup-card {
+          animation: heroFloat 5s ease-in-out infinite, glowPulse 5s ease-in-out infinite;
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
+          will-change: transform;
+        }
+        .hero-mockup-card:hover {
+          animation-play-state: paused;
+          transform: translateY(-10px) rotate(0deg) scale(1.02) !important;
+          box-shadow: 0 56px 120px rgba(0,0,0,0.5), 0 0 80px 16px rgba(34,197,94,0.18) !important;
+        }
+      `}</style>
 
       {/* ── Sticky Navbar ─────────────────────────────────────────────────── */}
       <nav style={{
@@ -443,7 +465,7 @@ export default function Landing() {
 
         {/* Dashboard mockup card */}
         <div className="hero-mockup" style={{ flex: 1, maxWidth: 460, position: 'relative', zIndex: 1 }}>
-          <div style={{ background: '#fff', borderRadius: 20, padding: '20px 22px', boxShadow: '0 32px 80px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
+          <div className="hero-mockup-card" style={{ background: '#fff', borderRadius: 20, padding: '20px 22px', boxShadow: '0 32px 80px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
 
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
