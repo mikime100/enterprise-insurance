@@ -5,13 +5,13 @@ import api from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 
 const D = {
-  bg:     '#0d1117',
-  card:   '#161b22',
-  card2:  '#1c2128',
-  border: 'rgba(255,255,255,0.08)',
-  text:   '#f0f6fc',
-  sec:    '#8b949e',
-  link:   '#58a6ff',
+  bg:     '#f5f7fa',
+  card:   '#ffffff',
+  card2:  '#f9fafb',
+  border: '#e5e7eb',
+  text:   '#111827',
+  sec:    '#6b7280',
+  link:   '#1e3a5f',
   green:  '#22c55e',
   blue:   '#1d4ed8',
   red:    '#ef4444',
@@ -178,17 +178,16 @@ export default function PayerQuotes() {
     <div style={{ background: D.bg, minHeight: '100%', margin: -24, padding: 28 }}>
       <style>{`
         .uw-table .ant-table                              { background: transparent !important; }
-        .uw-table .ant-table-thead > tr > th             { background: rgba(255,255,255,0.03) !important; color: ${D.sec} !important; border-bottom: 1px solid ${D.border} !important; font-size: 11px; letter-spacing: .08em; font-weight: 700; padding: 10px 16px !important; }
-        .uw-table .ant-table-tbody > tr > td             { border-bottom: 1px solid rgba(255,255,255,0.05) !important; background: transparent !important; padding: 14px 16px !important; }
-        .uw-table .ant-table-tbody > tr:hover > td       { background: rgba(255,255,255,0.03) !important; }
-        .uw-table .ant-pagination .ant-pagination-item   { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
-        .uw-table .ant-pagination .ant-pagination-item a { color: ${D.sec}; }
+        .uw-table .ant-table-thead > tr > th             { background: #f9fafb !important; color: #6b7280 !important; border-bottom: 1px solid #e5e7eb !important; font-size: 11px; letter-spacing: .08em; font-weight: 700; padding: 10px 16px !important; }
+        .uw-table .ant-table-tbody > tr > td             { border-bottom: 1px solid #f3f4f6 !important; background: transparent !important; padding: 14px 16px !important; }
+        .uw-table .ant-table-tbody > tr:hover > td       { background: #f9fafb !important; }
+        .uw-table .ant-pagination .ant-pagination-item   { background: #fff; border-color: #e5e7eb; }
+        .uw-table .ant-pagination .ant-pagination-item a { color: #374151; }
         .uw-table .ant-pagination .ant-pagination-item-active           { background: ${D.blue}; border-color: ${D.blue}; }
         .uw-table .ant-pagination .ant-pagination-item-active a         { color: #fff; }
         .uw-table .ant-pagination .ant-pagination-prev button,
-        .uw-table .ant-pagination .ant-pagination-next button           { color: ${D.sec}; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
-        .uw-table .ant-empty-description { color: ${D.sec}; }
-        .uw-table .ant-spin-dot-item     { background: ${D.green} !important; }
+        .uw-table .ant-pagination .ant-pagination-next button           { color: #6b7280; background: #fff; border-color: #e5e7eb; }
+        .uw-table .ant-empty-description { color: #6b7280; }
       `}</style>
 
       {/* ── Page header ── */}
@@ -251,7 +250,7 @@ export default function PayerQuotes() {
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: 20, overflowY: 'auto', backdropFilter: 'blur(4px)' }}
           onClick={e => { if (e.target === e.currentTarget) setDetail(null); }}
         >
-          <div style={{ background: D.bg, border: `1px solid ${D.border}`, borderRadius: 16, width: '100%', maxWidth: 1120, marginBottom: 20 }}>
+          <div style={{ background: D.card, border: `1px solid ${D.border}`, borderRadius: 16, width: '100%', maxWidth: 1120, marginBottom: 20, boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
 
             {/* Detail topbar */}
             <div style={{ padding: '18px 28px', borderBottom: `1px solid ${D.border}`, background: D.card, borderRadius: '16px 16px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
@@ -430,10 +429,10 @@ export default function PayerQuotes() {
 
 function Section({ title, icon, children }) {
   return (
-    <div style={{ background: '#161b22', border: 'rgba(255,255,255,0.08) 1px solid', borderRadius: 12, padding: 20 }}>
+    <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
         {icon}
-        <span style={{ color: '#f0f6fc', fontWeight: 700, fontSize: 15 }}>{title}</span>
+        <span style={{ color: '#111827', fontWeight: 700, fontSize: 15 }}>{title}</span>
       </div>
       {children}
     </div>
@@ -445,8 +444,8 @@ function RiskItem({ icon, color, bg, border, title, desc }) {
     <div style={{ background: bg, border: `1px solid ${border}`, borderRadius: 8, padding: '12px 16px', marginBottom: 8, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
       <span style={{ color, marginTop: 1 }}>{icon}</span>
       <div>
-        <div style={{ color: '#f0f6fc', fontWeight: 600, fontSize: 14 }}>{title}</div>
-        <div style={{ color: '#8b949e', fontSize: 13, marginTop: 2 }}>{desc}</div>
+        <div style={{ color: '#111827', fontWeight: 600, fontSize: 14 }}>{title}</div>
+        <div style={{ color: '#6b7280', fontSize: 13, marginTop: 2 }}>{desc}</div>
       </div>
     </div>
   );

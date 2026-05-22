@@ -5,13 +5,13 @@ import api from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 
 const D = {
-  bg:     '#0d1117',
-  card:   '#161b22',
-  card2:  '#1c2128',
-  border: 'rgba(255,255,255,0.08)',
-  text:   '#f0f6fc',
-  sec:    '#8b949e',
-  link:   '#58a6ff',
+  bg:     '#f5f7fa',
+  card:   '#ffffff',
+  card2:  '#f9fafb',
+  border: '#e5e7eb',
+  text:   '#111827',
+  sec:    '#6b7280',
+  link:   '#1e3a5f',
   green:  '#22c55e',
   blue:   '#1d4ed8',
   red:    '#ef4444',
@@ -157,17 +157,16 @@ export default function PayerEnrollments() {
     <div style={{ background: D.bg, minHeight: '100%', margin: -24, padding: 28 }}>
       <style>{`
         .pol-table .ant-table                              { background: transparent !important; }
-        .pol-table .ant-table-thead > tr > th             { background: rgba(255,255,255,0.03) !important; color: ${D.sec} !important; border-bottom: 1px solid ${D.border} !important; font-size: 11px; letter-spacing: .08em; font-weight: 700; padding: 10px 16px !important; }
-        .pol-table .ant-table-tbody > tr > td             { border-bottom: 1px solid rgba(255,255,255,0.05) !important; background: transparent !important; padding: 14px 16px !important; }
-        .pol-table .ant-table-tbody > tr:hover > td       { background: rgba(255,255,255,0.03) !important; }
-        .pol-table .ant-pagination .ant-pagination-item   { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
-        .pol-table .ant-pagination .ant-pagination-item a { color: ${D.sec}; }
+        .pol-table .ant-table-thead > tr > th             { background: #f9fafb !important; color: #6b7280 !important; border-bottom: 1px solid #e5e7eb !important; font-size: 11px; letter-spacing: .08em; font-weight: 700; padding: 10px 16px !important; }
+        .pol-table .ant-table-tbody > tr > td             { border-bottom: 1px solid #f3f4f6 !important; background: transparent !important; padding: 14px 16px !important; }
+        .pol-table .ant-table-tbody > tr:hover > td       { background: #f9fafb !important; }
+        .pol-table .ant-pagination .ant-pagination-item   { background: #fff; border-color: #e5e7eb; }
+        .pol-table .ant-pagination .ant-pagination-item a { color: #374151; }
         .pol-table .ant-pagination .ant-pagination-item-active          { background: ${D.blue}; border-color: ${D.blue}; }
         .pol-table .ant-pagination .ant-pagination-item-active a        { color: #fff; }
         .pol-table .ant-pagination .ant-pagination-prev button,
-        .pol-table .ant-pagination .ant-pagination-next button          { color: ${D.sec}; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
-        .pol-table .ant-empty-description { color: ${D.sec}; }
-        .pol-table .ant-spin-dot-item     { background: ${D.green} !important; }
+        .pol-table .ant-pagination .ant-pagination-next button          { color: #6b7280; background: #fff; border-color: #e5e7eb; }
+        .pol-table .ant-empty-description { color: #6b7280; }
       `}</style>
 
       {/* ── Header ── */}
@@ -256,7 +255,7 @@ export default function PayerEnrollments() {
         onCancel={() => setDetail(null)}
         footer={null}
         width={720}
-        styles={{ content: { background: D.card, border: `1px solid ${D.border}`, borderRadius: 16, padding: 0 }, mask: { backdropFilter: 'blur(4px)' } }}
+        styles={{ content: { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 0 } }}
       >
         {detail && (
           <div>
