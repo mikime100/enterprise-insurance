@@ -17,6 +17,14 @@ import { ArrowUpOutlined, ArrowDownOutlined, MinusOutlined } from '@ant-design/i
  *   suffix    — optional suffix string (e.g. 'ETB')
  *   onClick   — optional click handler
  */
+function fmtVal(v) {
+  if (typeof v !== 'number') return v;
+  if (v >= 1_000_000_000) return `${(v / 1_000_000_000).toFixed(1).replace(/\.0$/, '')}B`;
+  if (v >= 1_000_000)     return `${(v / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+  if (v >= 10_000)        return `${(v / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
+  return v.toLocaleString();
+}
+
 export default function StatCard({ title, value, icon, color = '#3b82f6', trend, suffix, onClick }) {
   const trendAbs = trend !== undefined ? Math.abs(trend) : null;
   const isUp    = trend > 0;
@@ -70,8 +78,8 @@ export default function StatCard({ title, value, icon, color = '#3b82f6', trend,
       </div>
 
       {/* Value */}
-      <div style={{ color: '#111827', fontSize: 26, fontWeight: 700, lineHeight: 1.1 }}>
-        {typeof value === 'number' ? value.toLocaleString() : value}
+      <div style={{ color: '#111827', fontSize: 26, fontWeight: 700, lineHeight: 1.1, wordBreak: 'break-word' }}>
+        {fmtVal(value)}
         {suffix && <span style={{ fontSize: 14, fontWeight: 500, color: '#6b7280', marginLeft: 5 }}>{suffix}</span>}
       </div>
     </Card>
