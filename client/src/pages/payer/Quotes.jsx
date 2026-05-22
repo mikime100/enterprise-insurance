@@ -158,12 +158,12 @@ export default function PayerQuotes() {
       render: (_, r) => (
         <div style={{ display: 'flex', gap: 6 }}>
           {['underwriter', 'payer_admin', 'superadmin'].includes(user?.role) && r.status === 'submitted' && (
-            <btn onClick={() => takeOwnership(r)} style={btnStyle(D.blue)}>Take</btn>
+            <button onClick={() => takeOwnership(r)} style={btnStyle(D.blue)}>Take</button>
           )}
           {['underwriter', 'payer_admin', 'superadmin'].includes(user?.role) && r.status === 'under_review' && (
-            <btn onClick={() => { uwForm.resetFields(); setUwModal({ open: true, quote: r }); }} style={btnStyle(D.green)}>Decide</btn>
+            <button onClick={() => { uwForm.resetFields(); setUwModal({ open: true, quote: r }); }} style={btnStyle(D.green)}>Decide</button>
           )}
-          <btn onClick={() => openDetail(r)} style={btnStyle('rgba(255,255,255,0.07)', D.sec, `1px solid ${D.border}`)}>View</btn>
+          <button onClick={() => openDetail(r)} style={btnStyle('#f9fafb', D.sec, `1px solid ${D.border}`)}>View</button>
         </div>
       ),
     },
@@ -198,7 +198,7 @@ export default function PayerQuotes() {
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <Chip color={D.green} bg="rgba(34,197,94,0.1)" border="rgba(34,197,94,0.25)">SLA: {sla}%</Chip>
-          <Chip color={D.text} bg="rgba(255,255,255,0.05)" border={D.border}>Daily Target: {dailyDone}/{dailyDone + counts.pending + counts.inReview}</Chip>
+          <Chip color={D.text} bg="#f3f4f6" border={D.border}>Daily Target: {dailyDone}/{dailyDone + counts.pending + counts.inReview}</Chip>
           {pendingRisks > 0 && <Chip color={D.red} bg="rgba(239,68,68,0.1)" border="rgba(239,68,68,0.25)">⚠ Pending Risks: {pendingRisks}</Chip>}
         </div>
       </div>
@@ -426,6 +426,14 @@ export default function PayerQuotes() {
 }
 
 // ── Helper components ─────────────────────────────────────────────────────────
+
+function Chip({ color, bg, border, children }) {
+  return (
+    <span style={{ background: bg, color, border: `1px solid ${border}`, borderRadius: 20, padding: '4px 12px', fontSize: 12, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+      {children}
+    </span>
+  );
+}
 
 function Section({ title, icon, children }) {
   return (
