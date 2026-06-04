@@ -109,13 +109,20 @@ export default function Login() {
         display: 'flex', flexDirection: 'column', justifyContent: 'flex-start',
         padding: '32px 36px', overflowY: 'auto', flexShrink: 0,
       }}>
-        {/* Logo (shown on mobile / when left panel is hidden) */}
-        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:18 }}>
-          <div style={{ width:32, height:32, borderRadius:8, background:'#22c55e', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:15, color:'#fff' }}>E</div>
-          <div>
-            <div style={{ color:'#111827', fontSize:13, fontWeight:700 }}>Enterprise Insurance</div>
-            <div style={{ color:'#6b7280', fontSize:10 }}>Management Platform</div>
+        {/* Logo + back link */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:18 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <div style={{ width:32, height:32, borderRadius:8, background:'#22c55e', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:15, color:'#fff' }}>E</div>
+            <div>
+              <div style={{ color:'#111827', fontSize:13, fontWeight:700 }}>Enterprise Insurance</div>
+              <div style={{ color:'#6b7280', fontSize:10 }}>Management Platform</div>
+            </div>
           </div>
+          <Link to="/" style={{ display:'flex', alignItems:'center', gap:5, color:'#6b7280', fontSize:12, fontWeight:500, textDecoration:'none' }}
+            onMouseEnter={e => e.currentTarget.style.color='#1d4ed8'}
+            onMouseLeave={e => e.currentTarget.style.color='#6b7280'}>
+            ← Back to Home
+          </Link>
         </div>
 
         <div style={{ marginBottom: 16 }}>
