@@ -379,12 +379,12 @@ export default function PayerQuotes() {
                 {['underwriter', 'payer_admin', 'superadmin'].includes(user?.role) && detail.status === 'under_review' && (
                   <div style={{ display: 'flex', gap: 10 }}>
                     <button
-                      onClick={() => { uwForm.resetFields(); uwForm.setFieldValue('note', rationale); setUwModal({ open: true, quote: detail }); }}
+                      onClick={() => { uwForm.resetFields(); uwForm.setFieldsValue({ note: rationale, finalPremium: detail.scenarios?.[0]?.annualPremium || detail.finalPremium || undefined }); setUwModal({ open: true, quote: detail }); }}
                       style={{ flex: 1, padding: 14, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, color: D.red, fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
                       ✕ Reject
                     </button>
                     <button
-                      onClick={() => { uwForm.resetFields(); uwForm.setFieldValue('note', rationale); setUwModal({ open: true, quote: detail }); }}
+                      onClick={() => { uwForm.resetFields(); uwForm.setFieldsValue({ note: rationale, finalPremium: detail.scenarios?.[0]?.annualPremium || detail.finalPremium || undefined }); setUwModal({ open: true, quote: detail }); }}
                       style={{ flex: 1, padding: 14, background: D.green, border: 'none', borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
                       ✓ Approve Quote
                     </button>
