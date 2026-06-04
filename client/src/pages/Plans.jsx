@@ -256,7 +256,7 @@ function TierSelectedModal({ tier, product, color, onClose }) {
             'Create your free account (2 minutes)',
             'Add your dependents if needed',
             'Your application goes to underwriting review',
-            'Once approved you'll get your digital policy',
+            'Once approved you will get your digital policy',
           ].map((step, i) => (
             <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: i < 3 ? 8 : 0 }}>
               <span style={{ width: 20, height: 20, borderRadius: '50%', background: GREEN, color: '#fff', fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
