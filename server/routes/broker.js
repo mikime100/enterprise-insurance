@@ -67,4 +67,53 @@ router.post('/register-customer', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// POST /api/broker/register-customers-bulk
+router.post('/register-customers-bulk', async (req, res, next) => {
+  try {
+    const { customers } = req.body;
+    if (!Array.isArray(customers) || customers.length === 0)
+      return res.status(400).json({ message: 'Provide a non-empty array of customers' });
+    if (customers.length > 100)
+      return res.status(400).json({ message: 'Maximum 100 customers per batch' });
+
+    const broker     = req.user;
+    const brokerName = `${broker.firstName} ${broker.lastName}`;
+    const results    = [];
+
+    for (const c of customers) {
+      const { firstName, lastName, email, phone, dateOfBirth } = c;
+      if (!firstName || !lastName || !email) {
+        results.push({ email: email || '?', status: 'skipped', reason: 'Missing required fields' });
+        continue;
+      }
+      const exists = await User.findOne({ email: email.toLowerCase().trim() });
+      if (exists) { results.push({ email, status: 'skipped', reason: 'Email already registered' }); continue; }
+
+      const tempPassword = generateTempPassword();
+      const insured = await InsuredPerson.create({
+        firstName, lastName, email: email.toLowerCase().trim(),
+        phone: phone || '', dateOfBirth: dateOfBirth || null,
+        gender: 'other', nationalId: '',
+        address: { city: '', country: 'Ethiopia' },
+      });
+      const user = new User({
+        firstName, lastName, email: email.toLowerCase().trim(),
+        password: tempPassword, phone, dateOfBirth,
+        role: 'insured_person',
+        isEmailVerified: true, mustChangePassword: true,
+        registeredByBroker: broker._id,
+        linkedEntity: { entityType: 'InsuredPerson', entityId: insured._id },
+      });
+      await user.save();
+      try { await sendBrokerCustomerInvitation(email, firstName, tempPassword, brokerName); }
+      catch (e) { console.error('Invite email failed:', e.message); }
+      results.push({ email, status: 'created', name: `${firstName} ${lastName}` });
+    }
+
+    const created = results.filter(r => r.status === 'created').length;
+    const skipped = results.filter(r => r.status === 'skipped').length;
+    res.json({ message: `${created} customers registered, ${skipped} skipped`, results });
+  } catch (err) { next(err); }
+});
+
 module.exports = router;

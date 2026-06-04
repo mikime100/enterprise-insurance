@@ -86,6 +86,49 @@ router.patch('/brokers/:id/reject', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// GET /admin/users/grouped — insured users segmented by origin
+router.get('/users/grouped', async (req, res, next) => {
+  try {
+    const [allInsured, staff] = await Promise.all([
+      User.find({ role: 'insured_person' })
+        .populate('registeredByBroker', 'firstName lastName email')
+        .select('-password').sort({ createdAt: -1 }),
+      User.find({ role: { $ne: 'insured_person' } })
+        .select('-password').sort({ role: 1, createdAt: -1 }),
+    ]);
+
+    const selfRegistered = allInsured.filter(u => !u.registeredByBroker && !u.institutionId);
+
+    // Group by institution
+    const instMap = {};
+    for (const u of allInsured.filter(u => u.institutionId)) {
+      const key = u.institutionId.toString();
+      if (!instMap[key]) {
+        const inst = await Institution.findById(u.institutionId).select('name');
+        instMap[key] = { institution: inst || { _id: key, name: 'Unknown Institution' }, members: [] };
+      }
+      instMap[key].members.push(u);
+    }
+
+    // Group by broker
+    const brokerMap = {};
+    for (const u of allInsured.filter(u => u.registeredByBroker)) {
+      const key = (u.registeredByBroker._id || u.registeredByBroker).toString();
+      if (!brokerMap[key]) {
+        brokerMap[key] = { broker: u.registeredByBroker, customers: [] };
+      }
+      brokerMap[key].customers.push(u);
+    }
+
+    res.json({
+      staff,
+      selfRegistered,
+      byInstitution: Object.values(instMap),
+      byBroker: Object.values(brokerMap),
+    });
+  } catch (err) { next(err); }
+});
+
 // Payers
 router.get('/payers', async (req, res, next) => {
   try {

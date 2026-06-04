@@ -166,7 +166,10 @@ router.post('/logout', (req, res) => {
 // ── Current user ─────────────────────────────────────────────────────────────
 router.get('/me', requireAuth, async (req, res, next) => {
   try {
-    res.json({ user: req.user, mustChangePassword: req.user.mustChangePassword });
+    const user = await User.findById(req.user._id)
+      .populate('registeredByBroker', 'firstName lastName email phone')
+      .select('-password -emailVerificationOTP -emailVerificationExpiry -passwordResetToken -passwordResetExpiry');
+    res.json({ user, mustChangePassword: user?.mustChangePassword });
   } catch (err) { next(err); }
 });
 
