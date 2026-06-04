@@ -38,6 +38,23 @@ const requireAuth = async (req, res, next) => {
   }
 };
 
+// Populates req.user when a valid session/token exists, but never blocks the request
+const optionalAuth = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const user = await User.findById(decoded.userId);
+      if (user?.isActive) req.user = user;
+    } else if (req.session.userId) {
+      const user = await User.findById(req.session.userId);
+      if (user?.isActive) req.user = user;
+    }
+  } catch (_) { /* silently ignore — unauthenticated is fine */ }
+  next();
+};
+
 const requireRole = (...roles) => (req, res, next) => {
   if (!req.user) return res.status(401).json({ message: 'Not authenticated' });
   if (!roles.includes(req.user.role)) {
@@ -49,4 +66,4 @@ const requireRole = (...roles) => (req, res, next) => {
 const generateToken = (userId) =>
   jwt.sign({ userId }, JWT_SECRET, { expiresIn: '30d' });
 
-module.exports = { requireAuth, requireRole, generateToken };
+module.exports = { requireAuth, optionalAuth, requireRole, generateToken };

@@ -21,6 +21,7 @@ class ErrorBoundary extends Component {
 }
 
 import Landing            from './pages/Landing';
+import Plans              from './pages/Plans';
 import Login              from './pages/auth/Login';
 import Register           from './pages/auth/Register';
 import VerifyEmail        from './pages/auth/VerifyEmail';
@@ -117,6 +118,7 @@ function AppRoutes() {
   return (
     <Routes>
       {/* Public auth routes */}
+      <Route path="/plans"           element={<Plans />} />
       <Route path="/login"          element={<Login />} />
       <Route path="/register"       element={<Register />} />
       <Route path="/verify-email"   element={<VerifyEmail />} />

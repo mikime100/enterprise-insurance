@@ -415,6 +415,7 @@ export default function Landing() {
           ))}
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <Link to="/plans" style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>View Plans</Link>
           <Link to="/login" style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>Sign In</Link>
           <button onClick={() => scrollToRegister('individual')}
             style={{ background: GREEN, border: 'none', borderRadius: 8, color: '#fff', padding: '9px 22px', fontWeight: 700, cursor: 'pointer', fontSize: 14 }}>
