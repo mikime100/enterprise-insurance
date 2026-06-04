@@ -1,30 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Layout, Menu, Avatar, Dropdown, Badge, Button, Tooltip, Input } from 'antd';
+import { Menu, Avatar, Dropdown, Badge, Button, Input } from 'antd';
 import {
   DashboardOutlined, FileTextOutlined, SafetyOutlined, AlertOutlined,
   TeamOutlined, BarChartOutlined, LogoutOutlined, ShopOutlined,
   BellOutlined, QuestionCircleOutlined, SearchOutlined,
   AuditOutlined, BankOutlined, PartitionOutlined, MedicineBoxOutlined,
-  HomeOutlined, ContainerOutlined, DollarOutlined, ApiOutlined,
-  MenuFoldOutlined, MenuUnfoldOutlined, PlusOutlined,
+  ContainerOutlined, DollarOutlined, HomeOutlined,
+  MenuFoldOutlined, MenuUnfoldOutlined, PlusOutlined, CloseOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../../contexts/AuthContext';
 
-const { Sider, Header, Content } = Layout;
+// ─── Design tokens ────────────────────────────────────────────────────────────
+const SIDEBAR_BG   = '#111827';
+const SB_BORDER    = 'rgba(255,255,255,0.07)';
+const ACTIVE_BG    = '#16a34a';
+const NAV_INACTIVE = '#9ca3af';
+const NAV_ACTIVE   = '#ffffff';
+const LOGO_GREEN   = '#16a34a';
+const CTA_GREEN    = '#16a34a';
+const PRIMARY_NAVY = '#1e3a5f';
+const SIDEBAR_W    = 256;
+const COLLAPSED_W  = 68;
 
-// ─── Design tokens ───────────────────────────────────────────────────────────
-const SIDEBAR_BG     = '#111827';
-const SIDEBAR_BORDER = 'rgba(255,255,255,0.07)';
-const ACTIVE_BG      = '#16a34a';
-const ACTIVE_BORDER  = 'transparent';
-const NAV_INACTIVE   = '#9ca3af';
-const NAV_ACTIVE     = '#ffffff';
-const LOGO_GREEN     = '#16a34a';
-const CTA_GREEN      = '#16a34a';
-const PRIMARY_NAVY   = '#1e3a5f';
-
-// ─── Nav definitions ─────────────────────────────────────────────────────────
+// ─── Nav definitions ──────────────────────────────────────────────────────────
 const NAV = {
   payer_admin: [
     { key: '/payer/dashboard',   icon: <DashboardOutlined />, label: 'Dashboard' },
@@ -106,42 +105,64 @@ const ROLE_META = {
   superadmin:        { label: 'Super Admin' },
 };
 
-// CTA config per role — what the sidebar "New …" button does
 const CTA_CONFIG = {
-  payer_admin:    { label: 'New Claim',     path: '/payer/claims' },
-  claims_officer: { label: 'New Claim',     path: '/payer/claims' },
-  finance_officer:{ label: 'New Claim',     path: '/payer/claims' },
-  underwriter:    { label: 'New Quote',     path: '/payer/quotes' },
-  sales_broker:   { label: 'Add Customer', path: '/broker/register-customer' },
-  customer_support:{ label: 'New Claim',    path: '/payer/claims' },
-  provider_admin: { label: 'Submit Claim',  path: '/provider/submit-claim' },
-  institution_admin:{ label: 'Add Employee',path: '/institution/employees' },
-  insured_person: { label: 'File Claim',    path: '/insured/claims' },
-  superadmin:     { label: 'Add User',      path: '/admin/users' },
+  payer_admin:       { label: 'New Claim',     path: '/payer/claims' },
+  claims_officer:    { label: 'New Claim',     path: '/payer/claims' },
+  finance_officer:   { label: 'New Claim',     path: '/payer/claims' },
+  underwriter:       { label: 'New Quote',     path: '/payer/quotes' },
+  sales_broker:      { label: 'Add Customer',  path: '/broker/register-customer' },
+  customer_support:  { label: 'New Claim',     path: '/payer/claims' },
+  provider_admin:    { label: 'Submit Claim',  path: '/provider/submit-claim' },
+  institution_admin: { label: 'Add Employee',  path: '/institution/employees' },
+  insured_person:    { label: 'File Claim',    path: '/insured/claims' },
+  superadmin:        { label: 'Add User',      path: '/admin/users' },
 };
 
 export default function AppLayout() {
-  const [collapsed, setCollapsed] = useState(false);
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [collapsed, setCollapsed]     = useState(false);
+  const [mobileOpen, setMobileOpen]   = useState(false);
+  const [isMobile, setIsMobile]       = useState(() => window.innerWidth < 768);
+  const { user, logout }              = useAuth();
+  const navigate                      = useNavigate();
+  const location                      = useLocation();
 
-  const navItems = NAV[user?.role] || [];
-  const activeKey = navItems.find(i => location.pathname.startsWith(i.key))?.key;
-  const meta = ROLE_META[user?.role] || { label: 'User' };
-  const cta  = CTA_CONFIG[user?.role];
+  // Track viewport width
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const handler = (e) => {
+      setIsMobile(e.matches);
+      if (!e.matches) setMobileOpen(false);
+    };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
-  const siderWidth = 256;
+  // Close mobile sidebar on route change
+  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+
+  const navItems   = NAV[user?.role] || [];
+  const activeKey  = navItems.find(i => location.pathname.startsWith(i.key))?.key;
+  const meta       = ROLE_META[user?.role] || { label: 'User' };
+  const cta        = CTA_CONFIG[user?.role];
+
+  // On desktop: sidebar pushes content. On mobile: sidebar is an overlay drawer.
+  const sidebarVisible = isMobile ? mobileOpen : true;
+  const sidebarLeft    = isMobile
+    ? (mobileOpen ? 0 : -SIDEBAR_W)
+    : 0;
+  const contentMargin  = isMobile ? 0 : (collapsed ? COLLAPSED_W : SIDEBAR_W);
+  const currentWidth   = isMobile ? SIDEBAR_W : (collapsed ? COLLAPSED_W : SIDEBAR_W);
 
   const userMenuItems = [
     {
-      key: 'profile', label: (
+      key: 'profile', disabled: true,
+      label: (
         <div style={{ padding: '4px 0' }}>
           <div style={{ fontWeight: 600, color: '#111827' }}>{user?.firstName} {user?.lastName}</div>
           <div style={{ fontSize: 11, color: '#6b7280' }}>{user?.email}</div>
           <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{meta.label}</div>
         </div>
-      ), disabled: true,
+      ),
     },
     { type: 'divider' },
     {
@@ -150,253 +171,209 @@ export default function AppLayout() {
     },
   ];
 
-  return (
-    <Layout style={{ minHeight: '100vh', background: '#f5f7fa' }}>
-
-      {/* ─── Sidebar ───────────────────────────────────────────────────────── */}
-      <Sider
-        collapsible collapsed={collapsed} trigger={null}
-        width={siderWidth} collapsedWidth={68}
-        style={{
-          background: SIDEBAR_BG,
-          position: 'fixed', left: 0, top: 0, bottom: 0,
-          zIndex: 200, overflow: 'hidden',
-          display: 'flex', flexDirection: 'column',
-          boxShadow: '2px 0 12px rgba(0,0,0,0.25)',
-        }}
-      >
-        {/* Logo */}
-        <div style={{
-          padding: collapsed ? '18px 0' : '18px 20px',
-          borderBottom: `1px solid ${SIDEBAR_BORDER}`,
-          display: 'flex', alignItems: 'center', gap: 12,
-          justifyContent: collapsed ? 'center' : 'flex-start',
-          minHeight: 70, cursor: 'pointer',
-        }} onClick={() => navigate('/')}>
-          <div style={{
-            width: 38, height: 38, borderRadius: 10, flexShrink: 0,
-            background: LOGO_GREEN,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(22,163,74,0.4)',
-          }}>
-            {/* Wave-style icon */}
-            <svg width="22" height="14" viewBox="0 0 22 14" fill="none">
+  const Sidebar = (
+    <div style={{
+      position: 'fixed', left: sidebarLeft, top: 0, bottom: 0,
+      width: isMobile ? SIDEBAR_W : currentWidth,
+      background: SIDEBAR_BG,
+      zIndex: 300,
+      display: 'flex', flexDirection: 'column',
+      boxShadow: '2px 0 16px rgba(0,0,0,0.3)',
+      transition: isMobile ? 'left 0.28s cubic-bezier(.4,0,.2,1)' : 'width 0.2s ease',
+      overflowX: 'hidden',
+    }}>
+      {/* Logo row */}
+      <div style={{
+        padding: (!isMobile && collapsed) ? '18px 0' : '18px 20px',
+        borderBottom: `1px solid ${SB_BORDER}`,
+        display: 'flex', alignItems: 'center',
+        justifyContent: (!isMobile && collapsed) ? 'center' : 'space-between',
+        minHeight: 64, cursor: 'pointer', gap: 10,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }} onClick={() => navigate('/')}>
+          <div style={{ width: 36, height: 36, borderRadius: 9, background: LOGO_GREEN, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(22,163,74,0.4)' }}>
+            <svg width="20" height="13" viewBox="0 0 22 14" fill="none">
               <path d="M1 7 Q4 2, 7 7 Q10 12, 13 7 Q16 2, 19 7 Q20.5 9.5, 22 7" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none"/>
             </svg>
           </div>
-          {!collapsed && (
-            <div style={{ lineHeight: 1.25, overflow: 'hidden' }}>
-              <div style={{ color: '#ffffff', fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap' }}>Enterprise Ins.</div>
-              <div style={{ color: NAV_INACTIVE, fontSize: 10, fontWeight: 500, whiteSpace: 'nowrap' }}>Digital Platform</div>
+          {(isMobile || !collapsed) && (
+            <div style={{ lineHeight: 1.25 }}>
+              <div style={{ color: '#fff', fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap' }}>Enterprise Ins.</div>
+              <div style={{ color: NAV_INACTIVE, fontSize: 10, whiteSpace: 'nowrap' }}>Digital Platform</div>
             </div>
           )}
         </div>
-
-        {/* CTA Button */}
-        {cta && (
-          <div style={{ padding: collapsed ? '12px 10px' : '12px 14px', borderBottom: `1px solid ${SIDEBAR_BORDER}` }}>
-            <button
-              onClick={() => navigate(cta.path)}
-              style={{
-                width: '100%', padding: collapsed ? '9px 0' : '9px 0',
-                background: CTA_GREEN, border: 'none', borderRadius: 8,
-                color: '#ffffff', fontWeight: 700,
-                fontSize: collapsed ? 16 : 13, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                boxShadow: '0 2px 8px rgba(22,163,74,0.35)',
-                transition: 'background 0.2s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = '#15803d'}
-              onMouseLeave={e => e.currentTarget.style.background = CTA_GREEN}
-            >
-              <PlusOutlined style={{ fontSize: 13 }} />
-              {!collapsed && cta.label}
-            </button>
-          </div>
+        {/* Close button on mobile */}
+        {isMobile && (
+          <button onClick={() => setMobileOpen(false)}
+            style={{ background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: 7, color: NAV_INACTIVE, width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <CloseOutlined style={{ fontSize: 14 }} />
+          </button>
         )}
+      </div>
 
-        {/* Navigation */}
-        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '10px 0' }}>
-          <Menu
-            theme="dark" mode="inline"
-            selectedKeys={[activeKey]}
-            onClick={({ key }) => navigate(key)}
-            style={{ background: 'transparent', border: 'none' }}
-            items={navItems.map(item => ({
-              key: item.key,
-              icon: (
-                <span style={{
-                  fontSize: 16,
-                  color: activeKey === item.key ? NAV_ACTIVE : NAV_INACTIVE,
-                  transition: 'color 0.2s',
-                }}>
-                  {item.icon}
-                </span>
-              ),
-              label: (
-                <span style={{
-                  color: activeKey === item.key ? NAV_ACTIVE : NAV_INACTIVE,
-                  fontWeight: activeKey === item.key ? 600 : 400,
-                  fontSize: 14,
-                  transition: 'color 0.2s',
-                }}>
-                  {item.label}
-                </span>
-              ),
-              style: {
-                margin: '2px 8px',
-                borderRadius: 8,
-                height: 44,
-                lineHeight: '44px',
-                background: activeKey === item.key ? ACTIVE_BG : 'transparent',
-                transition: 'all 0.2s',
-              },
-            }))}
-          />
+      {/* CTA */}
+      {cta && (
+        <div style={{ padding: (!isMobile && collapsed) ? '12px 10px' : '12px 14px', borderBottom: `1px solid ${SB_BORDER}` }}>
+          <button
+            onClick={() => { navigate(cta.path); if (isMobile) setMobileOpen(false); }}
+            style={{
+              width: '100%', padding: '10px 0',
+              background: CTA_GREEN, border: 'none', borderRadius: 8,
+              color: '#fff', fontWeight: 700,
+              fontSize: (!isMobile && collapsed) ? 16 : 13,
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              boxShadow: '0 2px 8px rgba(22,163,74,0.35)',
+            }}
+          >
+            <PlusOutlined style={{ fontSize: 13 }} />
+            {(isMobile || !collapsed) && cta.label}
+          </button>
         </div>
+      )}
 
-        {/* User info + logout at bottom */}
-        <div style={{ borderTop: `1px solid ${SIDEBAR_BORDER}` }}>
-          {!collapsed ? (
-            <>
-              <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Avatar size={36} style={{ background: LOGO_GREEN, fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
-                  {user?.firstName?.[0]}{user?.lastName?.[0]}
-                </Avatar>
-                <div style={{ flex: 1, overflow: 'hidden' }}>
-                  <div style={{ color: '#ffffff', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {user?.firstName} {user?.lastName}
-                  </div>
-                  <div style={{ color: NAV_INACTIVE, fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {meta.label}
-                  </div>
-                </div>
-              </div>
-              <div style={{ padding: '0 14px 14px' }}>
-                <button
-                  onClick={async () => { await logout(); navigate('/login'); }}
-                  style={{
-                    width: '100%', padding: '8px 0', borderRadius: 8,
-                    background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                    color: '#d1d5db', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.13)'; e.currentTarget.style.color = '#fff'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.color = '#d1d5db'; }}
-                >
-                  <LogoutOutlined style={{ fontSize: 13 }} /> Logout
-                </button>
-              </div>
-            </>
-          ) : (
-            <div style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-              <Avatar size={34} style={{ background: LOGO_GREEN, fontWeight: 700, fontSize: 12 }}>
+      {/* Nav menu */}
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '10px 0' }}>
+        <Menu
+          theme="dark" mode="inline"
+          selectedKeys={[activeKey]}
+          inlineCollapsed={!isMobile && collapsed}
+          onClick={({ key }) => { navigate(key); if (isMobile) setMobileOpen(false); }}
+          style={{ background: 'transparent', border: 'none' }}
+          items={navItems.map(item => ({
+            key: item.key,
+            icon: <span style={{ fontSize: 16, color: activeKey === item.key ? NAV_ACTIVE : NAV_INACTIVE }}>{item.icon}</span>,
+            label: <span style={{ color: activeKey === item.key ? NAV_ACTIVE : NAV_INACTIVE, fontWeight: activeKey === item.key ? 600 : 400, fontSize: 14 }}>{item.label}</span>,
+            style: {
+              margin: '2px 8px', borderRadius: 8, height: 44, lineHeight: '44px',
+              background: activeKey === item.key ? ACTIVE_BG : 'transparent',
+            },
+          }))}
+        />
+      </div>
+
+      {/* User + logout */}
+      <div style={{ borderTop: `1px solid ${SB_BORDER}` }}>
+        {(isMobile || !collapsed) ? (
+          <>
+            <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Avatar size={36} style={{ background: LOGO_GREEN, fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
                 {user?.firstName?.[0]}{user?.lastName?.[0]}
               </Avatar>
-              <Tooltip title="Logout" placement="right">
-                <LogoutOutlined style={{ color: NAV_INACTIVE, fontSize: 14, cursor: 'pointer' }}
-                  onClick={async () => { await logout(); navigate('/login'); }} />
-              </Tooltip>
+              <div style={{ flex: 1, overflow: 'hidden' }}>
+                <div style={{ color: '#fff', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {user?.firstName} {user?.lastName}
+                </div>
+                <div style={{ color: NAV_INACTIVE, fontSize: 11 }}>{meta.label}</div>
+              </div>
             </div>
-          )}
-        </div>
-      </Sider>
+            <div style={{ padding: '0 14px 14px' }}>
+              <button onClick={async () => { await logout(); navigate('/login'); }}
+                style={{ width: '100%', padding: '8px 0', borderRadius: 8, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', color: '#d1d5db', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                <LogoutOutlined style={{ fontSize: 13 }} /> Logout
+              </button>
+            </div>
+          </>
+        ) : (
+          <div style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <Avatar size={34} style={{ background: LOGO_GREEN, fontWeight: 700, fontSize: 12 }}>
+              {user?.firstName?.[0]}{user?.lastName?.[0]}
+            </Avatar>
+            <LogoutOutlined style={{ color: NAV_INACTIVE, fontSize: 14, cursor: 'pointer' }}
+              onClick={async () => { await logout(); navigate('/login'); }} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
-      {/* ─── Main area ─────────────────────────────────────────────────────── */}
-      <Layout style={{ marginLeft: collapsed ? 68 : siderWidth, transition: 'margin 0.2s ease', background: '#f5f7fa' }}>
+  return (
+    <div style={{ minHeight: '100vh', background: '#f5f7fa' }}>
+
+      {/* Mobile backdrop */}
+      {isMobile && mobileOpen && (
+        <div onClick={() => setMobileOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 299, backdropFilter: 'blur(2px)' }} />
+      )}
+
+      {Sidebar}
+
+      {/* Main area */}
+      <div style={{ marginLeft: contentMargin, transition: isMobile ? 'none' : 'margin 0.2s ease', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
 
         {/* Header */}
-        <Header style={{
-          background: '#ffffff',
-          borderBottom: '1px solid #e5e7eb',
-          padding: '0 20px',
-          height: 64,
+        <header style={{
+          background: '#ffffff', borderBottom: '1px solid #e5e7eb',
+          height: 64, padding: '0 16px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          position: 'sticky', top: 0, zIndex: 100,
-          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-          gap: 16,
+          position: 'sticky', top: 0, zIndex: 200,
+          boxShadow: '0 1px 4px rgba(0,0,0,0.06)', gap: 12,
         }}>
-          {/* Left: collapse + search */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              style={{ color: '#6b7280', fontSize: 17, width: 38, height: 38, flexShrink: 0 }}
-            />
-            <Input
-              prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
-              placeholder="Search policies, claims..."
-              style={{
-                background: '#f3f4f6', border: 'none', borderRadius: 8,
-                maxWidth: 360, height: 38, fontSize: 13,
-              }}
-            />
+          {/* Left */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+            <button
+              onClick={() => isMobile ? setMobileOpen(true) : setCollapsed(!collapsed)}
+              style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: 18, cursor: 'pointer', padding: 6, borderRadius: 7, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              {isMobile ? <MenuUnfoldOutlined /> : (collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />)}
+            </button>
+
+            {/* Search — hidden on small mobile */}
+            <div className="ei-search-wrap" style={{ flex: 1, maxWidth: 340 }}>
+              <Input
+                prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
+                placeholder="Search policies, claims..."
+                style={{ background: '#f3f4f6', border: 'none', borderRadius: 8, height: 38, fontSize: 13 }}
+              />
+            </div>
           </div>
 
-          {/* Right: actions + user */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, height: 64 }}>
-            {/* Emergency Claim — shown for payer/claims roles */}
-            {['payer_admin','claims_officer','finance_officer','superadmin'].includes(user?.role) && (
-              <button
-                onClick={() => navigate(user?.role === 'superadmin' ? '/admin/reports' : '/payer/claims')}
-                style={{
-                  height: 34, padding: '0 12px', borderRadius: 7, border: `1.5px solid ${LOGO_GREEN}`,
-                  background: 'transparent', color: LOGO_GREEN, fontWeight: 600, fontSize: 12,
-                  cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s', lineHeight: '34px',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#f0fdf4'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-              >
-                Emergency Claim
-              </button>
-            )}
-
-            {/* ETB Wallet / Reports shortcut */}
-            <button
+          {/* Right */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            {/* ETB Wallet — hide on very small screens via class */}
+            <button className="ei-wallet-btn"
               onClick={() => {
-                const reportPaths = { superadmin: '/admin/reports', provider_admin: '/provider/claims', institution_admin: '/institution/claims', insured_person: '/insured/claims' };
-                navigate(reportPaths[user?.role] || '/payer/reports');
+                const paths = { superadmin: '/admin/reports', provider_admin: '/provider/claims', institution_admin: '/institution/claims', insured_person: '/insured/claims' };
+                navigate(paths[user?.role] || '/payer/reports');
               }}
-              style={{
-                height: 34, padding: '0 14px', borderRadius: 7, border: 'none',
-                background: PRIMARY_NAVY, color: '#ffffff', fontWeight: 600, fontSize: 12,
-                cursor: 'pointer', whiteSpace: 'nowrap', transition: 'background 0.2s', lineHeight: '34px',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#162d4a'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = PRIMARY_NAVY; }}
-            >
+              style={{ height: 34, padding: '0 12px', borderRadius: 7, border: 'none', background: PRIMARY_NAVY, color: '#fff', fontWeight: 600, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}>
               ETB Wallet
             </button>
 
-            {/* Notifications */}
             <Badge count={3} size="small">
-              <Button type="text" icon={<BellOutlined />}
-                style={{ color: '#6b7280', fontSize: 18, width: 38, height: 38 }} />
+              <button style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: 18, cursor: 'pointer', padding: 5, borderRadius: 7, display: 'flex', alignItems: 'center' }}>
+                <BellOutlined />
+              </button>
             </Badge>
 
-            <Button type="text" icon={<QuestionCircleOutlined />}
-              style={{ color: '#6b7280', fontSize: 17, width: 38, height: 38 }} />
+            <button className="ei-help-btn" style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: 17, cursor: 'pointer', padding: 5, borderRadius: 7, display: 'flex', alignItems: 'center' }}>
+              <QuestionCircleOutlined />
+            </button>
 
-            {/* Avatar dropdown */}
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
-              <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                <Avatar
-                  size={36}
-                  style={{ background: LOGO_GREEN, fontWeight: 700, fontSize: 13 }}
-                >
-                  {user?.firstName?.[0]}{user?.lastName?.[0]}
-                </Avatar>
-              </div>
+              <Avatar size={36} style={{ background: LOGO_GREEN, fontWeight: 700, fontSize: 13, cursor: 'pointer', flexShrink: 0 }}>
+                {user?.firstName?.[0]}{user?.lastName?.[0]}
+              </Avatar>
             </Dropdown>
           </div>
-        </Header>
+        </header>
 
-        <Content style={{ padding: '24px', minHeight: 'calc(100vh - 64px)', background: '#f5f7fa' }}>
+        {/* Page content */}
+        <main style={{ padding: isMobile ? 14 : 24, flex: 1 }}>
           <Outlet />
-        </Content>
-      </Layout>
-    </Layout>
+        </main>
+      </div>
+
+      <style>{`
+        @media (max-width: 480px) {
+          .ei-search-wrap { display: none !important; }
+          .ei-wallet-btn  { display: none !important; }
+          .ei-help-btn    { display: none !important; }
+        }
+        @media (max-width: 767px) {
+          .ei-search-wrap { max-width: 160px !important; }
+        }
+      `}</style>
+    </div>
   );
 }
