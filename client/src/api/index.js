@@ -10,7 +10,8 @@ api.interceptors.response.use(
   res => res,
   err => {
     const isAuthCheck = err.config?.url?.includes('/auth/me');
-    const isPublicPath = ['/', '/login', '/register', '/broker-apply'].includes(window.location.pathname);
+    const isPublicPath = ['/', '/login', '/register', '/broker-apply', '/plans'].includes(window.location.pathname) ||
+      window.location.pathname.startsWith('/plans');
     if (err.response?.status === 401 && !isAuthCheck && !isPublicPath) {
       window.location.href = '/login';
     }

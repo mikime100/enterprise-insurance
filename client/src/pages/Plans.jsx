@@ -301,9 +301,16 @@ export default function Plans() {
   const [typeFilter, setTypeFilter] = useState('all');
 
   useEffect(() => {
-    axios.get(`${API}/products?withTiers=true`)
+    axios.get(`${API}/products?withTiers=true`, { withCredentials: true })
       .then(r => setProducts(Array.isArray(r.data.products) ? r.data.products : []))
-      .catch(() => setError('Could not load plans. Please try again later.'))
+      .catch(err => {
+        if (err.response?.status === 401) {
+          // Backend may not have deployed yet — show empty state gracefully
+          setProducts([]);
+        } else {
+          setError('Could not load plans. Please try again later.');
+        }
+      })
       .finally(() => setLoading(false));
   }, []);
 
