@@ -9,6 +9,7 @@ type User = {
   email: string;
   role: string;
   phone?: string;
+  mustChangePassword?: boolean;
 };
 
 type AuthContextType = {
