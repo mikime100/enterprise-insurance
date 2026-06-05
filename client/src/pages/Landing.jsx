@@ -446,12 +446,16 @@ export default function Landing() {
             One platform for individuals, sales brokers, and institutions. Digital policies, real-time claims, email-verified accounts, and a full broker approval workflow — all in one place.
           </p>
           <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 28 }}>
-            <button onClick={() => scrollToRegister('individual')}
-              style={{ background: GREEN, border: 'none', borderRadius: 10, color: '#fff', padding: '14px 28px', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+            <Link to="/plans"
+              style={{ background: GREEN, border: 'none', borderRadius: 10, color: '#fff', padding: '14px 28px', fontWeight: 700, fontSize: 15, cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               Get Coverage →
+            </Link>
+            <button onClick={() => scrollToRegister('individual')}
+              style={{ background: 'transparent', border: '2px solid rgba(255,255,255,0.35)', borderRadius: 10, color: '#fff', padding: '14px 28px', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+              Register Now
             </button>
             <button onClick={() => scrollToRegister('broker')}
-              style={{ background: 'transparent', border: '2px solid rgba(255,255,255,0.35)', borderRadius: 10, color: '#fff', padding: '14px 28px', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+              style={{ background: 'transparent', border: '2px solid rgba(255,255,255,0.15)', borderRadius: 10, color: 'rgba(255,255,255,0.65)', padding: '14px 28px', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}>
               Join as Broker
             </button>
           </div>
