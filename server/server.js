@@ -72,6 +72,7 @@ async function start() {
   app.use('/api/admin',       require('./routes/admin'));
   app.use('/api/broker',      require('./routes/broker'));
   app.use('/api/institution', require('./routes/institution'));
+  app.use('/api/chapa',       require('./routes/chapa'));
 
   app.get('/api/health', (req, res) => res.json({ status: 'ok', db: mongoose.connection.readyState }));
 

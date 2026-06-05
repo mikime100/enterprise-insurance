@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const PolicyEnrollment = require('../models/PolicyEnrollment');
 const InsuredPerson = require('../models/InsuredPerson');
+const InsuranceProduct = require('../models/InsuranceProduct');
+const Tier = require('../models/Tier');
 const { requireAuth, requireRole } = require('../middleware/auth');
 
 router.use(requireAuth);
@@ -55,6 +57,57 @@ router.patch('/:id/status', requireRole('payer_admin', 'superadmin'), async (req
     );
     if (!enrollment) return res.status(404).json({ message: 'Enrollment not found' });
     res.json({ enrollment });
+  } catch (err) { next(err); }
+});
+
+// Self-enroll: insured_person picks a product + tier, creates a pending enrollment
+router.post('/self', requireAuth, async (req, res, next) => {
+  try {
+    if (req.user.role !== 'insured_person')
+      return res.status(403).json({ message: 'Only insured persons can self-enroll' });
+
+    const { productId, tierId } = req.body;
+    if (!productId || !tierId)
+      return res.status(400).json({ message: 'productId and tierId are required' });
+
+    const [product, tier] = await Promise.all([
+      InsuranceProduct.findById(productId),
+      Tier.findById(tierId),
+    ]);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    if (!tier)    return res.status(404).json({ message: 'Tier not found' });
+    if (!product.payer) return res.status(400).json({ message: 'Product has no payer assigned — contact support' });
+
+    const insuredPersonId = req.user.linkedEntity?.entityId;
+    if (!insuredPersonId) return res.status(400).json({ message: 'Insured person profile not found' });
+
+    // Block duplicate active/pending enrollment in the same product
+    const existing = await PolicyEnrollment.findOne({
+      insuredPersons: insuredPersonId,
+      product: productId,
+      status: { $in: ['active', 'pending'] },
+    });
+    if (existing) return res.status(400).json({ message: 'You are already enrolled or have a pending enrollment in this product' });
+
+    const startDate = new Date();
+    const endDate   = new Date();
+    endDate.setFullYear(endDate.getFullYear() + 1);
+
+    const enrollment = await PolicyEnrollment.create({
+      product:        productId,
+      tier:           tierId,
+      payer:          product.payer,
+      insuredPersons: [insuredPersonId],
+      status:         'pending',
+      startDate,
+      endDate,
+      premium: {
+        amount:    tier.annualPremium,
+        frequency: 'annual',
+      },
+    });
+
+    res.status(201).json({ enrollment });
   } catch (err) { next(err); }
 });
 
