@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  Dimensions, Animated, Platform,
+  Dimensions, Animated, ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -12,82 +12,77 @@ import { StatusBar } from 'expo-status-bar';
 
 const { width, height } = Dimensions.get('window');
 
+// Vertical zones (fraction of screen height)
+const TAG_TOP       = 0.07;   // tag pill
+const ICON_CENTER   = 0.38;   // center of the icon ring
+const TEXT_BOTTOM   = 148;    // px from bottom (above controls)
+
 type Slide = {
   key: string;
-  gradient: readonly [string, string, string];
+  image: number; // require() returns a number for local assets in React Native
+  overlayColors: readonly [string, string, string];
   accentColor: string;
-  glowColor: string;
-  icon: keyof typeof Ionicons.glyphMap;
   tagIcon: keyof typeof Ionicons.glyphMap;
   tag: string;
+  icon: keyof typeof Ionicons.glyphMap;
   title: string;
   subtitle: string;
   stat: string;
   statLabel: string;
-  decorCircle1: string;
-  decorCircle2: string;
 };
 
 const SLIDES: Slide[] = [
   {
     key: '1',
-    gradient: ['#0a1628', '#0f2d52', '#1a4a8a'],
+    image: require('../assets/slide1.png'),
+    overlayColors: ['rgba(10,22,40,0.35)', 'rgba(10,22,40,0.55)', 'rgba(10,22,40,0.92)'],
     accentColor: '#60a5fa',
-    glowColor: 'rgba(96,165,250,0.15)',
-    icon: 'shield-checkmark',
     tagIcon: 'shield-half',
     tag: 'Trusted Protection',
+    icon: 'shield-checkmark',
     title: 'Welcome to\nEnterprise Insurance',
     subtitle: 'Comprehensive coverage for individuals, families, and enterprises — all in one platform.',
     stat: '50,000+',
     statLabel: 'People Protected',
-    decorCircle1: 'rgba(37,99,235,0.25)',
-    decorCircle2: 'rgba(96,165,250,0.10)',
   },
   {
     key: '2',
-    gradient: ['#052e16', '#0f4c2a', '#166534'],
+    image: require('../assets/slide2.png'),
+    overlayColors: ['rgba(5,46,22,0.30)', 'rgba(5,46,22,0.55)', 'rgba(5,46,22,0.92)'],
     accentColor: '#4ade80',
-    glowColor: 'rgba(74,222,128,0.15)',
-    icon: 'heart',
     tagIcon: 'medkit',
     tag: 'Health & Life',
+    icon: 'heart',
     title: 'Coverage That\nCares For You',
     subtitle: 'From routine checkups to critical care — plans designed to protect what matters most.',
     stat: '1,200+',
     statLabel: 'Health Claims Settled',
-    decorCircle1: 'rgba(22,163,74,0.3)',
-    decorCircle2: 'rgba(74,222,128,0.12)',
   },
   {
     key: '3',
-    gradient: ['#431407', '#7c2d12', '#9a3412'],
+    image: require('../assets/slide3.png'),
+    overlayColors: ['rgba(67,20,7,0.30)', 'rgba(67,20,7,0.55)', 'rgba(67,20,7,0.92)'],
     accentColor: '#fb923c',
-    glowColor: 'rgba(251,146,60,0.15)',
-    icon: 'flash',
     tagIcon: 'document-text',
     tag: 'Fast Processing',
+    icon: 'flash',
     title: 'Claims in\nMinutes, Not Months',
     subtitle: 'Submit a claim from your phone, track it live, and get settled — no paperwork, no hassle.',
     stat: '< 48 hrs',
     statLabel: 'Average Claim Time',
-    decorCircle1: 'rgba(194,65,12,0.35)',
-    decorCircle2: 'rgba(251,146,60,0.12)',
   },
   {
     key: '4',
-    gradient: ['#1e1b4b', '#3730a3', '#4f46e5'],
+    image: require('../assets/slide4.png'),
+    overlayColors: ['rgba(30,27,75,0.30)', 'rgba(30,27,75,0.55)', 'rgba(30,27,75,0.92)'],
     accentColor: '#a78bfa',
-    glowColor: 'rgba(167,139,250,0.15)',
-    icon: 'people',
     tagIcon: 'business',
     tag: 'For Everyone',
+    icon: 'people',
     title: 'Individual, Team\nor Enterprise',
     subtitle: 'Whether you self-enroll, are invited by HR, or registered by a broker — we have you covered.',
     stat: '30+',
     statLabel: 'Partner Institutions',
-    decorCircle1: 'rgba(79,70,229,0.35)',
-    decorCircle2: 'rgba(167,139,250,0.12)',
   },
 ];
 
@@ -113,11 +108,12 @@ export default function OnboardingScreen() {
 
   const finish = async () => {
     await AsyncStorage.setItem('onboarded', 'true');
+    // @ts-ignore — welcome route added after typed-routes generation
     router.replace('/(auth)/welcome');
   };
 
   const isLast = currentIndex === SLIDES.length - 1;
-  const current = SLIDES[currentIndex];
+  const accent = SLIDES[currentIndex].accentColor;
 
   return (
     <View style={styles.root}>
@@ -138,51 +134,44 @@ export default function OnboardingScreen() {
           { useNativeDriver: false }
         )}
         scrollEventThrottle={16}
-        renderItem={({ item }) => <SlideItem item={item} insets={insets} />}
+        renderItem={({ item }) => (
+          <SlideItem item={item} insets={insets} />
+        )}
       />
 
-      {/* Floating bottom controls — overlaid on top of slides */}
+      {/* Controls — float above the slide */}
       <View style={[styles.controls, { paddingBottom: insets.bottom + 16 }]}>
-        {/* Dot indicators */}
         <View style={styles.dots}>
           {SLIDES.map((_, i) => {
             const inputRange = [(i - 1) * width, i * width, (i + 1) * width];
             const dotWidth = scrollX.interpolate({
-              inputRange,
-              outputRange: [8, 32, 8],
-              extrapolate: 'clamp',
+              inputRange, outputRange: [8, 32, 8], extrapolate: 'clamp',
             });
             const opacity = scrollX.interpolate({
-              inputRange,
-              outputRange: [0.3, 1, 0.3],
-              extrapolate: 'clamp',
+              inputRange, outputRange: [0.35, 1, 0.35], extrapolate: 'clamp',
             });
             return (
               <Animated.View
                 key={i}
-                style={[
-                  styles.dot,
-                  { width: dotWidth, opacity, backgroundColor: current.accentColor },
-                ]}
+                style={[styles.dot, { width: dotWidth, opacity, backgroundColor: accent }]}
               />
             );
           })}
         </View>
 
-        {/* Skip + Next/Get Started */}
         <View style={styles.btnRow}>
           {!isLast && (
             <TouchableOpacity
               onPress={finish}
               style={styles.skipBtn}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
               <Text style={styles.skipText}>Skip</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity
             onPress={goNext}
-            style={[styles.nextBtn, { backgroundColor: current.accentColor }, isLast && styles.nextBtnWide]}
+            style={[styles.nextBtn, { backgroundColor: accent }]}
             activeOpacity={0.85}
           >
             <Text style={[styles.nextText, { color: isLast ? '#fff' : '#000' }]}>
@@ -201,225 +190,123 @@ export default function OnboardingScreen() {
 }
 
 function SlideItem({ item, insets }: { item: Slide; insets: { top: number } }) {
+  const iconTop = height * ICON_CENTER - 80; // center of ring = ICON_CENTER, ring height = 160
+
   return (
-    <View style={{ width, height }}>
+    <ImageBackground
+      source={item.image}
+      style={{ width, height }}
+      resizeMode="cover"
+    >
+      {/* Dark gradient overlay — light at top, heavy at bottom */}
       <LinearGradient
-        colors={item.gradient}
-        start={{ x: 0.2, y: 0 }}
-        end={{ x: 0.8, y: 1 }}
+        colors={item.overlayColors}
+        locations={[0, 0.45, 1]}
         style={StyleSheet.absoluteFill}
       />
 
-      {/* Decorative circles — background depth */}
-      <View style={[styles.decoCircle1, { backgroundColor: item.decorCircle1 }]} />
-      <View style={[styles.decoCircle2, { backgroundColor: item.decorCircle2 }]} />
-      <View style={[styles.decoCircle3, { backgroundColor: item.decorCircle1, opacity: 0.4 }]} />
-
       {/* Tag pill — top */}
-      <View style={[styles.tagRow, { paddingTop: insets.top + 24 }]}>
-        <View style={[styles.tagPill, { borderColor: `${item.accentColor}40`, backgroundColor: `${item.accentColor}18` }]}>
+      <View style={[styles.tagWrap, { top: insets.top + height * TAG_TOP }]}>
+        <View style={[styles.tagPill, {
+          borderColor: `${item.accentColor}50`,
+          backgroundColor: `${item.accentColor}22`,
+        }]}>
           <Ionicons name={item.tagIcon} size={13} color={item.accentColor} />
           <Text style={[styles.tagText, { color: item.accentColor }]}>{item.tag}</Text>
         </View>
       </View>
 
-      {/* Central icon area */}
-      <View style={styles.iconArea}>
-        {/* Outer glow */}
-        <View style={[styles.iconGlow, { backgroundColor: item.glowColor }]} />
-        {/* Icon ring */}
-        <View style={[styles.iconRing, { borderColor: `${item.accentColor}30` }]}>
-          <View style={[styles.iconInner, { backgroundColor: `${item.accentColor}20` }]}>
-            <Ionicons name={item.icon} size={72} color={item.accentColor} />
+      {/* Icon — absolute center, stays clear of text */}
+      <View style={[styles.iconWrap, { top: iconTop }]}>
+        {/* Ambient glow */}
+        <View style={[styles.iconGlow, { backgroundColor: `${item.accentColor}18` }]} />
+        {/* Outer ring */}
+        <View style={[styles.iconRing, { borderColor: `${item.accentColor}35` }]}>
+          {/* Inner fill */}
+          <View style={[styles.iconInner, { backgroundColor: `${item.accentColor}25` }]}>
+            <Ionicons name={item.icon} size={68} color={item.accentColor} />
           </View>
         </View>
-
-        {/* Floating stat card */}
-        <View style={styles.statCard}>
+        {/* Floating stat chip */}
+        <View style={[styles.statChip, { borderColor: `${item.accentColor}30` }]}>
           <Text style={[styles.statValue, { color: item.accentColor }]}>{item.stat}</Text>
           <Text style={styles.statLabel}>{item.statLabel}</Text>
         </View>
       </View>
 
-      {/* Bottom text overlay with gradient fade */}
-      <LinearGradient
-        colors={['transparent', `${item.gradient[0]}cc`, item.gradient[0]]}
-        style={styles.textOverlay}
-        pointerEvents="none"
-      >
-        <Text style={styles.slideTitle}>{item.title}</Text>
-        <Text style={styles.slideSubtitle}>{item.subtitle}</Text>
-        {/* Extra padding so text clears the controls */}
-        <View style={{ height: 120 }} />
-      </LinearGradient>
-    </View>
+      {/* Text — pinned above controls, never overlaps icon */}
+      <View style={[styles.textWrap, { bottom: TEXT_BOTTOM }]}>
+        <Text style={styles.title}>{item.title}</Text>
+        <Text style={styles.subtitle}>{item.subtitle}</Text>
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0a1628' },
-
-  // Decorative background shapes
-  decoCircle1: {
-    position: 'absolute',
-    width: 380,
-    height: 380,
-    borderRadius: 190,
-    top: -80,
-    right: -100,
-  },
-  decoCircle2: {
-    position: 'absolute',
-    width: 260,
-    height: 260,
-    borderRadius: 130,
-    bottom: height * 0.3,
-    left: -80,
-  },
-  decoCircle3: {
-    position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    top: height * 0.25,
-    right: -40,
-  },
+  root: { flex: 1, backgroundColor: '#000' },
 
   // Tag
-  tagRow: {
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
+  tagWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   tagPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    borderWidth: 1, borderRadius: 20,
+    paddingHorizontal: 14, paddingVertical: 7,
   },
   tagText: { fontSize: 13, fontWeight: '700', letterSpacing: 0.3 },
 
-  // Icon area
-  iconArea: {
-    flex: 1,
+  // Icon zone
+  iconWrap: {
+    position: 'absolute', left: 0, right: 0,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
   },
   iconGlow: {
     position: 'absolute',
-    width: 240,
-    height: 240,
-    borderRadius: 120,
+    width: 220, height: 220, borderRadius: 110,
   },
   iconRing: {
-    width: 170,
-    height: 170,
-    borderRadius: 85,
+    width: 160, height: 160, borderRadius: 80,
     borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 20,
   },
   iconInner: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 130, height: 130, borderRadius: 65,
+    alignItems: 'center', justifyContent: 'center',
   },
-  statCard: {
-    backgroundColor: 'rgba(255,255,255,0.10)',
-    borderRadius: 16,
-    paddingHorizontal: 28,
-    paddingVertical: 14,
-    alignItems: 'center',
+  statChip: {
+    backgroundColor: 'rgba(0,0,0,0.35)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    backdropFilter: 'blur(12px)',
+    borderRadius: 14,
+    paddingHorizontal: 24, paddingVertical: 12,
+    alignItems: 'center',
   },
-  statValue: {
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.55)',
-    fontWeight: '600',
-    marginTop: 2,
-    letterSpacing: 0.5,
-  },
+  statValue: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
+  statLabel: { fontSize: 11, color: 'rgba(255,255,255,0.55)', fontWeight: '600', marginTop: 2, letterSpacing: 0.5 },
 
-  // Bottom text overlay
-  textOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 28,
-    paddingTop: 60,
-    paddingBottom: 0,
+  // Text
+  textWrap: {
+    position: 'absolute', left: 28, right: 28,
   },
-  slideTitle: {
-    fontSize: 34,
-    fontWeight: '800',
-    color: '#f8fafc',
-    lineHeight: 42,
-    marginBottom: 12,
-    letterSpacing: -0.5,
+  title: {
+    fontSize: 34, fontWeight: '800', color: '#fff',
+    lineHeight: 42, marginBottom: 10, letterSpacing: -0.5,
   },
-  slideSubtitle: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.60)',
-    lineHeight: 24,
-  },
+  subtitle: { fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 22 },
 
-  // Controls — floats over the slide
+  // Controls
   controls: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 28,
-    paddingTop: 16,
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    paddingHorizontal: 28, paddingTop: 16,
   },
-  dots: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    gap: 6,
-  },
-  dot: {
-    height: 6,
-    borderRadius: 3,
-  },
-  btnRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
+  dots: { flexDirection: 'row', alignItems: 'center', marginBottom: 18, gap: 6 },
+  dot: { height: 6, borderRadius: 3 },
+  btnRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   skipBtn: { paddingVertical: 16, paddingHorizontal: 4 },
-  skipText: {
-    color: 'rgba(255,255,255,0.45)',
-    fontSize: 15,
-    fontWeight: '600',
-  },
+  skipText: { color: 'rgba(255,255,255,0.45)', fontSize: 15, fontWeight: '600' },
   nextBtn: {
-    flex: 1,
-    borderRadius: 16,
-    paddingVertical: 17,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+    flex: 1, borderRadius: 16, paddingVertical: 17,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
   },
-  nextBtnWide: { flex: 1 },
-  nextText: {
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 0.2,
-  },
+  nextText: { fontSize: 16, fontWeight: '800', letterSpacing: 0.2 },
 });
