@@ -377,6 +377,10 @@ async function seed() {
       institution: institution._id,
       isActive: true,
     });
+    // Link the InsuredPerson back to the User so enrollment/claims filters work
+    await User.findByIdAndUpdate(user._id, {
+      linkedEntity: { entityType: 'InsuredPerson', entityId: ip._id },
+    });
     empUsers.push({ user, ip, emp });
   }
   console.log('Created', empUsers.length, 'institution employees');
@@ -560,6 +564,9 @@ async function seed() {
       dateOfBirth: new Date(def.dob),
       gender: def.gender,
       isActive: true,
+    });
+    await User.findByIdAndUpdate(user._id, {
+      linkedEntity: { entityType: 'InsuredPerson', entityId: ip._id },
     });
 
     if (def.tier) {
