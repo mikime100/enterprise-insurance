@@ -48,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await api.post('/auth/mobile/login', { email, password });
     const { token: t, user: u } = res.data;
     await AsyncStorage.setItem('token', t);
+    await AsyncStorage.setItem('hasLoggedIn', 'true');
     setToken(t);
     setUser(u);
   };

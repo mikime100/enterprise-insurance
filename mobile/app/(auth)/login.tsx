@@ -120,13 +120,28 @@ export default function LoginScreen() {
             <Text style={styles.createLinkText}>New user? Create an account</Text>
           </TouchableOpacity>
 
-          {/* Demo hint */}
+          {/* Demo credentials — tap to fill */}
           <View style={styles.demoBox}>
-            <Text style={styles.demoTitle}>Demo credentials</Text>
-            <Text style={styles.demoLine}>Employee : biruk.tadesse@ethiotelecom.et</Text>
-            <Text style={styles.demoLine}>Password : Employee@2024</Text>
-            <Text style={[styles.demoLine, { marginTop: 6 }]}>Individual: abebe.girma@gmail.com</Text>
-            <Text style={styles.demoLine}>Password : Insured@2024</Text>
+            <Text style={styles.demoTitle}>Demo credentials — tap to fill</Text>
+            {[
+              { label: 'Employee (has claims)',  email: 'biruk.tadesse@ethiotelecom.et', password: 'Employee@2024' },
+              { label: 'Individual insured',     email: 'abebe.girma@gmail.com',         password: 'Insured@2024' },
+              { label: 'Sales Broker',           email: 'dawit.bekele@enterprise-insurance.et', password: 'Broker@2024' },
+              { label: 'Institution HR Admin',   email: 'solomon.haile@ethiotelecom.et', password: 'HR@EthioTelecom2024' },
+            ].map(cred => (
+              <TouchableOpacity
+                key={cred.email}
+                style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 8, padding: 10, borderWidth: 1, borderColor: '#bae6fd', gap: 8 }}
+                onPress={() => { setEmail(cred.email); setPassword(cred.password); }}
+                activeOpacity={0.7}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#0369a1' }}>{cred.label}</Text>
+                  <Text style={{ fontSize: 11, color: '#0c4a6e', marginTop: 1 }}>{cred.email}</Text>
+                </View>
+                <Ionicons name="arrow-down-circle-outline" size={18} color="#0369a1" />
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
       </ScrollView>
@@ -182,8 +197,15 @@ const styles = StyleSheet.create({
   createLinkText: { fontSize: 14, color: '#2563eb', fontWeight: '600' },
   demoBox: {
     backgroundColor: '#f0f9ff', borderRadius: 10,
-    padding: 12, borderWidth: 1, borderColor: '#bae6fd',
+    padding: 12, borderWidth: 1, borderColor: '#bae6fd', gap: 6,
   },
-  demoTitle: { fontSize: 12, fontWeight: '700', color: '#0369a1', marginBottom: 4 },
+  demoTitle: { fontSize: 12, fontWeight: '700', color: '#0369a1', marginBottom: 2 },
   demoLine: { fontSize: 12, color: '#0c4a6e', fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' },
+  demoBtn: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#fff', borderRadius: 8, padding: 10,
+    borderWidth: 1, borderColor: '#bae6fd', gap: 8,
+  },
+  demoBtnLabel: { fontSize: 12, fontWeight: '700', color: '#0369a1' },
+  demoBtnEmail: { fontSize: 11, color: '#0c4a6e', marginTop: 1 },
 });

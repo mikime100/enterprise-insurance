@@ -43,8 +43,12 @@ function RootGuard() {
     if (loading) return;
 
     const redirect = async () => {
-      const stored   = await AsyncStorage.getItem('onboarded');
-      const onboarded = stored === 'true';
+      const [stored, hasLoggedIn] = await Promise.all([
+        AsyncStorage.getItem('onboarded'),
+        AsyncStorage.getItem('hasLoggedIn'),
+      ]);
+      const onboarded  = stored === 'true';
+      const everLoggedIn = hasLoggedIn === 'true';
 
       const seg0 = segments[0] as string;
       const seg1 = segments[1] as string | undefined;
@@ -58,8 +62,11 @@ function RootGuard() {
       }
 
       if (!user) {
-        // @ts-ignore
-        if (!inAuth && !inOnboarding) router.replace('/(auth)/welcome');
+        if (!inAuth && !inOnboarding) {
+          // After first login, always go to login on logout — skip the welcome screen
+          // @ts-ignore
+          router.replace(everLoggedIn ? '/(auth)/login' : '/(auth)/welcome');
+        }
         return;
       }
 

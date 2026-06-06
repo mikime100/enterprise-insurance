@@ -37,7 +37,7 @@ export default function WelcomeScreen() {
         {/* Create Account — for new individuals */}
         <TouchableOpacity
           style={styles.primaryCard}
-          onPress={() => router.push('/(auth)/select-plan')}
+          onPress={() => (router.push as (h: string) => void)('/(auth)/select-plan')}
           activeOpacity={0.85}
         >
           <View style={[styles.cardIcon, { backgroundColor: '#1d4ed8' }]}>
@@ -77,9 +77,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1e3a5f',
     paddingHorizontal: 24,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
   },
-  hero: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
+  hero: { alignItems: 'center', gap: 10, marginBottom: 40 },
   logo: {
     width: 84,
     height: 84,
