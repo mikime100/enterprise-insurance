@@ -1,7 +1,7 @@
 # Enterprise Insurance — Project Status
 
-> **Last updated:** 2026-06-05
-> **Current commit:** 0cce9ca — feat: Get Coverage links to /plans, explore plans section, coverage quota bars
+> **Last updated:** 2026-06-06
+> **Current commit:** bead1ed — feat: insured coverage page — self-enrollment + Chapa payment integration
 > **Branch:** master → origin/master (GitHub: mikime100/enterprise-insurance)
 
 ---
@@ -239,6 +239,33 @@ Broker → /broker/register-customer → POST /api/broker/register-customer
 
 ---
 
+## Chapa Payment Integration
+
+Ethiopian payment gateway (chapa.co) wired for insured self-enrollment premium payment.
+
+**Currency:** ETB  
+**Routes:** `server/routes/chapa.js` → mounted at `/api/chapa`
+
+**Flow:**
+```
+Insured → selects plan/tier → POST /api/chapa/initialize (enrollmentId)
+       → Chapa returns checkout_url → frontend redirects user to Chapa-hosted checkout
+       → Chapa redirects back to /insured/coverage?chapa_status=success&tx_ref=...
+       → frontend calls GET /api/chapa/verify/:tx_ref
+       → if success → enrollment.status set to 'active'
+       → also: POST /api/chapa/webhook (server-side callback as backup)
+```
+
+**Env vars needed:**
+```
+CHAPA_SECRET_KEY=...        # Chapa secret key (test: CHAPUBK_TEST-...)
+SERVER_URL=https://...      # Used for callback_url in production
+```
+
+**Test mode:** Use Chapa's test keys and test card credentials from their dashboard.
+
+---
+
 ## Claims Status Machine
 
 ```
@@ -319,6 +346,10 @@ node seeds/seed.js
 | Redesigned dashboards (insured/institution/provider/broker) | `4559295` | |
 | Public plans page `/plans` | `770adba` | Products/tiers/pricing, audience targeting |
 | Coverage quota bars + explore plans in insured portal | `0cce9ca` | |
+| Mobile onboarding flow — animated slides, plan selection, register, OTP, change-password | `7cb8840` | Full Expo onboarding |
+| Mobile onboarding redesign — full-bleed gradients, stat cards, accent dots | `a73ef63` | |
+| Mobile onboarding — real photo backgrounds, gradient overlay, centered icon layout | `a69422d` | Images from `moble app intro/` folder |
+| Insured self-enrollment + Chapa payment integration (web) | `bead1ed` | ETB payments via chapa.co |
 | EAS Build (APK) + EAS Update (OTA) | early | Mobile CI/CD |
 
 ---
@@ -350,7 +381,11 @@ node seeds/seed.js
 | `cdfd580` | Feat: AppLayout fully responsive (mobile drawer) |
 | `4559295` | Feat: redesign insured/institution/provider/broker dashboards |
 | `770adba` | Feat: Phase 1 — public plans page |
-| `0cce9ca` | Feat: Get Coverage links to /plans, coverage quota bars ← **current** |
+| `0cce9ca` | Feat: Get Coverage links to /plans, coverage quota bars |
+| `7cb8840` | Feat: Mobile onboarding flow — animated slides, plan selection, register, OTP verify, change-password |
+| `a73ef63` | Feat: Mobile onboarding redesign — full-bleed gradients, floating stat cards |
+| `a69422d` | Feat: Mobile onboarding — real photo backgrounds with gradient overlay |
+| `bead1ed` | Feat: Insured self-enrollment + Chapa payment integration ← **current** |
 
 ---
 

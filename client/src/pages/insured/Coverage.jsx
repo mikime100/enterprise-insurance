@@ -560,9 +560,19 @@ export default function InsuredCoverage() {
             <div style={{ fontWeight: 700, color: '#15803d', fontSize: 16, marginBottom: 6 }}>You're enrolled in all available plans!</div>
             <div style={{ color: '#6b7280', fontSize: 14 }}>Check back later for new products.</div>
           </div>
+        ) : availableProducts.length === 0 && enrollments.length === 0 ? (
+          <div style={{ background: NAVY, borderRadius: 16, padding: '48px 24px', textAlign: 'center' }}>
+            <SafetyOutlined style={{ fontSize: 48, color: 'rgba(255,255,255,0.25)', marginBottom: 16 }} />
+            <div style={{ fontWeight: 700, color: '#fff', fontSize: 18, marginBottom: 8 }}>No Active Coverage</div>
+            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, marginBottom: 24 }}>
+              You are not currently enrolled in any active policy.
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+              No plans are available right now. Please contact support or check back later.
+            </div>
+          </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
-            {/* Show available (not enrolled) products */}
             {availableProducts.map(p => (
               <ProductCard
                 key={p._id}
@@ -571,7 +581,6 @@ export default function InsuredCoverage() {
                 onSelect={prod => { setSelectedProduct(prod); setDrawerOpen(true); }}
               />
             ))}
-            {/* Show already-enrolled products as greyed-out */}
             {products.filter(p => enrolledProductIds.has(p._id?.toString())).map(p => (
               <ProductCard key={p._id} product={p} isEnrolled={true} onSelect={() => {}} />
             ))}

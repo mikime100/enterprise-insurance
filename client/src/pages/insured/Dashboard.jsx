@@ -49,7 +49,7 @@ function HeroBanner({ type, user, activePolicy, navigate }) {
         ? `Covered under ${activePolicy.product?.name}${activePolicy.tier?.name ? ' · ' + activePolicy.tier.name : ''}`
         : 'No active coverage yet — explore plans below',
       primaryCTA: { label: 'File a Claim', icon: <PlusOutlined />, action: () => navigate('/insured/claims'), color: GREEN },
-      secondaryCTA: { label: activePolicy ? 'View Coverage' : 'Browse Plans', action: () => activePolicy ? navigate('/insured/coverage') : navigate('/plans') },
+      secondaryCTA: { label: activePolicy ? 'View Coverage' : 'Browse Plans', action: () => navigate('/insured/coverage') },
     },
     institution: {
       gradient: `linear-gradient(135deg, ${NAVY} 0%, #0f2847 100%)`,
@@ -63,7 +63,7 @@ function HeroBanner({ type, user, activePolicy, navigate }) {
       badge: 'Broker-Assisted', badgeBg: 'rgba(139,92,246,0.2)', badgeColor: '#c4b5fd',
       sub: broker ? `Managed by ${broker.firstName} ${broker.lastName}` : 'Managed by your insurance broker',
       primaryCTA: { label: 'File a Claim', icon: <PlusOutlined />, action: () => navigate('/insured/claims'), color: GREEN },
-      secondaryCTA: { label: activePolicy ? 'View Coverage' : 'Browse Plans', action: () => activePolicy ? navigate('/insured/coverage') : navigate('/plans') },
+      secondaryCTA: { label: activePolicy ? 'View Coverage' : 'Browse Plans', action: () => navigate('/insured/coverage') },
     },
   };
   const cfg = configs[type];
@@ -209,7 +209,7 @@ function ExplorePlans({ hasPolicy }) {
               : 'Choose a plan that fits your needs and budget'}
           </div>
         </div>
-        <button onClick={() => navigate('/plans')}
+        <button onClick={() => navigate('/insured/coverage')}
           style={{ background: hasPolicy ? BLUE : GREEN, border: 'none', borderRadius: 9, color: '#fff', padding: '9px 18px', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
           View All Plans →
         </button>
@@ -241,7 +241,7 @@ function ExplorePlans({ hasPolicy }) {
                   <div style={{ color, fontWeight: 800, fontSize: 16 }}>{monthly.toLocaleString()} ETB/mo</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: BLUE, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
-                  onClick={() => navigate('/plans')}>
+                  onClick={() => navigate('/insured/coverage')}>
                   {p.tiers?.length || 0} tiers <ArrowRightOutlined style={{ fontSize: 10 }} />
                 </div>
               </div>
@@ -273,7 +273,7 @@ function UniquePanel({ type, user, activePolicy, navigate }) {
           </div>
         </div>
         {!activePolicy && (
-          <button onClick={() => navigate('/plans')} style={{ width: '100%', marginTop: 12, padding: '11px 0', background: GREEN, border: 'none', borderRadius: 9, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+          <button onClick={() => navigate('/insured/coverage')} style={{ width: '100%', marginTop: 12, padding: '11px 0', background: GREEN, border: 'none', borderRadius: 9, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
             Browse Plans →
           </button>
         )}
