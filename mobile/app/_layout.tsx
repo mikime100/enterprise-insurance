@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -9,45 +9,47 @@ function RootGuard() {
   const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  const [onboarded, setOnboarded] = useState<boolean | null>(null);
-
-  // Check if user has seen onboarding (runs once on mount)
-  useEffect(() => {
-    AsyncStorage.getItem('onboarded').then(v => setOnboarded(v === 'true'));
-  }, []);
 
   useEffect(() => {
-    // Wait until both auth and AsyncStorage have resolved
-    if (loading || onboarded === null) return;
+    if (loading) return;
 
-    const inAuth = segments[0] === '(auth)';
-    const inTabs = segments[0] === '(tabs)';
-    const inOnboarding = segments[0] === 'onboarding';
+    // Always read fresh from AsyncStorage — avoids stale state when
+    // finish() sets 'onboarded' then immediately navigates away
+    const redirect = async () => {
+      const stored = await AsyncStorage.getItem('onboarded');
+      const onboarded = stored === 'true';
 
-    // First-time user: show onboarding
-    if (!onboarded && !inOnboarding) {
-      router.replace('/onboarding');
-      return;
-    }
+      const seg0 = segments[0] as string;
+      const seg1 = segments[1] as string | undefined;
+      const inAuth = seg0 === '(auth)';
+      const inOnboarding = seg0 === 'onboarding';
 
-    // No user logged in
-    if (!user) {
-      if (!inAuth && !inOnboarding) router.replace('/(auth)/welcome');
-      return;
-    }
+      if (!onboarded && !inOnboarding) {
+        // @ts-ignore — onboarding not in typed routes
+        router.replace('/onboarding');
+        return;
+      }
 
-    // User has a temp password — must change it before anything else
-    if (user.mustChangePassword) {
-      const inChangePassword = inAuth && segments[1] === 'change-password';
-      if (!inChangePassword) router.replace('/(auth)/change-password');
-      return;
-    }
+      if (!user) {
+        // @ts-ignore — welcome not in typed routes
+        if (!inAuth && !inOnboarding) router.replace('/(auth)/welcome');
+        return;
+      }
 
-    // Authenticated user with no pending action — send to tabs
-    if (inAuth || inOnboarding) {
-      router.replace('/(tabs)');
-    }
-  }, [user, loading, segments, onboarded]);
+      if (user.mustChangePassword) {
+        const inChangePassword = inAuth && seg1 === 'change-password';
+        // @ts-ignore — change-password not in typed routes
+        if (!inChangePassword) router.replace('/(auth)/change-password');
+        return;
+      }
+
+      if (inAuth || inOnboarding) {
+        router.replace('/(tabs)');
+      }
+    };
+
+    redirect();
+  }, [user, loading, segments]);
 
   return null;
 }

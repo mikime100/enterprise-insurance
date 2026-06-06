@@ -208,8 +208,8 @@ function SlideItem({ item, insets }: { item: Slide; insets: { top: number } }) {
       {/* Tag pill — top */}
       <View style={[styles.tagWrap, { top: insets.top + height * TAG_TOP }]}>
         <View style={[styles.tagPill, {
-          borderColor: `${item.accentColor}50`,
-          backgroundColor: `${item.accentColor}22`,
+          borderColor: `${item.accentColor}90`,
+          backgroundColor: 'rgba(0,0,0,0.52)',
         }]}>
           <Ionicons name={item.tagIcon} size={13} color={item.accentColor} />
           <Text style={[styles.tagText, { color: item.accentColor }]}>{item.tag}</Text>
