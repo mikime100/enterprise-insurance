@@ -132,7 +132,7 @@ export default function AdminUsers() {
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating]     = useState(false);
   const [createForm]                = Form.useForm();
-  const [activeTab, setActiveTab]   = useState('staff');
+  const [activeTab, setActiveTab]   = useState('all');
 
   // Flat list (All Users tab)
   const fetchFlat = async () => {
@@ -161,7 +161,7 @@ export default function AdminUsers() {
 
   useEffect(() => { fetchFlat(); }, [page, roleFilter, search]);
   useEffect(() => {
-    if (['institution', 'broker', 'individual'].includes(activeTab)) fetchGrouped();
+    if (['staff', 'institution', 'broker', 'individual'].includes(activeTab)) fetchGrouped();
   }, [activeTab]);
 
   const handleToggle = async (u) => {
