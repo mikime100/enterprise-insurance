@@ -78,7 +78,7 @@ function InsuredHome({ user, router, insets }: any) {
     try {
       const [eRes, cRes] = await Promise.allSettled([
         api.get('/enrollments', { params: { status: 'active' } }),
-        api.get('/claims', { params: { limit: 3 } }),
+        api.get('/claims'),
       ]);
       if (eRes.status === 'fulfilled') {
         const list = eRes.value.data.enrollments;
@@ -95,64 +95,76 @@ function InsuredHome({ user, router, insets }: any) {
   const onRefresh = () => { setRefreshing(true); load(); };
   const openClaims = claims.filter(c => ['submitted', 'under_review', 'approved'].includes(c.status)).length;
 
-  if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color={NAVY} /></View>;
-
   return (
     <ScrollView style={styles.root} contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={NAVY} />}>
       <Header user={user} />
 
-      {/* Policy card */}
-      <View style={styles.policyCard}>
-        <Text style={styles.policyLabel}>ACTIVE POLICY</Text>
-        {enrollment ? (
-          <>
-            <Text style={styles.policyTier}>{enrollment.tier?.name || 'Standard Plan'}</Text>
-            <View style={styles.policyMeta}>
-              <Text style={styles.policyMetaText}>Status: </Text>
-              <StatusBadge status={enrollment.status} />
-            </View>
-            {enrollment.expiryDate && (
-              <Text style={styles.policyExpiry}>Expires: {new Date(enrollment.expiryDate).toLocaleDateString()}</Text>
-            )}
-          </>
-        ) : (
-          <>
-            <Text style={styles.noPolicy}>No active coverage yet</Text>
-            <TouchableOpacity style={styles.getStartedBtn} onPress={() => router.push('/(tabs)/coverage')}>
-              <Text style={styles.getStartedText}>Browse Plans →</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
-
-      <View style={styles.statsRow}>
-        <StatCard label="Open Claims" value={openClaims} color="#f59e0b" icon="alert-circle" />
-        <StatCard label="Total Claims" value={claims.length || 0} color={BLUE} icon="document-text" />
-      </View>
-
-      <Text style={styles.sectionTitle}>Quick Actions</Text>
-      <View style={styles.actionsRow}>
-        <ActionBtn icon="create-outline"          label="File Claim" onPress={() => router.push('/new-claim')} />
-        <ActionBtn icon="list-outline"            label="My Claims"  onPress={() => router.push('/(tabs)/claims')} />
-        <ActionBtn icon="shield-checkmark-outline" label="Coverage"  onPress={() => router.push('/(tabs)/coverage')} />
-      </View>
-
-      {claims.length > 0 && (
+      {loading ? (
+        /* Skeleton — keeps layout visible so the user knows which screen they're on */
         <>
-          <Text style={styles.sectionTitle}>Recent Claims</Text>
-          {claims.map(claim => (
-            <TouchableOpacity key={claim._id} style={styles.claimRow} onPress={() => router.push(`/claim/${claim._id}`)}>
-              <View style={styles.claimLeft}>
-                <Text style={styles.claimNumber}>{claim.claimNumber}</Text>
-                <Text style={styles.claimType}>{claim.claimType?.replace(/_/g, ' ')}</Text>
-              </View>
-              <View style={styles.claimRight}>
-                <Text style={styles.claimAmount}>ETB {claim.claimedAmount?.toLocaleString()}</Text>
-                <StatusBadge status={claim.status} />
-              </View>
-            </TouchableOpacity>
-          ))}
+          <View style={{ height: 140, borderRadius: 16, backgroundColor: '#e2e8f0', marginBottom: 16 }} />
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+            <View style={{ flex: 1, height: 80, borderRadius: 12, backgroundColor: '#e2e8f0' }} />
+            <View style={{ flex: 1, height: 80, borderRadius: 12, backgroundColor: '#e2e8f0' }} />
+          </View>
+          <View style={{ height: 110, borderRadius: 12, backgroundColor: '#e2e8f0', marginBottom: 12 }} />
+        </>
+      ) : (
+        <>
+          {/* Policy card */}
+          <View style={styles.policyCard}>
+            <Text style={styles.policyLabel}>ACTIVE POLICY</Text>
+            {enrollment ? (
+              <>
+                <Text style={styles.policyTier}>{enrollment.tier?.name || 'Standard Plan'}</Text>
+                <View style={styles.policyMeta}>
+                  <Text style={styles.policyMetaText}>Status: </Text>
+                  <StatusBadge status={enrollment.status} />
+                </View>
+                {enrollment.endDate && (
+                  <Text style={styles.policyExpiry}>Expires: {new Date(enrollment.endDate).toLocaleDateString()}</Text>
+                )}
+              </>
+            ) : (
+              <>
+                <Text style={styles.noPolicy}>No active coverage yet</Text>
+                <TouchableOpacity style={styles.getStartedBtn} onPress={() => router.push('/(tabs)/coverage')}>
+                  <Text style={styles.getStartedText}>Browse Plans →</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+
+          <View style={styles.statsRow}>
+            <StatCard label="Open Claims" value={openClaims} color="#f59e0b" icon="alert-circle" />
+            <StatCard label="Total Claims" value={claims.length || 0} color={BLUE} icon="document-text" />
+          </View>
+
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.actionsRow}>
+            <ActionBtn icon="create-outline"           label="File Claim" onPress={() => router.push('/new-claim' as any)} />
+            <ActionBtn icon="list-outline"             label="My Claims"  onPress={() => router.push('/(tabs)/claims' as any)} />
+            <ActionBtn icon="shield-checkmark-outline" label="Coverage"   onPress={() => router.push('/(tabs)/coverage' as any)} />
+          </View>
+
+          {claims.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Recent Claims</Text>
+              {claims.map(claim => (
+                <View key={claim._id} style={styles.claimRow}>
+                  <View style={styles.claimLeft}>
+                    <Text style={styles.claimNumber}>{claim.claimNumber}</Text>
+                    <Text style={styles.claimType}>{claim.claimType?.replace(/_/g, ' ')}</Text>
+                  </View>
+                  <View style={styles.claimRight}>
+                    <Text style={styles.claimAmount}>ETB {claim.claimedAmount?.toLocaleString()}</Text>
+                    <StatusBadge status={claim.status} />
+                  </View>
+                </View>
+              ))}
+            </>
+          )}
         </>
       )}
     </ScrollView>
