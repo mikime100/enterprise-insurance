@@ -13,7 +13,7 @@ import api from '../../lib/api';
 export default function ChangePasswordScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
 
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -30,7 +30,9 @@ export default function ChangePasswordScreen() {
     setLoading(true);
     try {
       await api.post('/auth/set-password', { newPassword: password });
-      // RootGuard will re-check user after this — navigate to tabs directly
+      // Refresh user so mustChangePassword is cleared before RootGuard re-checks
+      await refreshUser();
+      // @ts-ignore
       router.replace('/(tabs)');
     } catch (e: any) {
       Alert.alert('Error', e?.response?.data?.message || 'Could not update password.');
