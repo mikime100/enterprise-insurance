@@ -37,11 +37,12 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'android' ? 0 : 0}
     >
       <StatusBar style="light" />
       <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}
+        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 48 }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         bounces={false}
@@ -49,7 +50,7 @@ export default function LoginScreen() {
         {/* Back to welcome */}
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => router.replace('/(auth)/welcome')}
+          onPress={() => router.replace('/(auth)/welcome' as any)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Ionicons name="chevron-back" size={22} color="#93c5fd" />
@@ -114,16 +115,18 @@ export default function LoginScreen() {
 
           <TouchableOpacity
             style={styles.createLink}
-            onPress={() => router.push('/(auth)/select-plan')}
+            onPress={() => (router.push as (h: string) => void)('/(auth)/select-plan')}
           >
             <Text style={styles.createLinkText}>New user? Create an account</Text>
           </TouchableOpacity>
 
           {/* Demo hint */}
           <View style={styles.demoBox}>
-            <Text style={styles.demoTitle}>Demo — Insured Person</Text>
-            <Text style={styles.demoLine}>biruk@ethiotelecom.et</Text>
-            <Text style={styles.demoLine}>Insured@123</Text>
+            <Text style={styles.demoTitle}>Demo credentials</Text>
+            <Text style={styles.demoLine}>Employee : biruk.tadesse@ethiotelecom.et</Text>
+            <Text style={styles.demoLine}>Password : Employee@2024</Text>
+            <Text style={[styles.demoLine, { marginTop: 6 }]}>Individual: abebe.girma@gmail.com</Text>
+            <Text style={styles.demoLine}>Password : Insured@2024</Text>
           </View>
         </View>
       </ScrollView>
