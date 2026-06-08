@@ -143,6 +143,7 @@ async function seed() {
     { firstName: 'Selam',     lastName: 'Tadesse',  email: 'hr@ethiotelecom.et',            password: 'Institution@123', role: 'institution_admin', phone: '+251 91 300 0001', isEmailVerified: true, isActive: true, linkedEntity: { entityType: 'Institution', entityId: ethioTelecom._id } },
     { firstName: 'Tsehay',    lastName: 'Girma',    email: 'hr@cbe.com.et',                 password: 'Institution@123', role: 'institution_admin', phone: '+251 91 300 0002', isEmailVerified: true, isActive: true, linkedEntity: { entityType: 'Institution', entityId: cbe._id } },
     { firstName: 'Robel',     lastName: 'Hailu',    email: 'hr@ethiopianairlines.com',      password: 'Institution@123', role: 'institution_admin', phone: '+251 91 300 0003', isEmailVerified: true, isActive: true, linkedEntity: { entityType: 'Institution', entityId: ethioAirlines._id } },
+    { firstName: 'Lemlem',    lastName: 'Woldemariam', email: 'hr@aau.edu.et',              password: 'Institution@123', role: 'institution_admin', phone: '+251 91 300 0004', isEmailVerified: true, isActive: true, linkedEntity: { entityType: 'Institution', entityId: aau._id } },
     // Insured — demo login (institution employee)
     { firstName: 'Biruk',     lastName: 'Assefa',   email: 'biruk@ethiotelecom.et',         password: 'Insured@123',     role: 'insured_person',    phone: '+251 91 400 0001', isEmailVerified: true, isActive: true },
     // Sales broker — demo
@@ -155,7 +156,7 @@ async function seed() {
 
   const [superAdmin, payerAdmin, underwriter, claimsOfficer, financeOfficer,
          stGabrielUser, blackLionUser,
-         etHrUser, cbeHrUser, ethioAirHrUser,
+         etHrUser, cbeHrUser, ethioAirHrUser, aauHrUser,
          insuredDemo, brokerUser,
          danielUser, helenUser, yonasUser] = coreUsers;
 
@@ -197,7 +198,7 @@ async function seed() {
     { firstName: 'Miriam',       lastName: 'Bekele',      email: 'm.bekele@aau.edu.et',      inst: aau._id },
   ];
 
-  const ipUsers = await User.insertMany(
+  const ipUsers = await User.create(
     ipUserData.map(u => ({
       firstName: u.firstName, lastName: u.lastName, email: u.email,
       password: 'Insured@123', role: 'insured_person', phone: '+251 91 400 0000',
@@ -305,7 +306,7 @@ async function seed() {
     { firstName: 'Muluken',   lastName: 'Tadesse',  email: 'muluken.t@gmail.com',   phone: '+251 91 700 0002', dob: '1985-09-25', gender: 'male' },
     { firstName: 'Bethlehem', lastName: 'Solomon',  email: 'bethlehem.s@gmail.com', phone: '+251 91 700 0003', dob: '1993-01-17', gender: 'female' },
   ];
-  const brokerCustomerUsers = await User.insertMany(brokerCustomerData.map(c => ({
+  const brokerCustomerUsers = await User.create(brokerCustomerData.map(c => ({
     firstName: c.firstName, lastName: c.lastName, email: c.email, phone: c.phone,
     password: 'Insured@123', role: 'insured_person', isEmailVerified: true, isActive: true, mustChangePassword: false,
   })));
@@ -1384,7 +1385,7 @@ async function seed() {
     { type: 'premium_collection', direction: 'institution_to_payer', enrollment: etEnroll._id,  amount: 8400*120, status: 'completed', paymentMethod: 'bank_transfer', reference: 'REF-ET-2026-001',  initiatedBy: etHrUser._id,      approvedBy: financeOfficer._id, processedAt: enrollStart },
     { type: 'premium_collection', direction: 'institution_to_payer', enrollment: cbeEnroll._id, amount: 8400*450, status: 'completed', paymentMethod: 'bank_transfer', reference: 'REF-CBE-2026-001', initiatedBy: cbeHrUser._id,     approvedBy: financeOfficer._id, processedAt: enrollStart },
     { type: 'premium_collection', direction: 'institution_to_payer', enrollment: airEnroll._id, amount: 12000*800,status: 'completed', paymentMethod: 'bank_transfer', reference: 'REF-AIR-2026-001', initiatedBy: ethioAirHrUser._id,approvedBy: financeOfficer._id, processedAt: enrollStart },
-    { type: 'premium_collection', direction: 'institution_to_payer', enrollment: aauEnroll._id, amount: 8400*280, status: 'completed', paymentMethod: 'bank_transfer', reference: 'REF-AAU-2026-001', initiatedBy: etHrUser._id,      approvedBy: financeOfficer._id, processedAt: enrollStart },
+    { type: 'premium_collection', direction: 'institution_to_payer', enrollment: aauEnroll._id, amount: 8400*280, status: 'completed', paymentMethod: 'bank_transfer', reference: 'REF-AAU-2026-001', initiatedBy: aauHrUser._id,     approvedBy: financeOfficer._id, processedAt: enrollStart },
     // Claim settlements for settled/payment_initiated claims
     ...settledClaims.map((c, i) => ({
       type: 'claim_settlement',
@@ -1443,6 +1444,7 @@ async function seed() {
   console.log('  hr@ethiotelecom.et               / Institution@123 [Ethio Telecom HR]');
   console.log('  hr@cbe.com.et                    / Institution@123 [CBE HR]');
   console.log('  hr@ethiopianairlines.com         / Institution@123 [Ethiopian Airlines HR]');
+  console.log('  hr@aau.edu.et                    / Institution@123 [AAU HR]');
   console.log('\nSALES BROKER');
   console.log('  broker@enterpriseinsurance.com   / Broker@123');
   console.log('\nINSURED PERSONS');

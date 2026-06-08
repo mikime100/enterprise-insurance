@@ -146,6 +146,13 @@ export default function SelectPlanScreen() {
       {/* Proceed button */}
       {!loading && (
         <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+          {/* Disclaimer */}
+          <View style={styles.disclaimer}>
+            <Ionicons name="information-circle-outline" size={16} color="#0369a1" style={{ marginTop: 1 }} />
+            <Text style={styles.disclaimerText}>
+              Your selection is not final — you can change your plan after signing in. Full coverage details and payment will be reviewed inside your account before any charges are made.
+            </Text>
+          </View>
           <TouchableOpacity
             style={[styles.proceedBtn, !selected && styles.proceedBtnDisabled]}
             onPress={proceed}
@@ -246,4 +253,11 @@ const styles = StyleSheet.create({
   },
   proceedBtnDisabled: { backgroundColor: '#94a3b8' },
   proceedText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  disclaimer: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 8,
+    backgroundColor: '#f0f9ff', borderRadius: 10,
+    padding: 12, marginBottom: 12,
+    borderWidth: 1, borderColor: '#bae6fd',
+  },
+  disclaimerText: { flex: 1, fontSize: 12, color: '#0c4a6e', lineHeight: 17 },
 });

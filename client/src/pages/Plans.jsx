@@ -219,34 +219,111 @@ function ProductBlock({ product }) {
   );
 }
 
+const EXCLUSIONS_WEB = {
+  health: ['Pre-existing conditions during waiting period','Cosmetic/elective procedures not medically necessary','Experimental treatments','Self-inflicted injuries','Injuries from illegal activities','Infertility treatment'],
+  auto:   ['Mechanical breakdown not from accident','Normal wear and tear','Driving under influence','Racing or speed testing','War or civil unrest','Driving without valid licence'],
+  life:   ['Suicide within first 2 years','Death from illegal activities','Death from war/civil unrest','Pre-existing terminal illness not disclosed'],
+};
+function getWebExclusions(type) {
+  return EXCLUSIONS_WEB[type] || ['Pre-existing conditions during waiting period','Illegal activities','War and civil unrest','Fraud or misrepresentation'];
+}
+
 // ─── Tier Selected Modal ──────────────────────────────────────────────────────
 function TierSelectedModal({ tier, product, color, onClose }) {
   const navigate = useNavigate();
+  const [showDetails, setShowDetails] = useState(false);
+
+  const exclusions = getWebExclusions(product.productType);
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, backdropFilter: 'blur(4px)' }}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, backdropFilter: 'blur(4px)', overflowY: 'auto' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{ background: '#fff', borderRadius: 20, padding: '36px', maxWidth: 480, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.25)' }}>
+      <div style={{ background: '#fff', borderRadius: 20, padding: '36px', maxWidth: 560, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.25)', margin: 'auto' }}>
 
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ width: 64, height: 64, borderRadius: '50%', background: `${color}15`, border: `2px solid ${color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, margin: '0 auto 14px' }}>
-            ✅
-          </div>
-          <div style={{ fontWeight: 800, color: '#111827', fontSize: 22, marginBottom: 6 }}>
-            Great choice!
-          </div>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: `${color}15`, border: `2px solid ${color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, margin: '0 auto 14px' }}>✅</div>
+          <div style={{ fontWeight: 800, color: '#111827', fontSize: 22, marginBottom: 6 }}>Great choice!</div>
           <div style={{ color: '#6b7280', fontSize: 15 }}>
-            <strong style={{ color: '#111827' }}>{product.name}</strong> — {tier.name} tier
+            <strong style={{ color: '#111827' }}>{product.name}</strong> — {tier.name}
           </div>
           <div style={{ color, fontWeight: 800, fontSize: 24, marginTop: 10 }}>
             {tier.annualPremium.toLocaleString()} ETB / year
           </div>
-          <div style={{ color: '#9ca3af', fontSize: 13 }}>
-            ({Math.round(tier.annualPremium / 12).toLocaleString()} ETB/month)
-          </div>
+          <div style={{ color: '#9ca3af', fontSize: 13 }}>({Math.round(tier.annualPremium / 12).toLocaleString()} ETB/month)</div>
+        </div>
+
+        {/* Disclaimer */}
+        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 10, padding: '12px 16px', marginBottom: 20, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+          <span style={{ fontSize: 16, flexShrink: 0 }}>ℹ️</span>
+          <span style={{ color: '#0c4a6e', fontSize: 13, lineHeight: 1.6 }}>
+            <strong>Your selection is not final.</strong> After creating your account, you can review full policy details, change your plan, or add dependents — all before any payment is made.
+          </span>
+        </div>
+
+        {/* Expandable full details */}
+        <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, marginBottom: 20, overflow: 'hidden' }}>
+          <button
+            onClick={() => setShowDetails(d => !d)}
+            style={{ width: '100%', padding: '12px 16px', background: '#f9fafb', border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600, color: '#374151', fontSize: 14 }}
+          >
+            <span>📋 View Full Policy Details</span>
+            <span style={{ fontSize: 12, color: '#9ca3af' }}>{showDetails ? '▲ Hide' : '▼ Show'}</span>
+          </button>
+
+          {showDetails && (
+            <div style={{ padding: '16px 20px', borderTop: '1px solid #e5e7eb' }}>
+              {/* All covered services */}
+              {tier.coverages?.length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontWeight: 700, color: '#111827', fontSize: 13, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Covered Services</div>
+                  {tier.coverages.map((tc, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid #f3f4f6' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <CheckOutlined style={{ color: GREEN, fontSize: 12 }} />
+                        <span style={{ color: '#374151', fontSize: 13 }}>{tc.coverage?.name || 'Coverage'}</span>
+                      </div>
+                      {(tc.customLimit || tc.coverage?.limits?.annual) && (
+                        <span style={{ color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
+                          up to {(tc.customLimit || tc.coverage?.limits?.annual)?.toLocaleString()} ETB
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Exclusions */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontWeight: 700, color: '#111827', fontSize: 13, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Standard Exclusions</div>
+                {exclusions.map((ex, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
+                    <span style={{ color: '#ef4444', fontSize: 13, flexShrink: 0 }}>✕</span>
+                    <span style={{ color: '#4b5563', fontSize: 13 }}>{ex}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Key terms */}
+              <div>
+                <div style={{ fontWeight: 700, color: '#111827', fontSize: 13, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Key Terms</div>
+                {[
+                  ['Claims deadline', 'Submit within 90 days of incident'],
+                  ['Waiting period', product.waitingPeriodMonths > 0 ? `${product.waitingPeriodMonths} months` : 'None'],
+                  ['Plan change', 'Allowed within 30 days of policy start'],
+                  ['Cancellation', '30 days notice — pro-rated refund minus 10% admin fee'],
+                  ['Disputes', 'Resolved via NIBE (Ethiopian Insurance Regulatory Authority)'],
+                ].map(([k, v], i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f3f4f6', fontSize: 13 }}>
+                    <span style={{ color: '#6b7280' }}>{k}</span>
+                    <span style={{ color: '#111827', fontWeight: 600, maxWidth: '55%', textAlign: 'right' }}>{v}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* What happens next */}
@@ -254,14 +331,12 @@ function TierSelectedModal({ tier, product, color, onClose }) {
           <div style={{ fontWeight: 700, color: '#15803d', fontSize: 14, marginBottom: 10 }}>What happens next</div>
           {[
             'Create your free account (2 minutes)',
+            'Review full policy details and confirm your plan',
             'Add your dependents if needed',
-            'Your application goes to underwriting review',
-            'Once approved you will get your digital policy',
+            'Sign the policy agreement digitally and pay — your coverage activates immediately',
           ].map((step, i) => (
             <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: i < 3 ? 8 : 0 }}>
-              <span style={{ width: 20, height: 20, borderRadius: '50%', background: GREEN, color: '#fff', fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-                {i + 1}
-              </span>
+              <span style={{ width: 20, height: 20, borderRadius: '50%', background: GREEN, color: '#fff', fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{i + 1}</span>
               <span style={{ color: '#374151', fontSize: 13, lineHeight: 1.5 }}>{step}</span>
             </div>
           ))}
@@ -269,16 +344,10 @@ function TierSelectedModal({ tier, product, color, onClose }) {
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: 10 }}>
-          <button
-            onClick={onClose}
-            style={{ flex: 1, padding: '12px 0', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, color: '#374151', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}
-          >
+          <button onClick={onClose} style={{ flex: 1, padding: '12px 0', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, color: '#374151', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
             Keep Browsing
           </button>
-          <button
-            onClick={() => navigate('/register')}
-            style={{ flex: 2, padding: '12px 0', background: color, border: 'none', borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}
-          >
+          <button onClick={() => navigate('/register')} style={{ flex: 2, padding: '12px 0', background: color, border: 'none', borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
             Create Account →
           </button>
         </div>

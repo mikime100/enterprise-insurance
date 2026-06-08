@@ -124,10 +124,10 @@ export default function LoginScreen() {
           <View style={styles.demoBox}>
             <Text style={styles.demoTitle}>Demo credentials — tap to fill</Text>
             {[
-              { label: 'Employee (has claims)',  email: 'biruk.tadesse@ethiotelecom.et', password: 'Employee@2024' },
-              { label: 'Individual insured',     email: 'abebe.girma@gmail.com',         password: 'Insured@2024' },
-              { label: 'Sales Broker',           email: 'dawit.bekele@enterprise-insurance.et', password: 'Broker@2024' },
-              { label: 'Institution HR Admin',   email: 'solomon.haile@ethiotelecom.et', password: 'HR@EthioTelecom2024' },
+              { label: 'Employee (has claims)',  email: 'biruk@ethiotelecom.et',          password: 'Insured@123' },
+              { label: 'Individual insured',     email: 'daniel.tesfaye@gmail.com',       password: 'Insured@123' },
+              { label: 'Sales Broker',           email: 'broker@enterpriseinsurance.com', password: 'Broker@123'  },
+              { label: 'Institution HR Admin',   email: 'hr@ethiotelecom.et',             password: 'Institution@123' },
             ].map(cred => (
               <TouchableOpacity
                 key={cred.email}

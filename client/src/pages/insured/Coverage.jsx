@@ -1,11 +1,36 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Spin, Divider, Drawer, Modal, message, Tag } from 'antd';
+import { Spin, Divider, Drawer, Modal, message, Tag, Input } from 'antd';
 import {
   CheckCircleOutlined, InfoCircleOutlined, ArrowRightOutlined,
   PlusOutlined, CloseOutlined, SafetyOutlined, CreditCardOutlined,
-  CheckOutlined, LoadingOutlined,
+  CheckOutlined, LoadingOutlined, EditOutlined, StopOutlined,
 } from '@ant-design/icons';
+
+const EXCLUSIONS_COV = {
+  health: ['Pre-existing conditions during the waiting period','Cosmetic or elective procedures','Experimental treatments not approved by medical authority','Self-inflicted injuries','Injuries from illegal activities','Infertility or assisted reproduction'],
+  auto:   ['Mechanical breakdown not caused by accident','Normal wear and tear','Driving under the influence','Racing or speed testing','War or civil unrest','Driving without a valid licence'],
+  life:   ['Suicide within the first 2 years','Death from illegal activities','Death from war/civil unrest','Undisclosed pre-existing terminal illness'],
+};
+const getExclusionsCov = t => EXCLUSIONS_COV[t] || ['Pre-existing conditions during waiting period','Illegal activities','War and civil unrest','Fraud or misrepresentation'];
+
+function agreementTextCov(tierName, productName, premium) {
+  return `ENTERPRISE INSURANCE S.C. — POLICY AGREEMENT
+Plan: ${productName} — ${tierName} | Annual Premium: ETB ${(premium||0).toLocaleString()} | Version: v1.0
+
+1. COVERAGE — Takes effect upon payment confirmation and remains active for one (1) policy year.
+2. PREMIUM — ETB ${(premium||0).toLocaleString()} is due in full upon enrollment. Policy is inactive until payment is confirmed.
+3. PLAN CHANGES — Allowed within 30 days of policy start. Later changes subject to underwriting review.
+4. CLAIMS — Must be submitted within 90 days of incident with supporting documentation. Enterprise Insurance reserves the right to investigate.
+5. EXCLUSIONS — Standard exclusions apply as listed. Claims from excluded conditions will not be honored.
+6. WAITING PERIOD — Certain benefits have a waiting period. Emergency services are exempt.
+7. CANCELLATION — 30 days written notice required. Pro-rated refund minus 10% admin fee; no refund after 11 months.
+8. DATA PRIVACY — Information processed per Ethiopian data protection law; shared with service providers only for claims.
+9. MISREPRESENTATION — Material misrepresentation may result in cancellation and forfeiture of premiums.
+10. DISPUTES — Resolved via NIBE (Ethiopian Insurance Regulatory Authority) if direct negotiation fails within 30 days.
+
+By signing, you confirm: you are 18+, all registration information is accurate, and you have read and agree to all terms.`;
+}
 import api from '../../api';
 import axios from 'axios';
 
@@ -241,19 +266,24 @@ function ProductCard({ product, isEnrolled, onSelect }) {
 
 function PlanDetailDrawer({ product, open, onClose, onEnroll, enrolling }) {
   const [selectedTier, setSelectedTier] = useState(null);
+  const [sigName,      setSigName]      = useState('');
+  const [agreed,       setAgreed]       = useState(false);
   const meta = product ? typeMeta(product.productType) : {};
 
   useEffect(() => {
-    if (open) setSelectedTier(null);
+    if (open) { setSelectedTier(null); setSigName(''); setAgreed(false); }
   }, [open, product]);
 
   if (!product) return null;
+
+  const exclusions = getExclusionsCov(product.productType);
+  const canEnroll  = !!selectedTier && sigName.trim().length >= 3 && agreed && !enrolling;
 
   return (
     <Drawer
       open={open}
       onClose={onClose}
-      width={560}
+      width={600}
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ width: 40, height: 40, borderRadius: 10, background: meta.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
@@ -266,103 +296,89 @@ function PlanDetailDrawer({ product, open, onClose, onEnroll, enrolling }) {
         </div>
       }
       footer={
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button onClick={onClose} style={{ flex: 1, padding: '12px 0', border: '1px solid #e5e7eb', borderRadius: 10, background: '#fff', color: '#374151', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>
-            Cancel
-          </button>
-          <button
-            onClick={() => selectedTier && onEnroll(product, selectedTier)}
-            disabled={!selectedTier || enrolling}
-            style={{
-              flex: 2, padding: '12px 0', border: 'none', borderRadius: 10,
-              background: selectedTier ? NAVY : '#e5e7eb',
-              color: selectedTier ? '#fff' : '#9ca3af',
-              fontWeight: 700, cursor: selectedTier ? 'pointer' : 'not-allowed',
-              fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            }}
-          >
-            {enrolling ? <><LoadingOutlined /> Processing...</> : <><CreditCardOutlined /> Subscribe & Pay</>}
-          </button>
+        <div>
+          {!canEnroll && selectedTier && (
+            <div style={{ color: '#9ca3af', fontSize: 12, textAlign: 'center', marginBottom: 8 }}>
+              {!sigName.trim() ? 'Type your full name to sign.' : !agreed ? 'Check the agreement box to continue.' : ''}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button onClick={onClose} style={{ flex: 1, padding: '12px 0', border: '1px solid #e5e7eb', borderRadius: 10, background: '#fff', color: '#374151', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>
+              Cancel
+            </button>
+            <button
+              onClick={() => canEnroll && onEnroll(product, selectedTier, sigName.trim())}
+              disabled={!canEnroll}
+              style={{
+                flex: 2, padding: '12px 0', border: 'none', borderRadius: 10,
+                background: canEnroll ? NAVY : '#e5e7eb',
+                color: canEnroll ? '#fff' : '#9ca3af',
+                fontWeight: 700, cursor: canEnroll ? 'pointer' : 'not-allowed',
+                fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            >
+              {enrolling ? <><LoadingOutlined /> Processing...</> : <><CreditCardOutlined /> Sign &amp; Pay with Chapa</>}
+            </button>
+          </div>
         </div>
       }
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+        {/* Disclaimer */}
+        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 10, padding: '12px 16px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+          <InfoCircleOutlined style={{ color: '#0369a1', fontSize: 16, marginTop: 2 }} />
+          <span style={{ color: '#0c4a6e', fontSize: 13, lineHeight: 1.6 }}>
+            Review the full plan details below before enrolling. You can change your plan within 30 days of your policy start date. <strong>No payment is charged until you complete checkout on Chapa.</strong>
+          </span>
+        </div>
+
         {product.description && (
           <div style={{ background: '#f8fafc', borderRadius: 12, padding: '14px 16px', color: '#374151', fontSize: 14, lineHeight: 1.6 }}>
             {product.description}
           </div>
         )}
 
-        {product.targetMarkets?.length > 0 && (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {product.targetMarkets.map(m => (
-              <span key={m} style={{ background: '#f1f5f9', color: '#475569', borderRadius: 20, padding: '4px 12px', fontSize: 12, fontWeight: 600 }}>
-                {m}
-              </span>
-            ))}
-          </div>
-        )}
-
+        {/* Tier selection */}
         <div>
           <div style={{ fontWeight: 700, color: '#111827', fontSize: 15, marginBottom: 4 }}>Choose a Tier</div>
-          <div style={{ color: '#6b7280', fontSize: 13, marginBottom: 14 }}>
-            Select the coverage level that fits your needs — you can upgrade later.
-          </div>
-
+          <div style={{ color: '#6b7280', fontSize: 13, marginBottom: 14 }}>Select the coverage level that fits your needs.</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {(product.tiers || []).map(tier => {
               const isSelected = selectedTier?._id === tier._id;
               return (
-                <div
-                  key={tier._id}
-                  onClick={() => setSelectedTier(tier)}
-                  style={{
-                    border: `2px solid ${isSelected ? NAVY : '#e5e7eb'}`,
-                    borderRadius: 14,
-                    padding: '16px 18px',
-                    cursor: 'pointer',
-                    background: isSelected ? '#f0f6ff' : '#fff',
-                    transition: 'all 0.15s',
-                  }}
-                >
+                <div key={tier._id} onClick={() => setSelectedTier(tier)} style={{ border: `2px solid ${isSelected ? NAVY : '#e5e7eb'}`, borderRadius: 14, padding: '16px 18px', cursor: 'pointer', background: isSelected ? '#f0f6ff' : '#fff', transition: 'all 0.15s' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                     <div>
                       <div style={{ fontWeight: 800, color: isSelected ? NAVY : '#111827', fontSize: 15 }}>{tier.name}</div>
                       {tier.description && <div style={{ color: '#6b7280', fontSize: 12, marginTop: 3 }}>{tier.description}</div>}
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 800, color: isSelected ? NAVY : '#111827', fontSize: 18 }}>
-                        ETB {tier.annualPremium?.toLocaleString()}
-                      </div>
-                      <div style={{ color: '#9ca3af', fontSize: 11 }}>per year</div>
+                      <div style={{ fontWeight: 800, color: isSelected ? NAVY : '#111827', fontSize: 18 }}>ETB {tier.annualPremium?.toLocaleString()}</div>
+                      <div style={{ color: '#9ca3af', fontSize: 11 }}>per year · ETB {Math.round((tier.annualPremium||0)/12).toLocaleString()}/mo</div>
                     </div>
                   </div>
-
+                  {/* ALL coverage services */}
                   {(tier.coverages || []).length > 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #f1f5f9', paddingTop: 10 }}>
-                      {tier.coverages.slice(0, 5).map((tc, i) => {
+                      {tier.coverages.map((tc, i) => {
                         const cov   = tc.coverage;
                         const limit = tc.customLimit || cov?.limits?.annual;
                         return (
                           <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               <CheckCircleOutlined style={{ color: GREEN, fontSize: 12 }} />
-                              <span style={{ color: '#374151', fontSize: 13 }}>{cov?.name}</span>
+                              <div>
+                                <span style={{ color: '#374151', fontSize: 13 }}>{cov?.name}</span>
+                                {cov?.description && <div style={{ color: '#9ca3af', fontSize: 11 }}>{cov.description}</div>}
+                              </div>
                             </div>
-                            {limit && (
-                              <span style={{ color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
-                                {limit.toLocaleString()} ETB
-                              </span>
-                            )}
+                            {limit && <span style={{ color: '#6b7280', fontSize: 12, fontWeight: 600, flexShrink: 0 }}>up to {limit.toLocaleString()} ETB</span>}
                           </div>
                         );
                       })}
-                      {tier.coverages.length > 5 && (
-                        <div style={{ color: '#9ca3af', fontSize: 12 }}>+{tier.coverages.length - 5} more services</div>
-                      )}
                     </div>
                   )}
-
                   {isSelected && (
                     <div style={{ marginTop: 10, background: NAVY, borderRadius: 8, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
                       <CheckOutlined style={{ color: '#fff', fontSize: 12 }} />
@@ -375,13 +391,91 @@ function PlanDetailDrawer({ product, open, onClose, onEnroll, enrolling }) {
           </div>
         </div>
 
-        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, padding: '12px 16px' }}>
-          <div style={{ fontWeight: 700, color: '#92400e', fontSize: 13, marginBottom: 4 }}>
-            🔒 Secure Payment via Chapa
+        {/* Exclusions */}
+        <div>
+          <div style={{ fontWeight: 700, color: '#111827', fontSize: 15, marginBottom: 10 }}>What Is Not Covered</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+            {exclusions.map((ex, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                <StopOutlined style={{ color: '#ef4444', fontSize: 13, marginTop: 3 }} />
+                <span style={{ color: '#4b5563', fontSize: 13 }}>{ex}</span>
+              </div>
+            ))}
           </div>
+        </div>
+
+        {/* Key terms */}
+        <div>
+          <div style={{ fontWeight: 700, color: '#111827', fontSize: 15, marginBottom: 10 }}>Key Terms</div>
+          {[
+            ['Claims deadline',  'Submit within 90 days of incident'],
+            ['Waiting period',   product.waitingPeriodMonths > 0 ? `${product.waitingPeriodMonths} months` : 'None'],
+            ['Plan change',      'Allowed within 30 days of policy start'],
+            ['Cancellation',     '30 days notice — pro-rated refund minus 10% admin fee'],
+            ['Disputes',         'Resolved via NIBE (Ethiopian Insurance Regulatory Authority)'],
+          ].map(([k, v], i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6', fontSize: 13 }}>
+              <span style={{ color: '#6b7280' }}>{k}</span>
+              <span style={{ color: '#111827', fontWeight: 600, maxWidth: '55%', textAlign: 'right' }}>{v}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Policy agreement */}
+        {selectedTier && (
+          <>
+            <div>
+              <div style={{ fontWeight: 700, color: '#111827', fontSize: 15, marginBottom: 10 }}>Policy Agreement</div>
+              <div style={{ background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, maxHeight: 220, overflowY: 'auto' }}>
+                <pre style={{ fontSize: 12, color: '#374151', lineHeight: 1.8, whiteSpace: 'pre-wrap', fontFamily: 'inherit', margin: 0 }}>
+                  {agreementTextCov(selectedTier.name, product.name, selectedTier.annualPremium)}
+                </pre>
+              </div>
+            </div>
+
+            {/* Digital signature */}
+            <div style={{ background: '#fafafa', border: '2px solid #e5e7eb', borderRadius: 14, padding: '20px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <EditOutlined style={{ color: NAVY, fontSize: 16 }} />
+                <span style={{ fontWeight: 700, color: '#111827', fontSize: 15 }}>Digital Signature</span>
+              </div>
+              <div style={{ color: '#6b7280', fontSize: 13, marginBottom: 12 }}>
+                Type your full legal name below. This constitutes your legally binding digital signature on this policy agreement.
+              </div>
+              <Input
+                size="large"
+                placeholder="Full legal name"
+                value={sigName}
+                onChange={e => setSigName(e.target.value)}
+                style={{ fontSize: 16, borderColor: sigName.trim().length >= 3 ? NAVY : undefined, marginBottom: 12 }}
+              />
+              {sigName.trim().length >= 3 && (
+                <div style={{ background: '#f0f6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '10px 14px', marginBottom: 14 }}>
+                  <div style={{ fontSize: 20, fontStyle: 'italic', color: NAVY, fontWeight: 600 }}>{sigName.trim()}</div>
+                  <div style={{ color: '#6b7280', fontSize: 11, marginTop: 4 }}>
+                    Signed: {new Date().toLocaleDateString('en-ET', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </div>
+                </div>
+              )}
+              <div
+                onClick={() => setAgreed(a => !a)}
+                style={{ display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer', userSelect: 'none' }}
+              >
+                <div style={{ width: 20, height: 20, borderRadius: 4, border: `2px solid ${agreed ? GREEN : '#d1d5db'}`, background: agreed ? GREEN : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                  {agreed && <CheckOutlined style={{ color: '#fff', fontSize: 11 }} />}
+                </div>
+                <span style={{ color: '#374151', fontSize: 13, lineHeight: 1.6 }}>
+                  I have read the full policy agreement above and agree to all terms and conditions.
+                </span>
+              </div>
+            </div>
+          </>
+        )}
+
+        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, padding: '12px 16px' }}>
+          <div style={{ fontWeight: 700, color: '#92400e', fontSize: 13, marginBottom: 4 }}>🔒 Secure Payment via Chapa</div>
           <div style={{ color: '#78350f', fontSize: 12, lineHeight: 1.5 }}>
-            You will be redirected to Chapa to complete payment with your preferred method — telebirr, CBE Birr, or bank card.
-            Your enrollment activates immediately after payment.
+            After signing, you will be redirected to Chapa to complete payment — telebirr, CBE Birr, or bank card. Your enrollment activates immediately after payment is confirmed.
           </div>
         </div>
       </div>
@@ -448,21 +542,29 @@ export default function InsuredCoverage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleEnroll = async (product, tier) => {
+  const handleEnroll = async (product, tier, sigName) => {
     setEnrolling(true);
     try {
-      // 1. Create pending enrollment
+      // 1. Save signed policy agreement
+      await api.post('/policy-agreements', {
+        productId:     product._id,
+        tierId:        tier._id,
+        signatureData: sigName,
+        agreed:        true,
+      });
+
+      // 2. Create pending enrollment
       const enrollRes = await api.post('/enrollments/self', {
         productId: product._id,
         tierId:    tier._id,
       });
       const enrollmentId = enrollRes.data.enrollment._id;
 
-      // 2. Initialize Chapa payment
+      // 3. Initialize Chapa payment
       const chapaRes = await api.post('/chapa/initialize', { enrollmentId });
       const { checkout_url } = chapaRes.data;
 
-      // 3. Redirect to Chapa checkout
+      // 4. Redirect to Chapa checkout
       window.location.href = checkout_url;
     } catch (err) {
       message.error(err.response?.data?.message || 'Could not start payment. Please try again.');
@@ -548,8 +650,8 @@ export default function InsuredCoverage() {
             </div>
             <div style={{ color: '#6b7280', fontSize: 13, marginTop: 2 }}>
               {enrollments.length > 0
-                ? 'Expand your protection with additional coverage plans.'
-                : 'Choose a plan that fits your needs and budget. Click to view details and subscribe.'}
+                ? 'Expand your protection with additional coverage plans. You can review full details, exclusions, and policy terms before any payment is made.'
+                : 'Choose a plan that fits your needs. Click to review full details, coverage limits, exclusions, and sign the policy agreement before subscribing.'}
             </div>
           </div>
         </div>
