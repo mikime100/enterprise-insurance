@@ -6,7 +6,7 @@ import {
   TeamOutlined, BarChartOutlined, LogoutOutlined, ShopOutlined,
   BellOutlined, QuestionCircleOutlined, SearchOutlined,
   AuditOutlined, BankOutlined, PartitionOutlined, MedicineBoxOutlined,
-  ContainerOutlined, DollarOutlined, HomeOutlined,
+  ContainerOutlined, DollarOutlined, HomeOutlined, FormOutlined,
   MenuFoldOutlined, MenuUnfoldOutlined, PlusOutlined, CloseOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../../contexts/AuthContext';
@@ -32,8 +32,9 @@ const NAV = {
     { key: '/payer/claims',      icon: <AlertOutlined />,     label: 'Claims' },
     { key: '/payer/products',    icon: <ShopOutlined />,      label: 'Products' },
     { key: '/payer/coverages',   icon: <SafetyOutlined />,    label: 'Coverages' },
-    { key: '/payer/providers',   icon: <BankOutlined />,      label: 'Providers' },
-    { key: '/payer/reports',     icon: <BarChartOutlined />,  label: 'Reports' },
+    { key: '/payer/providers',    icon: <BankOutlined />,      label: 'Providers' },
+    { key: '/payer/endorsements', icon: <FormOutlined />,      label: 'Endorsements' },
+    { key: '/payer/reports',      icon: <BarChartOutlined />,  label: 'Reports' },
   ],
   underwriter: [
     { key: '/payer/dashboard',   icon: <DashboardOutlined />, label: 'Dashboard' },

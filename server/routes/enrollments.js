@@ -49,6 +49,40 @@ router.get('/:id', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// Download policy certificate PDF
+router.get('/:id/policy-document', async (req, res, next) => {
+  try {
+    const enrollment = await PolicyEnrollment.findById(req.params.id)
+      .populate('product', 'name productType')
+      .populate({ path: 'tier', populate: { path: 'coverages.coverage' } })
+      .populate('payer', 'name')
+      .populate('insuredPersons', 'firstName lastName email nationalId phone');
+
+    if (!enrollment) return res.status(404).json({ message: 'Enrollment not found' });
+
+    // Auth: only the enrolled person, their payer admins, or superadmin
+    const userId = req.user._id.toString();
+    const role   = req.user.role;
+    const isOwner = enrollment.insuredPersons.some(p => {
+      const personUserId = p.user?.toString() || p._id?.toString();
+      return personUserId === userId || req.user.linkedEntity?.entityId?.toString() === p._id?.toString();
+    });
+    if (!isOwner && !['payer_admin','superadmin','finance_officer'].includes(role)) {
+      return res.status(403).json({ message: 'Not authorised to access this document' });
+    }
+
+    const generatePolicyPdf = require('../utils/generatePolicyPdf');
+    const doc = generatePolicyPdf(enrollment);
+
+    const filename = `Policy-${enrollment.enrollmentNumber}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    doc.pipe(res);
+    doc.end();
+  } catch (err) { next(err); }
+});
+
 // Activate enrollment (payer_admin after payment confirmed)
 router.patch('/:id/status', requireRole('payer_admin', 'superadmin'), async (req, res, next) => {
   try {
@@ -145,6 +179,62 @@ router.post('/:id/payment', requireRole('institution_admin', 'payer_admin', 'fin
     if (enrollment.status === 'pending') enrollment.status = 'active';
     await enrollment.save();
     res.json({ enrollment });
+  } catch (err) { next(err); }
+});
+
+// Renew: create a new pending enrollment for the next period
+router.post('/:id/renew', async (req, res, next) => {
+  try {
+    const existing = await PolicyEnrollment.findById(req.params.id)
+      .populate('tier', 'annualPremium');
+    if (!existing) return res.status(404).json({ message: 'Enrollment not found' });
+
+    // Only the enrolled person (or admin) may renew
+    const role      = req.user.role;
+    const linkedId  = req.user.linkedEntity?.entityId?.toString();
+    const isOwner   = existing.insuredPersons.some(p => p.toString() === linkedId);
+    if (!isOwner && !['payer_admin','superadmin','finance_officer'].includes(role)) {
+      return res.status(403).json({ message: 'Not authorised to renew this enrollment' });
+    }
+
+    if (!['pending_renewal', 'active', 'expired'].includes(existing.status)) {
+      return res.status(400).json({ message: `Cannot renew an enrollment with status "${existing.status}"` });
+    }
+
+    // Block if a pending/active renewal already exists for this product + persons
+    const alreadyRenewing = await PolicyEnrollment.findOne({
+      product:        existing.product,
+      insuredPersons: { $in: existing.insuredPersons },
+      status:         { $in: ['pending', 'active'] },
+      _id:            { $ne: existing._id },
+    });
+    if (alreadyRenewing) {
+      return res.status(400).json({ message: 'A renewal or active enrollment already exists for this product' });
+    }
+
+    // New period starts the day after current endDate
+    const startDate = new Date(existing.endDate);
+    startDate.setDate(startDate.getDate() + 1);
+    const endDate = new Date(startDate);
+    endDate.setFullYear(endDate.getFullYear() + 1);
+
+    const renewal = await PolicyEnrollment.create({
+      product:        existing.product,
+      tier:           existing.tier,
+      payer:          existing.payer,
+      institution:    existing.institution,
+      insuredPersons: existing.insuredPersons,
+      status:         'pending',
+      startDate,
+      endDate,
+      renewalDate:    endDate,
+      premium: {
+        amount:    existing.tier?.annualPremium || existing.premium.amount,
+        frequency: existing.premium.frequency || 'annual',
+      },
+    });
+
+    res.status(201).json({ enrollment: renewal });
   } catch (err) { next(err); }
 });
 

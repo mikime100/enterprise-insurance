@@ -77,6 +77,11 @@ async function start() {
   app.use('/api/chapa',             require('./routes/chapa'));
   app.use('/api/policy-agreements', require('./routes/policyAgreements'));
   app.use('/api/upload',            require('./routes/upload'));
+  app.use('/api/endorsements',      require('./routes/endorsements'));
+
+  // Start renewal cron (daily 08:00 + startup check after 30s)
+  const { startRenewalCron } = require('./utils/renewalCron');
+  startRenewalCron();
 
   app.get('/api/health', (req, res) => res.json({ status: 'ok', db: mongoose.connection.readyState }));
 

@@ -4,7 +4,8 @@ import { Spin, Divider, Drawer, Modal, message, Tag, Input } from 'antd';
 import {
   CheckCircleOutlined, InfoCircleOutlined, ArrowRightOutlined,
   PlusOutlined, CloseOutlined, SafetyOutlined, CreditCardOutlined,
-  CheckOutlined, LoadingOutlined, EditOutlined, StopOutlined,
+  CheckOutlined, LoadingOutlined, EditOutlined, StopOutlined, DownloadOutlined,
+  WarningOutlined, SyncOutlined,
 } from '@ant-design/icons';
 
 const EXCLUSIONS_COV = {
@@ -83,12 +84,32 @@ function UsageBar({ label, used, limit, sub }) {
   );
 }
 
-function EnrollmentCard({ enrollment, claimUsage }) {
+function EnrollmentCard({ enrollment, claimUsage, onRequestChange }) {
   const now      = new Date();
   const start    = new Date(enrollment.startDate);
   const end      = new Date(enrollment.endDate);
   const daysLeft = Math.max(0, Math.ceil((end - now) / 86400000));
   const timePct  = Math.min(100, Math.round(((now - start) / (end - start)) * 100));
+  const [downloading, setDownloading] = useState(false);
+
+  const downloadPdf = async () => {
+    setDownloading(true);
+    try {
+      const res = await api.get(`/enrollments/${enrollment._id}/policy-document`, { responseType: 'blob' });
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const a   = document.createElement('a');
+      a.href     = url;
+      a.download = `Policy-${enrollment.enrollmentNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      message.error('Could not download policy document. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const coverageBars = (enrollment.tier?.coverages || []).map(tc => {
     const cov   = tc.coverage;
@@ -124,6 +145,41 @@ function EnrollmentCard({ enrollment, claimUsage }) {
           </div>
           <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 2 }}>
             ETB {enrollment.premium?.amount?.toLocaleString()} / yr
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <button
+              onClick={downloadPdf}
+              disabled={downloading}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: 'rgba(255,255,255,0.12)',
+                border: '1px solid rgba(255,255,255,0.25)',
+                borderRadius: 8, padding: '6px 13px',
+                color: '#fff', fontSize: 12, fontWeight: 600,
+                cursor: downloading ? 'not-allowed' : 'pointer',
+                opacity: downloading ? 0.7 : 1,
+              }}
+              onMouseEnter={e => { if (!downloading) e.currentTarget.style.background = 'rgba(255,255,255,0.22)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+            >
+              {downloading ? <LoadingOutlined style={{ fontSize: 12 }} /> : <DownloadOutlined style={{ fontSize: 12 }} />}
+              {downloading ? 'Generating…' : 'Certificate'}
+            </button>
+            <button
+              onClick={() => onRequestChange && onRequestChange(enrollment)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: 'rgba(255,255,255,0.12)',
+                border: '1px solid rgba(255,255,255,0.25)',
+                borderRadius: 8, padding: '6px 13px',
+                color: '#fff', fontSize: 12, fontWeight: 600,
+                cursor: 'pointer',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.22)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+            >
+              <EditOutlined style={{ fontSize: 12 }} /> Request Change
+            </button>
           </div>
         </div>
       </div>
@@ -483,6 +539,265 @@ function PlanDetailDrawer({ product, open, onClose, onEnroll, enrolling }) {
   );
 }
 
+const ENDORSEMENT_TYPES = [
+  { value: 'tier_change',      label: 'Change Coverage Tier',     desc: 'Upgrade or downgrade your plan tier' },
+  { value: 'add_dependent',    label: 'Add a Dependent',          desc: 'Add a family member to your coverage' },
+  { value: 'remove_dependent', label: 'Remove a Dependent',       desc: 'Remove a dependent from your coverage' },
+  { value: 'contact_update',   label: 'Update Contact Info',      desc: 'Change your phone number or email' },
+  { value: 'suspension',       label: 'Request Suspension',       desc: 'Temporarily pause your coverage' },
+  { value: 'cancellation',     label: 'Cancel Policy',            desc: 'Permanently cancel this enrollment' },
+];
+
+function EndorsementModal({ enrollment, open, onClose, onSubmitted }) {
+  const [step, setStep]         = useState(1);
+  const [type, setType]         = useState('');
+  const [details, setDetails]   = useState({});
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => { if (open) { setStep(1); setType(''); setDetails({}); } }, [open]);
+
+  const submit = async () => {
+    setSubmitting(true);
+    try {
+      await api.post('/endorsements', { enrollmentId: enrollment._id, type, details });
+      message.success('Change request submitted. Your insurer will review it shortly.');
+      onSubmitted();
+      onClose();
+    } catch (err) {
+      message.error(err.response?.data?.message || 'Could not submit request');
+    } finally { setSubmitting(false); }
+  };
+
+  if (!open) return null;
+
+  const set = (key, val) => setDetails(d => ({ ...d, [key]: val }));
+  const setDep = (key, val) => setDetails(d => ({ ...d, dependent: { ...(d.dependent || {}), [key]: val } }));
+
+  const canSubmit = (() => {
+    if (!type) return false;
+    if (type === 'tier_change')      return !!details.requestedTierId;
+    if (type === 'add_dependent')    return details.dependent?.firstName && details.dependent?.lastName && details.dependent?.relationship;
+    if (type === 'remove_dependent') return !!details.dependentId;
+    if (type === 'contact_update')   return details.field && details.newValue;
+    if (type === 'suspension')       return !!details.reason;
+    if (type === 'cancellation')     return !!details.reason;
+    return false;
+  })();
+
+  const dependents = enrollment.insuredPersons?.[0]?.dependents || [];
+  const tiers = enrollment.product?.tiers || [];
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)' }}>
+      <div style={{ background: '#fff', borderRadius: 18, width: '100%', maxWidth: 520, margin: '0 16px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', maxHeight: '90vh', overflow: 'auto' }}>
+        {/* Modal header */}
+        <div style={{ background: NAVY, padding: '20px 24px', borderRadius: '18px 18px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ color: '#fff', fontWeight: 800, fontSize: 16 }}>Request a Policy Change</div>
+            <div style={{ color: '#93c5fd', fontSize: 12, marginTop: 2 }}>{enrollment.enrollmentNumber} · {enrollment.product?.name}</div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', fontSize: 18, cursor: 'pointer' }}>✕</button>
+        </div>
+
+        <div style={{ padding: 24 }}>
+          {/* Step 1 — type selector */}
+          {step === 1 && (
+            <div>
+              <div style={{ color: '#374151', fontWeight: 600, fontSize: 14, marginBottom: 14 }}>What would you like to change?</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {ENDORSEMENT_TYPES.map(t => {
+                  const sel = type === t.value;
+                  const isDanger = t.value === 'cancellation' || t.value === 'suspension';
+                  return (
+                    <div key={t.value} onClick={() => setType(t.value)} style={{
+                      border: `2px solid ${sel ? (isDanger ? '#ef4444' : NAVY) : '#e5e7eb'}`,
+                      borderRadius: 12, padding: '12px 16px', cursor: 'pointer',
+                      background: sel ? (isDanger ? '#fef2f2' : '#f0f6ff') : '#fff',
+                      transition: 'all 0.15s',
+                    }}>
+                      <div style={{ fontWeight: 700, color: sel ? (isDanger ? '#dc2626' : NAVY) : '#111827', fontSize: 14 }}>{t.label}</div>
+                      <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 2 }}>{t.desc}</div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+                <button onClick={onClose} style={{ flex: 1, padding: '11px 0', border: '1px solid #e5e7eb', borderRadius: 10, background: '#fff', color: '#374151', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+                <button onClick={() => setStep(2)} disabled={!type} style={{ flex: 2, padding: '11px 0', border: 'none', borderRadius: 10, background: type ? NAVY : '#e5e7eb', color: type ? '#fff' : '#9ca3af', fontWeight: 700, cursor: type ? 'pointer' : 'not-allowed' }}>
+                  Continue →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2 — details form */}
+          {step === 2 && (
+            <div>
+              <button onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: 13, cursor: 'pointer', marginBottom: 16, padding: 0 }}>← Back</button>
+
+              {type === 'tier_change' && (
+                <div>
+                  <div style={{ fontWeight: 600, color: '#111827', marginBottom: 10 }}>Select New Tier</div>
+                  {tiers.length === 0 && <div style={{ color: '#9ca3af', fontSize: 13 }}>No tier options available. Contact your insurer.</div>}
+                  {tiers.filter(t => t._id !== enrollment.tier?._id).map(t => (
+                    <div key={t._id} onClick={() => set('requestedTierId', t._id)} style={{
+                      border: `2px solid ${details.requestedTierId === t._id ? NAVY : '#e5e7eb'}`,
+                      borderRadius: 12, padding: '12px 16px', marginBottom: 8, cursor: 'pointer',
+                      background: details.requestedTierId === t._id ? '#f0f6ff' : '#fff',
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontWeight: 700, color: '#111827' }}>{t.name}</span>
+                        <span style={{ fontWeight: 700, color: GREEN }}>ETB {t.annualPremium?.toLocaleString()}/yr</span>
+                      </div>
+                    </div>
+                  ))}
+                  <input placeholder="Reason for change (optional)" value={details.reason || ''} onChange={e => set('reason', e.target.value)}
+                    style={{ width: '100%', marginTop: 8, padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, boxSizing: 'border-box' }} />
+                </div>
+              )}
+
+              {type === 'add_dependent' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ fontWeight: 600, color: '#111827', marginBottom: 2 }}>Dependent Details</div>
+                  {[['firstName','First Name'],['lastName','Last Name']].map(([k,l]) => (
+                    <input key={k} placeholder={l} value={details.dependent?.[k] || ''} onChange={e => setDep(k, e.target.value)}
+                      style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13 }} />
+                  ))}
+                  <input type="date" placeholder="Date of Birth" value={details.dependent?.dateOfBirth || ''} onChange={e => setDep('dateOfBirth', e.target.value)}
+                    style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13 }} />
+                  <select value={details.dependent?.relationship || ''} onChange={e => setDep('relationship', e.target.value)}
+                    style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, background: '#fff' }}>
+                    <option value="">Relationship…</option>
+                    {['spouse','child','parent','sibling','other'].map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase()+r.slice(1)}</option>)}
+                  </select>
+                  <select value={details.dependent?.gender || ''} onChange={e => setDep('gender', e.target.value)}
+                    style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, background: '#fff' }}>
+                    <option value="">Gender (optional)</option>
+                    {['male','female','other'].map(g => <option key={g} value={g}>{g.charAt(0).toUpperCase()+g.slice(1)}</option>)}
+                  </select>
+                </div>
+              )}
+
+              {type === 'remove_dependent' && (
+                <div>
+                  <div style={{ fontWeight: 600, color: '#111827', marginBottom: 10 }}>Select Dependent to Remove</div>
+                  {dependents.length === 0
+                    ? <div style={{ color: '#9ca3af', fontSize: 13 }}>No dependents on record.</div>
+                    : dependents.map(d => (
+                      <div key={d._id} onClick={() => set('dependentId', d._id)} style={{
+                        border: `2px solid ${details.dependentId === d._id ? '#ef4444' : '#e5e7eb'}`,
+                        borderRadius: 12, padding: '12px 16px', marginBottom: 8, cursor: 'pointer',
+                        background: details.dependentId === d._id ? '#fef2f2' : '#fff',
+                      }}>
+                        <div style={{ fontWeight: 700 }}>{d.firstName} {d.lastName}</div>
+                        <div style={{ color: '#9ca3af', fontSize: 12 }}>{d.relationship}</div>
+                      </div>
+                    ))
+                  }
+                </div>
+              )}
+
+              {type === 'contact_update' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ fontWeight: 600, color: '#111827', marginBottom: 2 }}>Update Contact Info</div>
+                  <select value={details.field || ''} onChange={e => set('field', e.target.value)}
+                    style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, background: '#fff' }}>
+                    <option value="">Select field…</option>
+                    <option value="phone">Phone Number</option>
+                    <option value="email">Email Address</option>
+                  </select>
+                  <input placeholder="New value" value={details.newValue || ''} onChange={e => set('newValue', e.target.value)}
+                    style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13 }} />
+                </div>
+              )}
+
+              {(type === 'suspension' || type === 'cancellation') && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 10, padding: '12px 14px', color: '#991b1b', fontSize: 13 }}>
+                    {type === 'cancellation'
+                      ? '⚠️ This will permanently cancel your policy. This cannot be undone once approved.'
+                      : '⚠️ Your coverage will be paused. Claims during suspension will not be covered.'}
+                  </div>
+                  <textarea placeholder="Reason *" value={details.reason || ''} onChange={e => set('reason', e.target.value)} rows={3}
+                    style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, resize: 'vertical' }} />
+                  <input type="date" placeholder="Requested effective date" value={details.requestedDate || ''} onChange={e => set('requestedDate', e.target.value)}
+                    style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13 }} />
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+                <button onClick={onClose} style={{ flex: 1, padding: '11px 0', border: '1px solid #e5e7eb', borderRadius: 10, background: '#fff', color: '#374151', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+                <button onClick={submit} disabled={!canSubmit || submitting} style={{
+                  flex: 2, padding: '11px 0', border: 'none', borderRadius: 10,
+                  background: canSubmit && !submitting ? NAVY : '#e5e7eb',
+                  color: canSubmit && !submitting ? '#fff' : '#9ca3af',
+                  fontWeight: 700, cursor: canSubmit && !submitting ? 'pointer' : 'not-allowed',
+                }}>
+                  {submitting ? 'Submitting…' : 'Submit Request'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RenewalBanner({ enrollment, onRenew, renewing }) {
+  const daysLeft = Math.max(0, Math.ceil((new Date(enrollment.endDate) - new Date()) / 86400000));
+  const urgent   = daysLeft <= 7;
+
+  return (
+    <div style={{
+      background:   urgent ? '#fef2f2' : '#fffbeb',
+      border:       `1.5px solid ${urgent ? '#fca5a5' : '#fde68a'}`,
+      borderRadius: 12,
+      padding:      '14px 20px',
+      display:      'flex',
+      alignItems:   'center',
+      justifyContent: 'space-between',
+      flexWrap:     'wrap',
+      gap:          12,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <WarningOutlined style={{ color: urgent ? '#ef4444' : '#d97706', fontSize: 20, flexShrink: 0 }} />
+        <div>
+          <div style={{ fontWeight: 700, color: urgent ? '#991b1b' : '#92400e', fontSize: 14 }}>
+            {urgent ? `Urgent: Policy expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}!` : `Your policy expires in ${daysLeft} days`}
+          </div>
+          <div style={{ color: urgent ? '#b91c1c' : '#78350f', fontSize: 13, marginTop: 2 }}>
+            Renew now to avoid a gap in coverage. Your plan and tier stay the same.
+          </div>
+        </div>
+      </div>
+      <button
+        onClick={() => onRenew(enrollment)}
+        disabled={renewing}
+        style={{
+          background:   urgent ? '#ef4444' : '#f59e0b',
+          border:       'none',
+          borderRadius: 9,
+          padding:      '10px 20px',
+          color:        '#fff',
+          fontWeight:   700,
+          fontSize:     13,
+          cursor:       renewing ? 'not-allowed' : 'pointer',
+          opacity:      renewing ? 0.7 : 1,
+          display:      'flex',
+          alignItems:   'center',
+          gap:          7,
+          flexShrink:   0,
+          whiteSpace:   'nowrap',
+        }}
+      >
+        {renewing ? <LoadingOutlined /> : <SyncOutlined />}
+        {renewing ? 'Processing…' : 'Renew Now'}
+      </button>
+    </div>
+  );
+}
+
 export default function InsuredCoverage() {
   const [searchParams] = useSearchParams();
   const navigate       = useNavigate();
@@ -495,6 +810,8 @@ export default function InsuredCoverage() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [drawerOpen, setDrawerOpen]           = useState(false);
   const [enrolling, setEnrolling]             = useState(false);
+  const [renewingId, setRenewingId]           = useState(null);
+  const [endorseEnrollment, setEndorseEnrollment] = useState(null);
 
   const [paymentStatus, setPaymentStatus] = useState(null); // 'verifying' | 'success' | 'failed'
 
@@ -541,6 +858,22 @@ export default function InsuredCoverage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleRenew = async (enrollment) => {
+    setRenewingId(enrollment._id);
+    try {
+      // 1. Create the renewal (next-period pending enrollment)
+      const renewRes = await api.post(`/enrollments/${enrollment._id}/renew`);
+      const newEnrollmentId = renewRes.data.enrollment._id;
+
+      // 2. Initialize Chapa for the new pending enrollment
+      const chapaRes = await api.post('/chapa/initialize', { enrollmentId: newEnrollmentId });
+      window.location.href = chapaRes.data.checkout_url;
+    } catch (err) {
+      message.error(err.response?.data?.message || 'Could not start renewal. Please try again.');
+      setRenewingId(null);
+    }
+  };
 
   const handleEnroll = async (product, tier, sigName) => {
     setEnrolling(true);
@@ -635,7 +968,20 @@ export default function InsuredCoverage() {
             <SafetyOutlined style={{ color: GREEN }} /> My Active Plans
           </div>
           {enrollments.map(e => (
-            <EnrollmentCard key={e._id} enrollment={e} claimUsage={claimUsage} />
+            <div key={e._id} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {e.status === 'pending_renewal' && (
+                <RenewalBanner
+                  enrollment={e}
+                  onRenew={handleRenew}
+                  renewing={renewingId === e._id}
+                />
+              )}
+              <EnrollmentCard
+                enrollment={e}
+                claimUsage={claimUsage}
+                onRequestChange={setEndorseEnrollment}
+              />
+            </div>
           ))}
         </div>
       )}
@@ -697,6 +1043,14 @@ export default function InsuredCoverage() {
         onClose={() => { setDrawerOpen(false); setSelectedProduct(null); }}
         onEnroll={handleEnroll}
         enrolling={enrolling}
+      />
+
+      {/* Endorsement / change request modal */}
+      <EndorsementModal
+        enrollment={endorseEnrollment}
+        open={!!endorseEnrollment}
+        onClose={() => setEndorseEnrollment(null)}
+        onSubmitted={load}
       />
     </div>
   );

@@ -36,7 +36,8 @@ import PayerQuotes       from './pages/payer/Quotes';
 import PayerEnrollments  from './pages/payer/Enrollments';
 import PayerClaims       from './pages/payer/Claims';
 import PayerProviders    from './pages/payer/Providers';
-import PayerReports      from './pages/payer/Reports';
+import PayerReports        from './pages/payer/Reports';
+import PayerEndorsements  from './pages/payer/Endorsements';
 
 // Provider portal
 import ProviderDashboard   from './pages/provider/Dashboard';
@@ -136,8 +137,9 @@ function AppRoutes() {
         <Route path="quotes"      element={<PayerQuotes />} />
         <Route path="enrollments" element={<PayerEnrollments />} />
         <Route path="claims"      element={<PayerClaims />} />
-        <Route path="providers"   element={<PayerProviders />} />
-        <Route path="reports"     element={<PayerReports />} />
+        <Route path="providers"    element={<PayerProviders />} />
+        <Route path="endorsements" element={<PayerEndorsements />} />
+        <Route path="reports"      element={<PayerReports />} />
         <Route index element={<Navigate to="dashboard" replace />} />
       </Route>
 
