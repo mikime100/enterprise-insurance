@@ -79,6 +79,7 @@ const NAV = {
   insured_person: [
     { key: '/insured/dashboard',  icon: <DashboardOutlined />,  label: 'Dashboard' },
     { key: '/insured/coverage',   icon: <MedicineBoxOutlined />,label: 'My Benefits' },
+    { key: '/insured/quotes',     icon: <FileTextOutlined />,   label: 'My Applications' },
     { key: '/insured/claims',     icon: <AlertOutlined />,      label: 'My Claims' },
     { key: '/insured/dependents', icon: <TeamOutlined />,       label: 'Dependents' },
   ],
