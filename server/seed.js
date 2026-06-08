@@ -333,6 +333,7 @@ async function seed() {
       role: 'institution_admin',
       phone: hrPhone, isActive: true, isEmailVerified: true,
       institutionId: inst._id,
+      linkedEntity: { entityType: 'Institution', entityId: inst._id },
     });
     return { inst, hr };
   }

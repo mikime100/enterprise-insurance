@@ -14,8 +14,9 @@ router.get('/', async (req, res, next) => {
     if (req.query.status) filter.status = req.query.status;
     if (req.query.payerId) filter.payer = req.query.payerId;
 
-    if (req.user.role === 'institution_admin' && req.user.linkedEntity?.entityId) {
-      filter.institution = req.user.linkedEntity.entityId;
+    if (req.user.role === 'institution_admin') {
+      const instId = req.user.linkedEntity?.entityId || req.user.institutionId;
+      if (instId) filter.institution = instId;
     } else if (req.user.role === 'insured_person' && req.user.linkedEntity?.entityId) {
       filter.insuredPersons = req.user.linkedEntity.entityId;
     }

@@ -26,15 +26,17 @@ function StatBox({ label, value, icon, color, sub, alert }) {
 export default function InstitutionDashboard() {
   const [enrollments, setEnrollments] = useState([]);
   const [claims, setClaims]           = useState([]);
+  const [employees, setEmployees]     = useState([]);
   const [loading, setLoading]         = useState(true);
   const navigate = useNavigate();
   const { user } = useAuth();
 
   useEffect(() => {
-    Promise.all([api.get('/enrollments'), api.get('/claims')])
-      .then(([e, c]) => {
+    Promise.all([api.get('/enrollments'), api.get('/claims'), api.get('/institution/employees')])
+      .then(([e, c, emp]) => {
         setEnrollments(Array.isArray(e.data.enrollments) ? e.data.enrollments : []);
         setClaims(Array.isArray(c.data.claims) ? c.data.claims : []);
+        setEmployees(Array.isArray(emp.data.employees) ? emp.data.employees : []);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -42,11 +44,12 @@ export default function InstitutionDashboard() {
 
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spin size="large" /></div>;
 
-  const activeEnrollment = enrollments.find(e => e.status === 'active');
-  const totalMembers     = activeEnrollment?.insuredPersons?.length || 0;
-  const openClaims       = claims.filter(c => !['settled', 'closed', 'denied'].includes(c.status));
-  const totalPremium     = enrollments.filter(e => e.status === 'active').reduce((s, e) => s + (e.premium?.amount || 0), 0);
-  const pendingClaims    = claims.filter(c => c.status === 'pending_finance_approval').length;
+  const activeEnrollments = enrollments.filter(e => e.status === 'active');
+  const activeEnrollment  = activeEnrollments[0]; // for policy overview card
+  const totalMembers      = employees.length;     // same source as Employees page
+  const openClaims    = claims.filter(c => !['settled', 'closed', 'denied'].includes(c.status));
+  const totalPremium  = activeEnrollments.reduce((s, e) => s + (e.premium?.amount || 0), 0);
+  const pendingClaims = claims.filter(c => c.status === 'pending_finance_approval').length;
 
   const fmtPremium = v => {
     if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M ETB`;
@@ -80,7 +83,9 @@ export default function InstitutionDashboard() {
           <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Institution HR Portal</div>
           <div style={{ color: '#fff', fontWeight: 800, fontSize: 20 }}>Welcome back, {user?.firstName}!</div>
           <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginTop: 4 }}>
-            {activeEnrollment ? `${activeEnrollment.product?.name} · ${totalMembers} members enrolled` : 'No active group policy'}
+            {activeEnrollments.length > 0
+              ? `${activeEnrollments.length} active polic${activeEnrollments.length === 1 ? 'y' : 'ies'} · ${totalMembers} employee${totalMembers === 1 ? '' : 's'} registered`
+              : 'No active group policy'}
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -99,7 +104,7 @@ export default function InstitutionDashboard() {
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
         <StatBox label="Enrolled Employees" value={totalMembers}  icon={<TeamOutlined />}   color="#3b82f6" sub="Active members" />
         <StatBox label="Active Policies"    value={enrollments.filter(e => e.status === 'active').length} icon={<SafetyOutlined />} color="#10b981" sub="Group coverage" />
-        <StatBox label="Open Claims"        value={openClaims.length} icon={<AlertOutlined />} color="#f59e0b" sub="Pending resolution" alert={pendingClaims > 0} />
+        <StatBox label="Total Claims" value={claims.length} icon={<AlertOutlined />} color="#f59e0b" sub={`${openClaims.length} open · pending resolution`} alert={pendingClaims > 0} />
         <StatBox label="Annual Premium"     value={fmtPremium(totalPremium)} icon={<DollarOutlined />} color="#8b5cf6" sub="Total cost this year" />
       </div>
 

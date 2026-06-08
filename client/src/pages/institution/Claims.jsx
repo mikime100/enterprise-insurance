@@ -22,14 +22,13 @@ export default function InstitutionClaims() {
   const openDetail = (c) => api.get(`/claims/${c._id}`).then(r => setDetail(r.data.claim));
 
   const columns = [
-    { title: 'Claim #', dataIndex: 'claimNumber', key: 'n', render: v => <Text code style={{ fontSize: 12 }}>{v}</Text> },
-    { title: 'Employee', key: 'e', render: (_, r) => `${r.insuredPerson?.firstName || ''} ${r.insuredPerson?.lastName || ''}` },
-    { title: 'Type', dataIndex: 'claimType', key: 't', render: v => <Tag>{v?.replace(/_/g,' ')}</Tag> },
-    { title: 'Source', dataIndex: 'submissionType', key: 'src', render: v => <Tag color={v === 'provider_direct' ? 'purple' : 'blue'}>{v?.replace(/_/g,' ')}</Tag> },
-    { title: 'Claimed (ETB)', dataIndex: 'claimedAmount', key: 'c', render: v => v?.toLocaleString() },
-    { title: 'Priority', dataIndex: 'priority', key: 'p', render: v => <Tag color={v === 'urgent' ? 'red' : v === 'high' ? 'orange' : 'default'}>{v}</Tag> },
-    { title: 'Status', dataIndex: 'status', key: 's', render: v => <Tag color={STATUS_COLOR[v]}>{v?.replace(/_/g,' ')}</Tag> },
-    { title: '', key: 'act', render: (_, r) => <Button size="small" icon={<EyeOutlined />} onClick={() => openDetail(r)}>View</Button> },
+    { title: 'Claim #', dataIndex: 'claimNumber', key: 'n', width: 130, ellipsis: true, render: v => <Text code style={{ fontSize: 12 }}>{v}</Text> },
+    { title: 'Employee', key: 'e', width: 150, ellipsis: true, render: (_, r) => `${r.insuredPerson?.firstName || ''} ${r.insuredPerson?.lastName || ''}` },
+    { title: 'Type', dataIndex: 'claimType', key: 't', width: 110, render: v => <Tag style={{ textTransform: 'capitalize' }}>{v?.replace(/_/g,' ')}</Tag> },
+    { title: 'Claimed (ETB)', dataIndex: 'claimedAmount', key: 'c', width: 120, render: v => v?.toLocaleString() },
+    { title: 'Priority', dataIndex: 'priority', key: 'p', width: 90, render: v => <Tag color={v === 'urgent' ? 'red' : v === 'high' ? 'orange' : 'default'}>{v}</Tag> },
+    { title: 'Status', dataIndex: 'status', key: 's', width: 150, render: v => <Tag color={STATUS_COLOR[v]}>{v?.replace(/_/g,' ')}</Tag> },
+    { title: '', key: 'act', width: 80, fixed: 'right', render: (_, r) => <Button size="small" icon={<EyeOutlined />} onClick={() => openDetail(r)}>View</Button> },
   ];
 
   return (
@@ -41,7 +40,7 @@ export default function InstitutionClaims() {
         </div>
       </div>
       <Card style={{ borderRadius: 12, border: '1px solid #e5e7eb', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-        {loading ? <Spin /> : <Table dataSource={claims} columns={columns} rowKey="_id" pagination={{ pageSize: 10 }} />}
+        {loading ? <Spin /> : <Table dataSource={claims} columns={columns} rowKey="_id" pagination={{ pageSize: 10 }} scroll={{ x: 680 }} />}
       </Card>
 
       <Modal title="Claim Details" open={!!detail} onCancel={() => setDetail(null)} footer={null} width={680}>

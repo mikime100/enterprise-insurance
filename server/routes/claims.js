@@ -21,9 +21,12 @@ router.get('/', async (req, res, next) => {
       filter.insuredPerson = req.user.linkedEntity.entityId;
     } else if (req.user.role === 'provider_admin' && req.user.linkedEntity?.entityId) {
       filter.provider = req.user.linkedEntity.entityId;
-    } else if (req.user.role === 'institution_admin' && req.user.linkedEntity?.entityId) {
-      const persons = await InsuredPerson.find({ institution: req.user.linkedEntity.entityId }, '_id');
-      filter.insuredPerson = { $in: persons.map(p => p._id) };
+    } else if (req.user.role === 'institution_admin') {
+      const instId = req.user.linkedEntity?.entityId || req.user.institutionId;
+      if (instId) {
+        const persons = await InsuredPerson.find({ institution: instId }, '_id');
+        filter.insuredPerson = { $in: persons.map(p => p._id) };
+      }
     }
 
     const claims = await Claim.find(filter)

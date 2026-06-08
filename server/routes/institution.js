@@ -20,10 +20,15 @@ function generateTempPassword() {
 
 router.use(requireAuth, requireRole('institution_admin'));
 
+// Resolve institution ID from either linkedEntity (portal-created) or institutionId (seed/legacy)
+function getInstId(user) {
+  return user.linkedEntity?.entityId || user.institutionId;
+}
+
 // ── GET /api/institution/info ────────────────────────────────────────────────
 router.get('/info', async (req, res, next) => {
   try {
-    const institution = await Institution.findById(req.user.linkedEntity?.entityId);
+    const institution = await Institution.findById(getInstId(req.user));
     if (!institution) return res.status(404).json({ message: 'Institution not found' });
     res.json({ institution });
   } catch (err) { next(err); }
@@ -34,7 +39,7 @@ router.get('/employees', async (req, res, next) => {
   try {
     const employees = await User.find({
       role: 'insured_person',
-      institutionId: req.user.linkedEntity?.entityId,
+      institutionId: getInstId(req.user),
     }).select('-password').sort({ createdAt: -1 });
     res.json({ employees });
   } catch (err) { next(err); }
@@ -52,6 +57,7 @@ async function inviteEmployee({ firstName, lastName, email, phone, tierId, insti
     phone: phone || '',
     gender: 'other', nationalId: '',
     address: { city: '', country: 'Ethiopia' },
+    institution: institutionId,
   });
 
   const user = new User({
@@ -101,7 +107,7 @@ router.post('/employees/invite', async (req, res, next) => {
     if (!firstName || !lastName || !email)
       return res.status(400).json({ message: 'First name, last name and email are required' });
 
-    const institution = await Institution.findById(req.user.linkedEntity?.entityId);
+    const institution = await Institution.findById(getInstId(req.user));
     if (!institution) return res.status(404).json({ message: 'Institution not found' });
 
     const result = await inviteEmployee({
@@ -122,7 +128,7 @@ router.post('/employees/invite-csv', upload.single('file'), async (req, res, nex
   try {
     if (!req.file) return res.status(400).json({ message: 'CSV or Excel file is required' });
 
-    const institution = await Institution.findById(req.user.linkedEntity?.entityId);
+    const institution = await Institution.findById(getInstId(req.user));
     if (!institution) return res.status(404).json({ message: 'Institution not found' });
 
     const { tierId } = req.body;
@@ -166,7 +172,7 @@ router.post('/employees/invite-csv', upload.single('file'), async (req, res, nex
 // ── GET /api/institution/tiers — tiers available for this institution ────────
 router.get('/tiers', async (req, res, next) => {
   try {
-    const institution = await Institution.findById(req.user.linkedEntity?.entityId);
+    const institution = await Institution.findById(getInstId(req.user));
     if (!institution) return res.status(404).json({ message: 'Institution not found' });
     const tiers = await Tier.find({ isActive: true }).populate('product', 'name productType');
     res.json({ tiers });
