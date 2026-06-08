@@ -16,7 +16,9 @@ router.get('/', async (req, res, next) => {
 
     if (req.user.role === 'institution_admin') {
       const instId = req.user.linkedEntity?.entityId || req.user.institutionId;
-      if (instId) filter.institution = instId;
+      // Hard guard: never return all enrollments if institution is unresolvable
+      if (!instId) return res.json({ enrollments: [] });
+      filter.institution = instId;
     } else if (req.user.role === 'insured_person' && req.user.linkedEntity?.entityId) {
       filter.insuredPersons = req.user.linkedEntity.entityId;
     }

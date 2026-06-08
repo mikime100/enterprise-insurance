@@ -23,10 +23,10 @@ router.get('/', async (req, res, next) => {
       filter.provider = req.user.linkedEntity.entityId;
     } else if (req.user.role === 'institution_admin') {
       const instId = req.user.linkedEntity?.entityId || req.user.institutionId;
-      if (instId) {
-        const persons = await InsuredPerson.find({ institution: instId }, '_id');
-        filter.insuredPerson = { $in: persons.map(p => p._id) };
-      }
+      // Hard guard: never return all claims if institution is unresolvable
+      if (!instId) return res.json({ claims: [] });
+      const persons = await InsuredPerson.find({ institution: instId }, '_id');
+      filter.insuredPerson = { $in: persons.map(p => p._id) };
     }
 
     const claims = await Claim.find(filter)
