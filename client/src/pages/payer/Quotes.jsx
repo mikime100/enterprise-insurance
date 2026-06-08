@@ -325,6 +325,24 @@ export default function PayerQuotes() {
                   ))}
                 </Section>
 
+                {/* Applicant documents */}
+                {detail.documents?.length > 0 && (
+                  <Section title="Submitted Documents" icon={<span style={{ fontSize: 15 }}>📎</span>}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {detail.documents.map((doc, i) => (
+                        <a key={i} href={doc.url} target="_blank" rel="noopener noreferrer"
+                          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 13px', background: D.card2, border: `1px solid ${D.border}`, borderRadius: 8, textDecoration: 'none' }}>
+                          <span style={{ fontSize: 16 }}>
+                            {doc.mimeType?.includes('pdf') ? '📄' : doc.mimeType?.includes('image') ? '🖼' : '📁'}
+                          </span>
+                          <span style={{ flex: 1, color: D.text, fontSize: 13, fontWeight: 500 }}>{doc.originalName || doc.name}</span>
+                          <span style={{ fontSize: 11, color: D.sec, textTransform: 'capitalize' }}>{doc.docType?.replace(/_/g, ' ') || 'document'}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </Section>
+                )}
+
                 {/* Underwriter rationale */}
                 <Section title="Underwriter Rationale" icon={<span style={{ fontSize: 15 }}>📝</span>}>
                   <textarea value={rationale} onChange={e => setRationale(e.target.value)}

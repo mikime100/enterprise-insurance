@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const path    = require('path');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const cors = require('cors');
@@ -41,6 +42,7 @@ async function start() {
   }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
   app.use(session({
     secret: process.env.SESSION_SECRET || 'enterprise-insurance-secret',
@@ -74,6 +76,7 @@ async function start() {
   app.use('/api/institution', require('./routes/institution'));
   app.use('/api/chapa',             require('./routes/chapa'));
   app.use('/api/policy-agreements', require('./routes/policyAgreements'));
+  app.use('/api/upload',            require('./routes/upload'));
 
   app.get('/api/health', (req, res) => res.json({ status: 'ok', db: mongoose.connection.readyState }));
 

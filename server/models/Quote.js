@@ -13,6 +13,19 @@ const scenarioSchema = new mongoose.Schema({
   notes:         String
 });
 
+const quoteDocumentSchema = new mongoose.Schema({
+  originalName: String,
+  filename:     String,
+  url:          String,
+  mimeType:     String,
+  docType: {
+    type: String,
+    enum: ['medical_report', 'id_document', 'bank_statement', 'police_report', 'invoice', 'other'],
+    default: 'other',
+  },
+  uploadedAt: { type: Date, default: Date.now },
+});
+
 const quoteSchema = new mongoose.Schema({
   quoteNumber: { type: String, unique: true },
   payer:       { type: mongoose.Schema.Types.ObjectId, ref: 'Payer', required: true },
@@ -37,7 +50,8 @@ const quoteSchema = new mongoose.Schema({
   },
   validUntil:    { type: Date },
   finalPremium:  Number,
-  notes:         [quoteNoteSchema]
+  notes:         [quoteNoteSchema],
+  documents:     [quoteDocumentSchema],
 }, { timestamps: true });
 
 quoteSchema.pre('save', async function (next) {

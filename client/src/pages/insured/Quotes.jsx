@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Table, Modal, Form, Select, InputNumber, Spin, message } from 'antd';
+import { Table, Modal, Form, Select, InputNumber, Spin, message, Upload } from 'antd';
 import {
   FileTextOutlined, PlusOutlined, CheckCircleOutlined, ClockCircleOutlined,
   ExclamationCircleOutlined, CheckOutlined, CloseCircleOutlined,
+  UploadOutlined, FilePdfOutlined, FileImageOutlined, DeleteOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api';
@@ -39,6 +40,7 @@ export default function InsuredQuotes() {
   const [reqOpen, setReqOpen]       = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [accepting, setAccepting]   = useState(false);
+  const [uploadedDocs, setUploadedDocs] = useState([]);
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -82,10 +84,12 @@ export default function InsuredQuotes() {
           averageAge:    vals.averageAge,
           claimsHistory: vals.claimsHistory,
         },
+        documents: uploadedDocs,
       });
       message.success('Application submitted. An underwriter will review it and come back with an offer within 1–3 business days.');
       setReqOpen(false);
       form.resetFields();
+      setUploadedDocs([]);
       load();
     } catch (err) {
       if (err?.errorFields) return;
@@ -457,8 +461,39 @@ export default function InsuredQuotes() {
               {RISK_OPTS.map(o => <Select.Option key={o.value} value={o.value}>{o.label}</Select.Option>)}
             </Select>
           </Form.Item>
+
+          <Form.Item label="Supporting Documents" style={{ marginBottom: 0 }}
+            extra="Optional — attach medical reports, ID copy, or any relevant documents (PDF, JPG, PNG · max 5 MB each)">
+            <Upload
+              customRequest={async ({ file, onSuccess, onError, onProgress }) => {
+                const fd = new FormData();
+                fd.append('file', file);
+                try {
+                  const res = await api.post('/upload', fd, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                    onUploadProgress: e => onProgress({ percent: Math.round((e.loaded / e.total) * 100) }),
+                  });
+                  onSuccess(res.data);
+                  setUploadedDocs(prev => [...prev, res.data]);
+                } catch (err) {
+                  onError(err);
+                  message.error(err?.response?.data?.message || 'Upload failed');
+                }
+              }}
+              onRemove={file => {
+                setUploadedDocs(prev => prev.filter(d => d.filename !== file.response?.filename));
+              }}
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              multiple
+              listType="text"
+            >
+              <button type="button" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: '#f9fafb', border: '1px dashed #d1d5db', borderRadius: 8, color: '#374151', fontSize: 13, cursor: 'pointer', width: '100%', justifyContent: 'center' }}>
+                <UploadOutlined /> Click to attach files
+              </button>
+            </Upload>
+          </Form.Item>
         </Form>
-        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 9, padding: '10px 14px', fontSize: 12, color: '#0c4a6e', marginTop: 4 }}>
+        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 9, padding: '10px 14px', fontSize: 12, color: '#0c4a6e', marginTop: 16 }}>
           Your information is used only for risk assessment and is kept strictly confidential.
         </div>
       </Modal>
