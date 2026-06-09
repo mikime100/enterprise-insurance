@@ -293,7 +293,13 @@ export default function InsuredQuotes() {
       const fd = new FormData();
       fd.append('file', file);
       const res = await api.post('/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-      setDocUploads(d => ({ ...d, [label]: res.data }));
+      const data = { ...res.data };
+      // Store absolute URL so the payer can open it directly regardless of deployment origin
+      if (data.url && !data.url.startsWith('http')) {
+        const base = import.meta.env.VITE_API_URL || '';
+        try { data.url = new URL(base).origin + data.url; } catch (_) {}
+      }
+      setDocUploads(d => ({ ...d, [label]: data }));
     } catch (err) {
       message.error(err?.response?.data?.message || `Failed to upload ${label}`);
     } finally {
@@ -749,9 +755,9 @@ export default function InsuredQuotes() {
                     <SectionHead number="1" title="Coverage Details" sub="Tell us what you need covered and why" />
                     <Grid>
                       <Field label="Coverage Product" required>
-                        <select style={selectStyle} value={formData.productId} disabled>
-                          {products.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
-                        </select>
+                        <div style={{ padding: '10px 13px', border: '1.5px solid #e5e7eb', borderRadius: 9, fontSize: 13, color: '#111827', background: '#f9fafb', fontWeight: 600 }}>
+                          {selectedProduct?.name || '—'}
+                        </div>
                       </Field>
                       <Field label="Primary Purpose of Coverage">
                         <select style={selectStyle} value={formData.purpose} onChange={e => sf('purpose', e.target.value)}>
@@ -782,7 +788,6 @@ export default function InsuredQuotes() {
                           <option value="">Select…</option>
                           <option value="male">Male</option>
                           <option value="female">Female</option>
-                          <option value="other">Prefer not to say</option>
                         </select>
                       </Field>
                       <Field label="Occupation / Job Title" required>

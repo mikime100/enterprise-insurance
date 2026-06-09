@@ -40,8 +40,8 @@ router.post('/initialize', requireAuth, async (req, res, next) => {
         return_url:  returnUrl,
         callback_url: callbackUrl,
         customization: {
-          title:       'Enterprise Insurance',
-          description: `${enrollment.product?.name || 'Insurance'} ${enrollment.tier?.name || ''} Plan`.trim(),
+          title:       'EI Insurance',
+          description: (enrollment.product?.name || 'Insurance Plan').slice(0, 100),
         },
       },
       {
