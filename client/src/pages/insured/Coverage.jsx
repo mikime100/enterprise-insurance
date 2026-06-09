@@ -1,37 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Spin, Divider, Drawer, Modal, message, Tag, Input } from 'antd';
+import { Spin, Divider, message } from 'antd';
 import {
   CheckCircleOutlined, InfoCircleOutlined, ArrowRightOutlined,
-  PlusOutlined, CloseOutlined, SafetyOutlined, CreditCardOutlined,
+  PlusOutlined, CloseOutlined, SafetyOutlined,
   CheckOutlined, LoadingOutlined, EditOutlined, StopOutlined, DownloadOutlined,
-  WarningOutlined, SyncOutlined,
+  WarningOutlined, SyncOutlined, FileTextOutlined,
 } from '@ant-design/icons';
-
-const EXCLUSIONS_COV = {
-  health: ['Pre-existing conditions during the waiting period','Cosmetic or elective procedures','Experimental treatments not approved by medical authority','Self-inflicted injuries','Injuries from illegal activities','Infertility or assisted reproduction'],
-  auto:   ['Mechanical breakdown not caused by accident','Normal wear and tear','Driving under the influence','Racing or speed testing','War or civil unrest','Driving without a valid licence'],
-  life:   ['Suicide within the first 2 years','Death from illegal activities','Death from war/civil unrest','Undisclosed pre-existing terminal illness'],
-};
-const getExclusionsCov = t => EXCLUSIONS_COV[t] || ['Pre-existing conditions during waiting period','Illegal activities','War and civil unrest','Fraud or misrepresentation'];
-
-function agreementTextCov(tierName, productName, premium) {
-  return `ENTERPRISE INSURANCE S.C. — POLICY AGREEMENT
-Plan: ${productName} — ${tierName} | Annual Premium: ETB ${(premium||0).toLocaleString()} | Version: v1.0
-
-1. COVERAGE — Takes effect upon payment confirmation and remains active for one (1) policy year.
-2. PREMIUM — ETB ${(premium||0).toLocaleString()} is due in full upon enrollment. Policy is inactive until payment is confirmed.
-3. PLAN CHANGES — Allowed within 30 days of policy start. Later changes subject to underwriting review.
-4. CLAIMS — Must be submitted within 90 days of incident with supporting documentation. Enterprise Insurance reserves the right to investigate.
-5. EXCLUSIONS — Standard exclusions apply as listed. Claims from excluded conditions will not be honored.
-6. WAITING PERIOD — Certain benefits have a waiting period. Emergency services are exempt.
-7. CANCELLATION — 30 days written notice required. Pro-rated refund minus 10% admin fee; no refund after 11 months.
-8. DATA PRIVACY — Information processed per Ethiopian data protection law; shared with service providers only for claims.
-9. MISREPRESENTATION — Material misrepresentation may result in cancellation and forfeiture of premiums.
-10. DISPUTES — Resolved via NIBE (Ethiopian Insurance Regulatory Authority) if direct negotiation fails within 30 days.
-
-By signing, you confirm: you are 18+, all registration information is accurate, and you have read and agree to all terms.`;
-}
 import api from '../../api';
 import axios from 'axios';
 
@@ -83,6 +58,8 @@ function UsageBar({ label, used, limit, sub }) {
     </div>
   );
 }
+
+// ── Active enrollment card ────────────────────────────────────────────────────
 
 function EnrollmentCard({ enrollment, claimUsage, onRequestChange }) {
   const now      = new Date();
@@ -152,12 +129,9 @@ function EnrollmentCard({ enrollment, claimUsage, onRequestChange }) {
               disabled={downloading}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
-                background: 'rgba(255,255,255,0.12)',
-                border: '1px solid rgba(255,255,255,0.25)',
-                borderRadius: 8, padding: '6px 13px',
-                color: '#fff', fontSize: 12, fontWeight: 600,
-                cursor: downloading ? 'not-allowed' : 'pointer',
-                opacity: downloading ? 0.7 : 1,
+                background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.25)',
+                borderRadius: 8, padding: '6px 13px', color: '#fff', fontSize: 12, fontWeight: 600,
+                cursor: downloading ? 'not-allowed' : 'pointer', opacity: downloading ? 0.7 : 1,
               }}
               onMouseEnter={e => { if (!downloading) e.currentTarget.style.background = 'rgba(255,255,255,0.22)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
@@ -169,11 +143,8 @@ function EnrollmentCard({ enrollment, claimUsage, onRequestChange }) {
               onClick={() => onRequestChange && onRequestChange(enrollment)}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
-                background: 'rgba(255,255,255,0.12)',
-                border: '1px solid rgba(255,255,255,0.25)',
-                borderRadius: 8, padding: '6px 13px',
-                color: '#fff', fontSize: 12, fontWeight: 600,
-                cursor: 'pointer',
+                background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.25)',
+                borderRadius: 8, padding: '6px 13px', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer',
               }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.22)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
@@ -185,6 +156,7 @@ function EnrollmentCard({ enrollment, claimUsage, onRequestChange }) {
       </div>
 
       <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* Policy timeline */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
             <span style={{ color: '#6b7280', fontSize: 13 }}>Policy period</span>
@@ -203,6 +175,7 @@ function EnrollmentCard({ enrollment, claimUsage, onRequestChange }) {
 
         <Divider style={{ margin: 0 }} />
 
+        {/* Coverage usage */}
         {coverageBars.length > 0 ? (
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
@@ -225,6 +198,7 @@ function EnrollmentCard({ enrollment, claimUsage, onRequestChange }) {
           </div>
         )}
 
+        {/* Covered services detail */}
         {(enrollment.tier?.coverages || []).length > 0 && (
           <>
             <Divider style={{ margin: 0 }} />
@@ -238,11 +212,7 @@ function EnrollmentCard({ enrollment, claimUsage, onRequestChange }) {
                     <div key={i} style={{ background: '#f9fafb', borderRadius: 12, padding: 14, border: '1px solid #e5e7eb' }}>
                       <div style={{ fontWeight: 700, color: '#111827', fontSize: 13, marginBottom: 4 }}>{cov?.name}</div>
                       {cov?.description && <div style={{ color: '#6b7280', fontSize: 12, marginBottom: 8 }}>{cov.description}</div>}
-                      {limit > 0 && (
-                        <div style={{ fontWeight: 700, color: GREEN, fontSize: 13 }}>
-                          {limit.toLocaleString()} ETB / yr
-                        </div>
-                      )}
+                      {limit > 0 && <div style={{ fontWeight: 700, color: GREEN, fontSize: 13 }}>{limit.toLocaleString()} ETB / yr</div>}
                     </div>
                   );
                 })}
@@ -255,289 +225,113 @@ function EnrollmentCard({ enrollment, claimUsage, onRequestChange }) {
   );
 }
 
-function ProductCard({ product, isEnrolled, onSelect }) {
+// ── Available product card — links to quote application ────────────────────────
+
+function ProductCard({ product, onApply }) {
   const meta      = typeMeta(product.productType);
-  const minPrice  = product.tiers?.length
-    ? Math.min(...product.tiers.map(t => t.annualPremium))
-    : null;
+  const tiers     = product.tiers || [];
+  const minPrice  = tiers.length ? Math.min(...tiers.map(t => t.annualPremium)) : null;
+  const maxPrice  = tiers.length > 1 ? Math.max(...tiers.map(t => t.annualPremium)) : null;
+  // Key benefits from cheapest tier
+  const keyBenefits = (tiers[0]?.coverages || []).slice(0, 4);
 
   return (
-    <div
-      onClick={() => !isEnrolled && onSelect(product)}
-      style={{
-        background: '#fff',
-        border: `2px solid ${isEnrolled ? '#bbf7d0' : '#e5e7eb'}`,
-        borderRadius: 16,
-        padding: 20,
-        cursor: isEnrolled ? 'default' : 'pointer',
-        transition: 'all 0.18s',
-        position: 'relative',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-      }}
-      onMouseEnter={e => { if (!isEnrolled) e.currentTarget.style.borderColor = NAVY; }}
-      onMouseLeave={e => { if (!isEnrolled) e.currentTarget.style.borderColor = '#e5e7eb'; }}
-    >
-      {isEnrolled && (
-        <div style={{ position: 'absolute', top: 14, right: 14, background: '#dcfce7', color: '#16a34a', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>
-          <CheckOutlined style={{ marginRight: 4 }} />Enrolled
-        </div>
-      )}
-
-      <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-        <div style={{ width: 52, height: 52, borderRadius: 14, background: meta.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, flexShrink: 0 }}>
+    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
+      {/* Card header */}
+      <div style={{ background: `linear-gradient(135deg, ${meta.color}12 0%, ${meta.color}06 100%)`, borderBottom: `1px solid ${meta.color}22`, padding: '20px 22px', display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+        <div style={{ width: 54, height: 54, borderRadius: 14, background: meta.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}>
           {meta.emoji}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: meta.color, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4, background: meta.bg, display: 'inline-block', borderRadius: 6, padding: '2px 7px' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: meta.color, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4, background: meta.bg, display: 'inline-block', borderRadius: 6, padding: '2px 8px' }}>
             {meta.label}
           </div>
-          <div style={{ fontWeight: 800, color: '#111827', fontSize: 15, lineHeight: 1.3, marginBottom: 6 }}>
-            {product.name}
-          </div>
+          <div style={{ fontWeight: 800, color: '#111827', fontSize: 16, lineHeight: 1.3 }}>{product.name}</div>
           {product.description && (
-            <div style={{ color: '#6b7280', fontSize: 13, lineHeight: 1.5, marginBottom: 10 }}>
-              {product.description.slice(0, 90)}{product.description.length > 90 ? '...' : ''}
+            <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4, lineHeight: 1.5 }}>
+              {product.description.slice(0, 85)}{product.description.length > 85 ? '…' : ''}
             </div>
           )}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            {minPrice != null ? (
-              <div>
-                <span style={{ color: '#9ca3af', fontSize: 11 }}>Starting from</span>
-                <div style={{ fontWeight: 800, color: isEnrolled ? GREEN : NAVY, fontSize: 16 }}>
-                  {minPrice.toLocaleString()} ETB/mo
-                </div>
-              </div>
-            ) : <div />}
-            {!isEnrolled && (
-              <div style={{ color: NAVY, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                {product.tiers?.length || 0} tiers <ArrowRightOutlined />
-              </div>
-            )}
-          </div>
         </div>
+      </div>
+
+      <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 14, flex: 1 }}>
+        {/* Premium range */}
+        {minPrice != null && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f9fafb', borderRadius: 10, padding: '10px 14px' }}>
+            <span style={{ color: '#6b7280', fontSize: 12, fontWeight: 600 }}>Annual premium</span>
+            <span style={{ fontWeight: 800, color: NAVY, fontSize: 15 }}>
+              ETB {minPrice.toLocaleString()}{maxPrice ? ` – ${maxPrice.toLocaleString()}` : ''}
+            </span>
+          </div>
+        )}
+
+        {/* Tier pills */}
+        {tiers.length > 0 && (
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Available tiers</div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {tiers.map(t => (
+                <span key={t._id} style={{ background: '#f0f6ff', color: NAVY, borderRadius: 20, padding: '4px 11px', fontSize: 12, fontWeight: 600 }}>
+                  {t.name} · ETB {t.annualPremium?.toLocaleString()}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Key benefits */}
+        {keyBenefits.length > 0 && (
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>What's covered</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {keyBenefits.map((tc, i) => {
+                const cov   = tc.coverage;
+                const limit = tc.customLimit || cov?.limits?.annual;
+                return (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <CheckCircleOutlined style={{ color: GREEN, fontSize: 12, flexShrink: 0 }} />
+                      <span style={{ color: '#374151', fontSize: 13 }}>{cov?.name}</span>
+                    </div>
+                    {limit && <span style={{ color: '#6b7280', fontSize: 12, fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>up to {limit.toLocaleString()} ETB</span>}
+                  </div>
+                );
+              })}
+              {(product.tiers?.[0]?.coverages?.length || 0) > 4 && (
+                <div style={{ color: '#9ca3af', fontSize: 12, marginLeft: 19 }}>+ {(product.tiers[0].coverages.length - 4)} more benefits</div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Info note */}
+        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 9, padding: '9px 12px', fontSize: 12, color: '#1e40af', display: 'flex', gap: 7, alignItems: 'flex-start' }}>
+          <InfoCircleOutlined style={{ marginTop: 1, flexShrink: 0 }} />
+          <span>No commitment yet — submitting an application starts the underwriting review. An underwriter will assess your details and send you a personalised offer.</span>
+        </div>
+
+        {/* CTA button */}
+        <button
+          onClick={onApply}
+          style={{
+            marginTop: 'auto', width: '100%', padding: '12px 0',
+            background: NAVY, border: 'none', borderRadius: 10,
+            color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#1a3356'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = NAVY; }}
+        >
+          <FileTextOutlined /> Apply for this Coverage <ArrowRightOutlined />
+        </button>
       </div>
     </div>
   );
 }
 
-function PlanDetailDrawer({ product, open, onClose, onEnroll, enrolling }) {
-  const [selectedTier, setSelectedTier] = useState(null);
-  const [sigName,      setSigName]      = useState('');
-  const [agreed,       setAgreed]       = useState(false);
-  const meta = product ? typeMeta(product.productType) : {};
-
-  useEffect(() => {
-    if (open) { setSelectedTier(null); setSigName(''); setAgreed(false); }
-  }, [open, product]);
-
-  if (!product) return null;
-
-  const exclusions = getExclusionsCov(product.productType);
-  const canEnroll  = !!selectedTier && sigName.trim().length >= 3 && agreed && !enrolling;
-
-  return (
-    <Drawer
-      open={open}
-      onClose={onClose}
-      width={600}
-      title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: meta.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
-            {meta.emoji}
-          </div>
-          <div>
-            <div style={{ fontWeight: 800, color: '#111827', fontSize: 16 }}>{product.name}</div>
-            <div style={{ fontSize: 11, color: meta.color, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>{meta.label}</div>
-          </div>
-        </div>
-      }
-      footer={
-        <div>
-          {!canEnroll && selectedTier && (
-            <div style={{ color: '#9ca3af', fontSize: 12, textAlign: 'center', marginBottom: 8 }}>
-              {!sigName.trim() ? 'Type your full name to sign.' : !agreed ? 'Check the agreement box to continue.' : ''}
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: 12 }}>
-            <button onClick={onClose} style={{ flex: 1, padding: '12px 0', border: '1px solid #e5e7eb', borderRadius: 10, background: '#fff', color: '#374151', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>
-              Cancel
-            </button>
-            <button
-              onClick={() => canEnroll && onEnroll(product, selectedTier, sigName.trim())}
-              disabled={!canEnroll}
-              style={{
-                flex: 2, padding: '12px 0', border: 'none', borderRadius: 10,
-                background: canEnroll ? NAVY : '#e5e7eb',
-                color: canEnroll ? '#fff' : '#9ca3af',
-                fontWeight: 700, cursor: canEnroll ? 'pointer' : 'not-allowed',
-                fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              }}
-            >
-              {enrolling ? <><LoadingOutlined /> Processing...</> : <><CreditCardOutlined /> Sign &amp; Pay with Chapa</>}
-            </button>
-          </div>
-        </div>
-      }
-    >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-
-        {/* Disclaimer */}
-        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 10, padding: '12px 16px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-          <InfoCircleOutlined style={{ color: '#0369a1', fontSize: 16, marginTop: 2 }} />
-          <span style={{ color: '#0c4a6e', fontSize: 13, lineHeight: 1.6 }}>
-            Review the full plan details below before enrolling. You can change your plan within 30 days of your policy start date. <strong>No payment is charged until you complete checkout on Chapa.</strong>
-          </span>
-        </div>
-
-        {product.description && (
-          <div style={{ background: '#f8fafc', borderRadius: 12, padding: '14px 16px', color: '#374151', fontSize: 14, lineHeight: 1.6 }}>
-            {product.description}
-          </div>
-        )}
-
-        {/* Tier selection */}
-        <div>
-          <div style={{ fontWeight: 700, color: '#111827', fontSize: 15, marginBottom: 4 }}>Choose a Tier</div>
-          <div style={{ color: '#6b7280', fontSize: 13, marginBottom: 14 }}>Select the coverage level that fits your needs.</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {(product.tiers || []).map(tier => {
-              const isSelected = selectedTier?._id === tier._id;
-              return (
-                <div key={tier._id} onClick={() => setSelectedTier(tier)} style={{ border: `2px solid ${isSelected ? NAVY : '#e5e7eb'}`, borderRadius: 14, padding: '16px 18px', cursor: 'pointer', background: isSelected ? '#f0f6ff' : '#fff', transition: 'all 0.15s' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                    <div>
-                      <div style={{ fontWeight: 800, color: isSelected ? NAVY : '#111827', fontSize: 15 }}>{tier.name}</div>
-                      {tier.description && <div style={{ color: '#6b7280', fontSize: 12, marginTop: 3 }}>{tier.description}</div>}
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 800, color: isSelected ? NAVY : '#111827', fontSize: 18 }}>ETB {tier.annualPremium?.toLocaleString()}</div>
-                      <div style={{ color: '#9ca3af', fontSize: 11 }}>per year · ETB {Math.round((tier.annualPremium||0)/12).toLocaleString()}/mo</div>
-                    </div>
-                  </div>
-                  {/* ALL coverage services */}
-                  {(tier.coverages || []).length > 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #f1f5f9', paddingTop: 10 }}>
-                      {tier.coverages.map((tc, i) => {
-                        const cov   = tc.coverage;
-                        const limit = tc.customLimit || cov?.limits?.annual;
-                        return (
-                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <CheckCircleOutlined style={{ color: GREEN, fontSize: 12 }} />
-                              <div>
-                                <span style={{ color: '#374151', fontSize: 13 }}>{cov?.name}</span>
-                                {cov?.description && <div style={{ color: '#9ca3af', fontSize: 11 }}>{cov.description}</div>}
-                              </div>
-                            </div>
-                            {limit && <span style={{ color: '#6b7280', fontSize: 12, fontWeight: 600, flexShrink: 0 }}>up to {limit.toLocaleString()} ETB</span>}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  {isSelected && (
-                    <div style={{ marginTop: 10, background: NAVY, borderRadius: 8, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <CheckOutlined style={{ color: '#fff', fontSize: 12 }} />
-                      <span style={{ color: '#fff', fontSize: 12, fontWeight: 600 }}>Selected — ETB {tier.annualPremium?.toLocaleString()} / year</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Exclusions */}
-        <div>
-          <div style={{ fontWeight: 700, color: '#111827', fontSize: 15, marginBottom: 10 }}>What Is Not Covered</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-            {exclusions.map((ex, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                <StopOutlined style={{ color: '#ef4444', fontSize: 13, marginTop: 3 }} />
-                <span style={{ color: '#4b5563', fontSize: 13 }}>{ex}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Key terms */}
-        <div>
-          <div style={{ fontWeight: 700, color: '#111827', fontSize: 15, marginBottom: 10 }}>Key Terms</div>
-          {[
-            ['Claims deadline',  'Submit within 90 days of incident'],
-            ['Waiting period',   product.waitingPeriodMonths > 0 ? `${product.waitingPeriodMonths} months` : 'None'],
-            ['Plan change',      'Allowed within 30 days of policy start'],
-            ['Cancellation',     '30 days notice — pro-rated refund minus 10% admin fee'],
-            ['Disputes',         'Resolved via NIBE (Ethiopian Insurance Regulatory Authority)'],
-          ].map(([k, v], i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6', fontSize: 13 }}>
-              <span style={{ color: '#6b7280' }}>{k}</span>
-              <span style={{ color: '#111827', fontWeight: 600, maxWidth: '55%', textAlign: 'right' }}>{v}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Policy agreement */}
-        {selectedTier && (
-          <>
-            <div>
-              <div style={{ fontWeight: 700, color: '#111827', fontSize: 15, marginBottom: 10 }}>Policy Agreement</div>
-              <div style={{ background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, maxHeight: 220, overflowY: 'auto' }}>
-                <pre style={{ fontSize: 12, color: '#374151', lineHeight: 1.8, whiteSpace: 'pre-wrap', fontFamily: 'inherit', margin: 0 }}>
-                  {agreementTextCov(selectedTier.name, product.name, selectedTier.annualPremium)}
-                </pre>
-              </div>
-            </div>
-
-            {/* Digital signature */}
-            <div style={{ background: '#fafafa', border: '2px solid #e5e7eb', borderRadius: 14, padding: '20px 20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <EditOutlined style={{ color: NAVY, fontSize: 16 }} />
-                <span style={{ fontWeight: 700, color: '#111827', fontSize: 15 }}>Digital Signature</span>
-              </div>
-              <div style={{ color: '#6b7280', fontSize: 13, marginBottom: 12 }}>
-                Type your full legal name below. This constitutes your legally binding digital signature on this policy agreement.
-              </div>
-              <Input
-                size="large"
-                placeholder="Full legal name"
-                value={sigName}
-                onChange={e => setSigName(e.target.value)}
-                style={{ fontSize: 16, borderColor: sigName.trim().length >= 3 ? NAVY : undefined, marginBottom: 12 }}
-              />
-              {sigName.trim().length >= 3 && (
-                <div style={{ background: '#f0f6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '10px 14px', marginBottom: 14 }}>
-                  <div style={{ fontSize: 20, fontStyle: 'italic', color: NAVY, fontWeight: 600 }}>{sigName.trim()}</div>
-                  <div style={{ color: '#6b7280', fontSize: 11, marginTop: 4 }}>
-                    Signed: {new Date().toLocaleDateString('en-ET', { year: 'numeric', month: 'long', day: 'numeric' })}
-                  </div>
-                </div>
-              )}
-              <div
-                onClick={() => setAgreed(a => !a)}
-                style={{ display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer', userSelect: 'none' }}
-              >
-                <div style={{ width: 20, height: 20, borderRadius: 4, border: `2px solid ${agreed ? GREEN : '#d1d5db'}`, background: agreed ? GREEN : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
-                  {agreed && <CheckOutlined style={{ color: '#fff', fontSize: 11 }} />}
-                </div>
-                <span style={{ color: '#374151', fontSize: 13, lineHeight: 1.6 }}>
-                  I have read the full policy agreement above and agree to all terms and conditions.
-                </span>
-              </div>
-            </div>
-          </>
-        )}
-
-        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, padding: '12px 16px' }}>
-          <div style={{ fontWeight: 700, color: '#92400e', fontSize: 13, marginBottom: 4 }}>🔒 Secure Payment via Chapa</div>
-          <div style={{ color: '#78350f', fontSize: 12, lineHeight: 1.5 }}>
-            After signing, you will be redirected to Chapa to complete payment — telebirr, CBE Birr, or bank card. Your enrollment activates immediately after payment is confirmed.
-          </div>
-        </div>
-      </div>
-    </Drawer>
-  );
-}
+// ── Endorsement modal ─────────────────────────────────────────────────────────
 
 const ENDORSEMENT_TYPES = [
   { value: 'tier_change',      label: 'Change Coverage Tier',     desc: 'Upgrade or downgrade your plan tier' },
@@ -549,9 +343,9 @@ const ENDORSEMENT_TYPES = [
 ];
 
 function EndorsementModal({ enrollment, open, onClose, onSubmitted }) {
-  const [step, setStep]         = useState(1);
-  const [type, setType]         = useState('');
-  const [details, setDetails]   = useState({});
+  const [step, setStep]             = useState(1);
+  const [type, setType]             = useState('');
+  const [details, setDetails]       = useState({});
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => { if (open) { setStep(1); setType(''); setDetails({}); } }, [open]);
@@ -590,7 +384,6 @@ function EndorsementModal({ enrollment, open, onClose, onSubmitted }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)' }}>
       <div style={{ background: '#fff', borderRadius: 18, width: '100%', maxWidth: 520, margin: '0 16px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', maxHeight: '90vh', overflow: 'auto' }}>
-        {/* Modal header */}
         <div style={{ background: NAVY, padding: '20px 24px', borderRadius: '18px 18px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <div style={{ color: '#fff', fontWeight: 800, fontSize: 16 }}>Request a Policy Change</div>
@@ -600,7 +393,6 @@ function EndorsementModal({ enrollment, open, onClose, onSubmitted }) {
         </div>
 
         <div style={{ padding: 24 }}>
-          {/* Step 1 — type selector */}
           {step === 1 && (
             <div>
               <div style={{ color: '#374151', fontWeight: 600, fontSize: 14, marginBottom: 14 }}>What would you like to change?</div>
@@ -612,8 +404,7 @@ function EndorsementModal({ enrollment, open, onClose, onSubmitted }) {
                     <div key={t.value} onClick={() => setType(t.value)} style={{
                       border: `2px solid ${sel ? (isDanger ? '#ef4444' : NAVY) : '#e5e7eb'}`,
                       borderRadius: 12, padding: '12px 16px', cursor: 'pointer',
-                      background: sel ? (isDanger ? '#fef2f2' : '#f0f6ff') : '#fff',
-                      transition: 'all 0.15s',
+                      background: sel ? (isDanger ? '#fef2f2' : '#f0f6ff') : '#fff', transition: 'all 0.15s',
                     }}>
                       <div style={{ fontWeight: 700, color: sel ? (isDanger ? '#dc2626' : NAVY) : '#111827', fontSize: 14 }}>{t.label}</div>
                       <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 2 }}>{t.desc}</div>
@@ -630,7 +421,6 @@ function EndorsementModal({ enrollment, open, onClose, onSubmitted }) {
             </div>
           )}
 
-          {/* Step 2 — details form */}
           {step === 2 && (
             <div>
               <button onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: 13, cursor: 'pointer', marginBottom: 16, padding: 0 }}>← Back</button>
@@ -663,7 +453,7 @@ function EndorsementModal({ enrollment, open, onClose, onSubmitted }) {
                     <input key={k} placeholder={l} value={details.dependent?.[k] || ''} onChange={e => setDep(k, e.target.value)}
                       style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13 }} />
                   ))}
-                  <input type="date" placeholder="Date of Birth" value={details.dependent?.dateOfBirth || ''} onChange={e => setDep('dateOfBirth', e.target.value)}
+                  <input type="date" value={details.dependent?.dateOfBirth || ''} onChange={e => setDep('dateOfBirth', e.target.value)}
                     style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13 }} />
                   <select value={details.dependent?.relationship || ''} onChange={e => setDep('relationship', e.target.value)}
                     style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, background: '#fff' }}>
@@ -744,21 +534,18 @@ function EndorsementModal({ enrollment, open, onClose, onSubmitted }) {
   );
 }
 
+// ── Renewal banner ─────────────────────────────────────────────────────────────
+
 function RenewalBanner({ enrollment, onRenew, renewing }) {
   const daysLeft = Math.max(0, Math.ceil((new Date(enrollment.endDate) - new Date()) / 86400000));
   const urgent   = daysLeft <= 7;
 
   return (
     <div style={{
-      background:   urgent ? '#fef2f2' : '#fffbeb',
-      border:       `1.5px solid ${urgent ? '#fca5a5' : '#fde68a'}`,
-      borderRadius: 12,
-      padding:      '14px 20px',
-      display:      'flex',
-      alignItems:   'center',
-      justifyContent: 'space-between',
-      flexWrap:     'wrap',
-      gap:          12,
+      background: urgent ? '#fef2f2' : '#fffbeb',
+      border: `1.5px solid ${urgent ? '#fca5a5' : '#fde68a'}`,
+      borderRadius: 12, padding: '14px 20px',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <WarningOutlined style={{ color: urgent ? '#ef4444' : '#d97706', fontSize: 20, flexShrink: 0 }} />
@@ -771,26 +558,12 @@ function RenewalBanner({ enrollment, onRenew, renewing }) {
           </div>
         </div>
       </div>
-      <button
-        onClick={() => onRenew(enrollment)}
-        disabled={renewing}
-        style={{
-          background:   urgent ? '#ef4444' : '#f59e0b',
-          border:       'none',
-          borderRadius: 9,
-          padding:      '10px 20px',
-          color:        '#fff',
-          fontWeight:   700,
-          fontSize:     13,
-          cursor:       renewing ? 'not-allowed' : 'pointer',
-          opacity:      renewing ? 0.7 : 1,
-          display:      'flex',
-          alignItems:   'center',
-          gap:          7,
-          flexShrink:   0,
-          whiteSpace:   'nowrap',
-        }}
-      >
+      <button onClick={() => onRenew(enrollment)} disabled={renewing} style={{
+        background: urgent ? '#ef4444' : '#f59e0b', border: 'none', borderRadius: 9,
+        padding: '10px 20px', color: '#fff', fontWeight: 700, fontSize: 13,
+        cursor: renewing ? 'not-allowed' : 'pointer', opacity: renewing ? 0.7 : 1,
+        display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0, whiteSpace: 'nowrap',
+      }}>
         {renewing ? <LoadingOutlined /> : <SyncOutlined />}
         {renewing ? 'Processing…' : 'Renew Now'}
       </button>
@@ -798,22 +571,19 @@ function RenewalBanner({ enrollment, onRenew, renewing }) {
   );
 }
 
+// ── Main page ──────────────────────────────────────────────────────────────────
+
 export default function InsuredCoverage() {
   const [searchParams] = useSearchParams();
   const navigate       = useNavigate();
 
-  const [enrollments, setEnrollments] = useState([]);
-  const [claims, setClaims]           = useState([]);
-  const [products, setProducts]       = useState([]);
-  const [loading, setLoading]         = useState(true);
-
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [drawerOpen, setDrawerOpen]           = useState(false);
-  const [enrolling, setEnrolling]             = useState(false);
+  const [enrollments, setEnrollments]         = useState([]);
+  const [claims, setClaims]                   = useState([]);
+  const [products, setProducts]               = useState([]);
+  const [loading, setLoading]                 = useState(true);
   const [renewingId, setRenewingId]           = useState(null);
   const [endorseEnrollment, setEndorseEnrollment] = useState(null);
-
-  const [paymentStatus, setPaymentStatus] = useState(null); // 'verifying' | 'success' | 'failed'
+  const [paymentStatus, setPaymentStatus]     = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -846,7 +616,6 @@ export default function InsuredCoverage() {
           setPaymentStatus('success');
           message.success('Payment verified! Your coverage is now active.', 5);
           load();
-          // Clear URL params
           navigate('/insured/coverage', { replace: true });
         })
         .catch(() => {
@@ -862,46 +631,12 @@ export default function InsuredCoverage() {
   const handleRenew = async (enrollment) => {
     setRenewingId(enrollment._id);
     try {
-      // 1. Create the renewal (next-period pending enrollment)
       const renewRes = await api.post(`/enrollments/${enrollment._id}/renew`);
-      const newEnrollmentId = renewRes.data.enrollment._id;
-
-      // 2. Initialize Chapa for the new pending enrollment
-      const chapaRes = await api.post('/chapa/initialize', { enrollmentId: newEnrollmentId });
+      const chapaRes = await api.post('/chapa/initialize', { enrollmentId: renewRes.data.enrollment._id });
       window.location.href = chapaRes.data.checkout_url;
     } catch (err) {
       message.error(err.response?.data?.message || 'Could not start renewal. Please try again.');
       setRenewingId(null);
-    }
-  };
-
-  const handleEnroll = async (product, tier, sigName) => {
-    setEnrolling(true);
-    try {
-      // 1. Save signed policy agreement
-      await api.post('/policy-agreements', {
-        productId:     product._id,
-        tierId:        tier._id,
-        signatureData: sigName,
-        agreed:        true,
-      });
-
-      // 2. Create pending enrollment
-      const enrollRes = await api.post('/enrollments/self', {
-        productId: product._id,
-        tierId:    tier._id,
-      });
-      const enrollmentId = enrollRes.data.enrollment._id;
-
-      // 3. Initialize Chapa payment
-      const chapaRes = await api.post('/chapa/initialize', { enrollmentId });
-      const { checkout_url } = chapaRes.data;
-
-      // 4. Redirect to Chapa checkout
-      window.location.href = checkout_url;
-    } catch (err) {
-      message.error(err.response?.data?.message || 'Could not start payment. Please try again.');
-      setEnrolling(false);
     }
   };
 
@@ -914,14 +649,15 @@ export default function InsuredCoverage() {
     claimUsage[key] = (claimUsage[key] || 0) + (c.approvedAmount || c.claimedAmount || 0);
   });
 
-  // Products user is not yet enrolled in
+  const activeStatuses     = ['active', 'pending_renewal'];
+  const activeEnrollments  = enrollments.filter(e => activeStatuses.includes(e.status));
   const enrolledProductIds = new Set(enrollments.map(e => e.product?._id?.toString()));
   const availableProducts  = products.filter(p => p.isActive !== false && !enrolledProductIds.has(p._id?.toString()));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
 
-      {/* Payment status banner */}
+      {/* Payment status banners */}
       {paymentStatus === 'verifying' && (
         <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
           <LoadingOutlined style={{ color: '#d97706', fontSize: 18 }} />
@@ -946,104 +682,103 @@ export default function InsuredCoverage() {
         <div>
           <h2 style={{ margin: 0, color: '#111827', fontWeight: 800, fontSize: 22 }}>My Benefits & Coverage</h2>
           <div style={{ color: '#6b7280', fontSize: 14, marginTop: 3 }}>
-            {enrollments.length > 0
-              ? `${enrollments.length} active plan${enrollments.length > 1 ? 's' : ''} · ${availableProducts.length} more available to add`
-              : 'Choose a plan below to get started'}
+            {activeEnrollments.length > 0
+              ? `${activeEnrollments.length} active plan${activeEnrollments.length > 1 ? 's' : ''} · ${availableProducts.length} more available`
+              : 'Explore plans below and submit an application to get covered'}
           </div>
         </div>
         {availableProducts.length > 0 && (
           <button
-            onClick={() => { const el = document.getElementById('available-plans'); el?.scrollIntoView({ behavior: 'smooth' }); }}
-            style={{ background: GREEN, border: 'none', borderRadius: 10, color: '#fff', padding: '10px 20px', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+            onClick={() => document.getElementById('explore-plans')?.scrollIntoView({ behavior: 'smooth' })}
+            style={{ background: NAVY, border: 'none', borderRadius: 10, color: '#fff', padding: '10px 20px', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
           >
-            <PlusOutlined /> Add Coverage
+            <PlusOutlined /> Explore More Plans
           </button>
         )}
       </div>
 
-      {/* ── Active enrollments ──────────────────────────────────────── */}
-      {enrollments.length > 0 && (
+      {/* ── SECTION 1: Active coverage ──────────────────────────────────── */}
+      {activeEnrollments.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ fontWeight: 700, color: '#111827', fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
             <SafetyOutlined style={{ color: GREEN }} /> My Active Plans
           </div>
-          {enrollments.map(e => (
+          {activeEnrollments.map(e => (
             <div key={e._id} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {e.status === 'pending_renewal' && (
-                <RenewalBanner
-                  enrollment={e}
-                  onRenew={handleRenew}
-                  renewing={renewingId === e._id}
-                />
+                <RenewalBanner enrollment={e} onRenew={handleRenew} renewing={renewingId === e._id} />
               )}
-              <EnrollmentCard
-                enrollment={e}
-                claimUsage={claimUsage}
-                onRequestChange={setEndorseEnrollment}
-              />
+              <EnrollmentCard enrollment={e} claimUsage={claimUsage} onRequestChange={setEndorseEnrollment} />
             </div>
           ))}
         </div>
       )}
 
-      {/* ── Available plans ─────────────────────────────────────────── */}
-      <div id="available-plans">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-          <div>
-            <div style={{ fontWeight: 700, color: '#111827', fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <PlusOutlined style={{ color: BLUE }} />
-              {enrollments.length > 0 ? 'Add More Coverage' : 'Available Plans'}
-            </div>
-            <div style={{ color: '#6b7280', fontSize: 13, marginTop: 2 }}>
-              {enrollments.length > 0
-                ? 'Expand your protection with additional coverage plans. You can review full details, exclusions, and policy terms before any payment is made.'
-                : 'Choose a plan that fits your needs. Click to review full details, coverage limits, exclusions, and sign the policy agreement before subscribing.'}
-            </div>
+      {/* ── SECTION 2: Explore available plans ─────────────────────────── */}
+      <div id="explore-plans">
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontWeight: 700, color: '#111827', fontSize: 16, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <PlusOutlined style={{ color: BLUE }} />
+            {activeEnrollments.length > 0 ? 'Explore More Coverage Plans' : 'Available Insurance Plans'}
+          </div>
+          <div style={{ color: '#6b7280', fontSize: 13, lineHeight: 1.6 }}>
+            {activeEnrollments.length > 0
+              ? 'Expand your protection with additional coverage. Each plan below requires a quote application — our underwriters will review your details and send you a personalised premium offer within 1–3 business days.'
+              : 'Browse the coverage options below. Click "Apply for this Coverage" to start a quote application. No payment is required until you accept an approved offer.'}
           </div>
         </div>
 
-        {availableProducts.length === 0 && enrollments.length > 0 ? (
-          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 14, padding: '28px 24px', textAlign: 'center' }}>
-            <div style={{ fontSize: 36, marginBottom: 10 }}>🎉</div>
+        {availableProducts.length === 0 && activeEnrollments.length > 0 ? (
+          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 14, padding: '36px 24px', textAlign: 'center' }}>
+            <div style={{ fontSize: 40, marginBottom: 10 }}>🎉</div>
             <div style={{ fontWeight: 700, color: '#15803d', fontSize: 16, marginBottom: 6 }}>You're enrolled in all available plans!</div>
-            <div style={{ color: '#6b7280', fontSize: 14 }}>Check back later for new products.</div>
+            <div style={{ color: '#6b7280', fontSize: 14 }}>Check back later for new products added by your insurer.</div>
           </div>
-        ) : availableProducts.length === 0 && enrollments.length === 0 ? (
+        ) : availableProducts.length === 0 ? (
           <div style={{ background: NAVY, borderRadius: 16, padding: '48px 24px', textAlign: 'center' }}>
             <SafetyOutlined style={{ fontSize: 48, color: 'rgba(255,255,255,0.25)', marginBottom: 16 }} />
-            <div style={{ fontWeight: 700, color: '#fff', fontSize: 18, marginBottom: 8 }}>No Active Coverage</div>
-            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, marginBottom: 24 }}>
-              You are not currently enrolled in any active policy.
-            </div>
-            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
-              No plans are available right now. Please contact support or check back later.
+            <div style={{ fontWeight: 700, color: '#fff', fontSize: 18, marginBottom: 8 }}>No Plans Available Yet</div>
+            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>
+              No insurance products are available right now. Please contact support or check back later.
             </div>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
-            {availableProducts.map(p => (
-              <ProductCard
-                key={p._id}
-                product={p}
-                isEnrolled={false}
-                onSelect={prod => { setSelectedProduct(prod); setDrawerOpen(true); }}
-              />
-            ))}
-            {products.filter(p => enrolledProductIds.has(p._id?.toString())).map(p => (
-              <ProductCard key={p._id} product={p} isEnrolled={true} onSelect={() => {}} />
-            ))}
-          </div>
+          <>
+            {/* How it works — shown only when no active plans */}
+            {activeEnrollments.length === 0 && (
+              <div style={{ background: '#f0f6ff', border: '1px solid #bfdbfe', borderRadius: 14, padding: '18px 22px', marginBottom: 20 }}>
+                <div style={{ fontWeight: 700, color: '#1e40af', fontSize: 14, marginBottom: 10 }}>How the application process works</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
+                  {[
+                    { step: '1', label: 'Choose a plan', icon: '👆', desc: 'Click Apply on any plan below' },
+                    { step: '2', label: 'Fill application', icon: '📝', desc: 'Complete the detailed quote form' },
+                    { step: '3', label: 'Underwriting review', icon: '🔍', desc: 'We review within 1–3 business days' },
+                    { step: '4', label: 'Accept & Pay', icon: '✅', desc: 'Accept the offer and pay via Chapa' },
+                  ].map(s => (
+                    <div key={s.step} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#1e40af', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, flexShrink: 0 }}>{s.step}</div>
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#1e40af', fontSize: 13 }}>{s.icon} {s.label}</div>
+                        <div style={{ color: '#3b82f6', fontSize: 12, marginTop: 1 }}>{s.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 18 }}>
+              {availableProducts.map(p => (
+                <ProductCard
+                  key={p._id}
+                  product={p}
+                  onApply={() => navigate(`/insured/quotes?productId=${p._id}`)}
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
-
-      {/* Plan detail drawer */}
-      <PlanDetailDrawer
-        product={selectedProduct}
-        open={drawerOpen}
-        onClose={() => { setDrawerOpen(false); setSelectedProduct(null); }}
-        onEnroll={handleEnroll}
-        enrolling={enrolling}
-      />
 
       {/* Endorsement / change request modal */}
       <EndorsementModal

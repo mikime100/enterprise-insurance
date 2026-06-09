@@ -5,7 +5,7 @@ import {
   ExclamationCircleOutlined, CheckOutlined, CloseCircleOutlined, UploadOutlined,
   ArrowLeftOutlined, LoadingOutlined,
 } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -233,8 +233,9 @@ export default function InsuredQuotes() {
   const [uploadingDoc, setUploadingDoc] = useState(null); // label currently uploading
   const [formStep, setFormStep]     = useState(1);    // 1 = type select, 2 = full form
 
-  const navigate = useNavigate();
-  const { user }  = useAuth();
+  const navigate          = useNavigate();
+  const [searchParams]    = useSearchParams();
+  const { user }          = useAuth();
 
   const sf = useCallback((key, val) => setFormData(d => ({ ...d, [key]: val })), []);
   const selectedProduct = products.find(p => p._id === formData.productId);
@@ -254,6 +255,22 @@ export default function InsuredQuotes() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  // Auto-open form when arriving from Coverage page with ?productId=xxx
+  useEffect(() => {
+    const pid = searchParams.get('productId');
+    if (!pid || products.length === 0 || reqOpen) return;
+    const prod = products.find(p => p._id === pid);
+    if (prod) {
+      setFormData({ ...emptyForm(), productId: pid });
+      setErrors({});
+      setDocUploads({});
+      setFormStep(2);
+      setReqOpen(true);
+      // Clean the URL so refreshing doesn't re-open
+      navigate('/insured/quotes', { replace: true });
+    }
+  }, [products, searchParams]);
 
   const openDetail = async (q) => {
     setDetail(q);
