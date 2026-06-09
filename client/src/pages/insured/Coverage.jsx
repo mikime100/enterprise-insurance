@@ -3,17 +3,15 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Spin, Divider, message } from 'antd';
 import {
   CheckCircleOutlined, InfoCircleOutlined, ArrowRightOutlined,
-  PlusOutlined, CloseOutlined, SafetyOutlined,
+  CloseOutlined, SafetyOutlined,
   CheckOutlined, LoadingOutlined, EditOutlined, StopOutlined, DownloadOutlined,
-  WarningOutlined, SyncOutlined, FileTextOutlined,
+  WarningOutlined, SyncOutlined,
 } from '@ant-design/icons';
 import api from '../../api';
-import axios from 'axios';
 
 const GREEN = '#22c55e';
 const BLUE  = '#1d4ed8';
 const NAVY  = '#1e3a5f';
-const API   = import.meta.env.VITE_API_URL || '/api';
 
 const TYPE_META = {
   health:   { emoji: '🏥', color: '#16a34a', bg: '#dcfce7', label: 'Health' },
@@ -220,112 +218,6 @@ function EnrollmentCard({ enrollment, claimUsage, onRequestChange }) {
             </div>
           </>
         )}
-      </div>
-    </div>
-  );
-}
-
-// ── Available product card — links to quote application ────────────────────────
-
-function ProductCard({ product, onApply }) {
-  const meta      = typeMeta(product.productType);
-  const tiers     = product.tiers || [];
-  const minPrice  = tiers.length ? Math.min(...tiers.map(t => t.annualPremium)) : null;
-  const maxPrice  = tiers.length > 1 ? Math.max(...tiers.map(t => t.annualPremium)) : null;
-  // Key benefits from cheapest tier
-  const keyBenefits = (tiers[0]?.coverages || []).slice(0, 4);
-
-  return (
-    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
-      {/* Card header */}
-      <div style={{ background: `linear-gradient(135deg, ${meta.color}12 0%, ${meta.color}06 100%)`, borderBottom: `1px solid ${meta.color}22`, padding: '20px 22px', display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-        <div style={{ width: 54, height: 54, borderRadius: 14, background: meta.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}>
-          {meta.emoji}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: meta.color, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4, background: meta.bg, display: 'inline-block', borderRadius: 6, padding: '2px 8px' }}>
-            {meta.label}
-          </div>
-          <div style={{ fontWeight: 800, color: '#111827', fontSize: 16, lineHeight: 1.3 }}>{product.name}</div>
-          {product.description && (
-            <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4, lineHeight: 1.5 }}>
-              {product.description.slice(0, 85)}{product.description.length > 85 ? '…' : ''}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 14, flex: 1 }}>
-        {/* Premium range */}
-        {minPrice != null && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f9fafb', borderRadius: 10, padding: '10px 14px' }}>
-            <span style={{ color: '#6b7280', fontSize: 12, fontWeight: 600 }}>Annual premium</span>
-            <span style={{ fontWeight: 800, color: NAVY, fontSize: 15 }}>
-              ETB {minPrice.toLocaleString()}{maxPrice ? ` – ${maxPrice.toLocaleString()}` : ''}
-            </span>
-          </div>
-        )}
-
-        {/* Tier pills */}
-        {tiers.length > 0 && (
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Available tiers</div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {tiers.map(t => (
-                <span key={t._id} style={{ background: '#f0f6ff', color: NAVY, borderRadius: 20, padding: '4px 11px', fontSize: 12, fontWeight: 600 }}>
-                  {t.name} · ETB {t.annualPremium?.toLocaleString()}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Key benefits */}
-        {keyBenefits.length > 0 && (
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>What's covered</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {keyBenefits.map((tc, i) => {
-                const cov   = tc.coverage;
-                const limit = tc.customLimit || cov?.limits?.annual;
-                return (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                      <CheckCircleOutlined style={{ color: GREEN, fontSize: 12, flexShrink: 0 }} />
-                      <span style={{ color: '#374151', fontSize: 13 }}>{cov?.name}</span>
-                    </div>
-                    {limit && <span style={{ color: '#6b7280', fontSize: 12, fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>up to {limit.toLocaleString()} ETB</span>}
-                  </div>
-                );
-              })}
-              {(product.tiers?.[0]?.coverages?.length || 0) > 4 && (
-                <div style={{ color: '#9ca3af', fontSize: 12, marginLeft: 19 }}>+ {(product.tiers[0].coverages.length - 4)} more benefits</div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Info note */}
-        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 9, padding: '9px 12px', fontSize: 12, color: '#1e40af', display: 'flex', gap: 7, alignItems: 'flex-start' }}>
-          <InfoCircleOutlined style={{ marginTop: 1, flexShrink: 0 }} />
-          <span>No commitment yet — submitting an application starts the underwriting review. An underwriter will assess your details and send you a personalised offer.</span>
-        </div>
-
-        {/* CTA button */}
-        <button
-          onClick={onApply}
-          style={{
-            marginTop: 'auto', width: '100%', padding: '12px 0',
-            background: NAVY, border: 'none', borderRadius: 10,
-            color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            transition: 'background 0.15s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#1a3356'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = NAVY; }}
-        >
-          <FileTextOutlined /> Apply for this Coverage <ArrowRightOutlined />
-        </button>
       </div>
     </div>
   );
@@ -577,27 +469,25 @@ export default function InsuredCoverage() {
   const [searchParams] = useSearchParams();
   const navigate       = useNavigate();
 
-  const [enrollments, setEnrollments]         = useState([]);
-  const [claims, setClaims]                   = useState([]);
-  const [products, setProducts]               = useState([]);
-  const [loading, setLoading]                 = useState(true);
-  const [renewingId, setRenewingId]           = useState(null);
+  const [enrollments, setEnrollments]             = useState([]);
+  const [claims, setClaims]                       = useState([]);
+  const [loading, setLoading]                     = useState(true);
+  const [renewingId, setRenewingId]               = useState(null);
   const [endorseEnrollment, setEndorseEnrollment] = useState(null);
-  const [paymentStatus, setPaymentStatus]     = useState(null);
+  const [paymentStatus, setPaymentStatus]         = useState(null);
+  const [verifyingId, setVerifyingId]             = useState(null);
 
   const load = useCallback(async () => {
     try {
-      const [enrollRes, claimsRes, productsRes] = await Promise.all([
+      const [enrollRes, claimsRes] = await Promise.all([
         api.get('/enrollments').then(async r => {
           const list = Array.isArray(r.data.enrollments) ? r.data.enrollments : [];
           return Promise.all(list.map(e => api.get(`/enrollments/${e._id}`).then(d => d.data.enrollment)));
         }),
         api.get('/claims'),
-        axios.get(`${API}/products`, { params: { withTiers: 'true' }, withCredentials: true }),
       ]);
       setEnrollments(enrollRes);
       setClaims(Array.isArray(claimsRes.data.claims) ? claimsRes.data.claims : []);
-      setProducts(productsRes.data.products || productsRes.data || []);
     } catch (err) {
       console.error('Coverage load failed:', err);
     } finally {
@@ -640,6 +530,23 @@ export default function InsuredCoverage() {
     }
   };
 
+  const handleVerifyPending = async (enrollment) => {
+    const txRef = [...(enrollment.paymentHistory || [])].reverse().find(p => p.reference)?.reference;
+    if (!txRef) { message.error('No payment reference found. Contact support.'); return; }
+    setVerifyingId(enrollment._id);
+    try {
+      await api.get(`/chapa/verify/${txRef}`);
+      message.success('Payment verified! Your coverage is now active.', 5);
+      load();
+    } catch (err) {
+      const raw = err.response?.data?.message;
+      const msg = typeof raw === 'string' ? raw : 'Verification failed. If you have paid, please contact support.';
+      message.error(msg, 6);
+    } finally {
+      setVerifyingId(null);
+    }
+  };
+
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spin size="large" /></div>;
 
   // Build claim usage map
@@ -649,10 +556,8 @@ export default function InsuredCoverage() {
     claimUsage[key] = (claimUsage[key] || 0) + (c.approvedAmount || c.claimedAmount || 0);
   });
 
-  const activeStatuses     = ['active', 'pending_renewal'];
-  const activeEnrollments  = enrollments.filter(e => activeStatuses.includes(e.status));
-  const enrolledProductIds = new Set(enrollments.map(e => e.product?._id?.toString()));
-  const availableProducts  = products.filter(p => p.isActive !== false && !enrolledProductIds.has(p._id?.toString()));
+  const activeEnrollments  = enrollments.filter(e => ['active', 'pending_renewal'].includes(e.status));
+  const pendingEnrollments = enrollments.filter(e => e.status === 'pending');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
@@ -680,24 +585,84 @@ export default function InsuredCoverage() {
       {/* Page header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h2 style={{ margin: 0, color: '#111827', fontWeight: 800, fontSize: 22 }}>My Benefits & Coverage</h2>
+          <h2 style={{ margin: 0, color: '#111827', fontWeight: 800, fontSize: 22 }}>My Benefits</h2>
           <div style={{ color: '#6b7280', fontSize: 14, marginTop: 3 }}>
             {activeEnrollments.length > 0
-              ? `${activeEnrollments.length} active plan${activeEnrollments.length > 1 ? 's' : ''} · ${availableProducts.length} more available`
-              : 'Explore plans below and submit an application to get covered'}
+              ? `${activeEnrollments.length} active plan${activeEnrollments.length > 1 ? 's' : ''}`
+              : 'No active coverage yet.'}
+            {pendingEnrollments.length > 0 && ` · ${pendingEnrollments.length} awaiting payment verification`}
           </div>
         </div>
-        {availableProducts.length > 0 && (
-          <button
-            onClick={() => document.getElementById('explore-plans')?.scrollIntoView({ behavior: 'smooth' })}
-            style={{ background: NAVY, border: 'none', borderRadius: 10, color: '#fff', padding: '10px 20px', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
-          >
-            <PlusOutlined /> Explore More Plans
-          </button>
-        )}
+        <button
+          onClick={() => navigate('/insured/explore')}
+          style={{ background: NAVY, border: 'none', borderRadius: 10, color: '#fff', padding: '10px 20px', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#1a3356'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = NAVY; }}
+        >
+          Explore Plans <ArrowRightOutlined />
+        </button>
       </div>
 
-      {/* ── SECTION 1: Active coverage ──────────────────────────────────── */}
+      {/* ── Pending payment verification ──────────────────────────────── */}
+      {pendingEnrollments.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ fontWeight: 700, color: '#111827', fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <SyncOutlined style={{ color: '#d97706' }} /> Awaiting Payment Verification
+          </div>
+          {pendingEnrollments.map(e => {
+            const txRef      = [...(e.paymentHistory || [])].reverse().find(p => p.reference)?.reference;
+            const isVerifying = verifyingId === e._id;
+            const meta       = typeMeta(e.product?.productType);
+            return (
+              <div key={e._id} style={{ border: '1.5px solid #fde68a', borderRadius: 16, overflow: 'hidden', background: '#fffbeb' }}>
+                <div style={{ background: '#d97706', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 42, height: 42, borderRadius: 12, background: meta.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>{meta.emoji}</div>
+                    <div>
+                      <div style={{ color: '#fff', fontWeight: 800, fontSize: 16 }}>{e.product?.name}</div>
+                      <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12 }}>
+                        {e.enrollmentNumber} · ETB {e.premium?.amount?.toLocaleString()} / yr
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ background: '#fef3c7', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 700, color: '#92400e' }}>
+                    ⏳ PAYMENT PENDING
+                  </div>
+                </div>
+                <div style={{ padding: '18px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ color: '#78350f', fontSize: 14, lineHeight: 1.6 }}>
+                    Your coverage will activate once payment is confirmed. If you already paid via Chapa, click <strong>Verify Payment</strong> to activate your plan.
+                  </div>
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                    {txRef ? (
+                      <button
+                        onClick={() => handleVerifyPending(e)}
+                        disabled={isVerifying}
+                        style={{ padding: '10px 20px', background: '#d97706', border: 'none', borderRadius: 9, color: '#fff', fontWeight: 700, fontSize: 13, cursor: isVerifying ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 7, opacity: isVerifying ? 0.7 : 1 }}
+                      >
+                        {isVerifying ? <LoadingOutlined /> : <CheckOutlined />}
+                        {isVerifying ? 'Verifying…' : 'Verify Payment'}
+                      </button>
+                    ) : (
+                      <div style={{ color: '#92400e', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <InfoCircleOutlined /> No payment reference on file — contact support to activate.
+                      </div>
+                    )}
+                    <button
+                      onClick={() => navigate('/insured/quotes')}
+                      style={{ padding: '10px 18px', background: 'transparent', border: '1.5px solid #d97706', borderRadius: 9, color: '#92400e', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
+                    >
+                      View My Applications
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Active coverage ───────────────────────────────────────────── */}
       {activeEnrollments.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ fontWeight: 700, color: '#111827', fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -714,71 +679,22 @@ export default function InsuredCoverage() {
         </div>
       )}
 
-      {/* ── SECTION 2: Explore available plans ─────────────────────────── */}
-      <div id="explore-plans">
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontWeight: 700, color: '#111827', fontSize: 16, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <PlusOutlined style={{ color: BLUE }} />
-            {activeEnrollments.length > 0 ? 'Explore More Coverage Plans' : 'Available Insurance Plans'}
+      {/* ── Empty state ───────────────────────────────────────────────── */}
+      {activeEnrollments.length === 0 && pendingEnrollments.length === 0 && (
+        <div style={{ background: NAVY, borderRadius: 16, padding: '52px 24px', textAlign: 'center' }}>
+          <SafetyOutlined style={{ fontSize: 48, color: 'rgba(255,255,255,0.25)', marginBottom: 16, display: 'block' }} />
+          <div style={{ fontWeight: 700, color: '#fff', fontSize: 18, marginBottom: 8 }}>No Active Coverage Yet</div>
+          <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, marginBottom: 24 }}>
+            Browse our available plans and submit an application to get covered.
           </div>
-          <div style={{ color: '#6b7280', fontSize: 13, lineHeight: 1.6 }}>
-            {activeEnrollments.length > 0
-              ? 'Expand your protection with additional coverage. Each plan below requires a quote application — our underwriters will review your details and send you a personalised premium offer within 1–3 business days.'
-              : 'Browse the coverage options below. Click "Apply for this Coverage" to start a quote application. No payment is required until you accept an approved offer.'}
-          </div>
+          <button
+            onClick={() => navigate('/insured/explore')}
+            style={{ background: GREEN, border: 'none', borderRadius: 10, color: '#fff', padding: '12px 28px', fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            Browse Available Plans <ArrowRightOutlined />
+          </button>
         </div>
-
-        {availableProducts.length === 0 && activeEnrollments.length > 0 ? (
-          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 14, padding: '36px 24px', textAlign: 'center' }}>
-            <div style={{ fontSize: 40, marginBottom: 10 }}>🎉</div>
-            <div style={{ fontWeight: 700, color: '#15803d', fontSize: 16, marginBottom: 6 }}>You're enrolled in all available plans!</div>
-            <div style={{ color: '#6b7280', fontSize: 14 }}>Check back later for new products added by your insurer.</div>
-          </div>
-        ) : availableProducts.length === 0 ? (
-          <div style={{ background: NAVY, borderRadius: 16, padding: '48px 24px', textAlign: 'center' }}>
-            <SafetyOutlined style={{ fontSize: 48, color: 'rgba(255,255,255,0.25)', marginBottom: 16 }} />
-            <div style={{ fontWeight: 700, color: '#fff', fontSize: 18, marginBottom: 8 }}>No Plans Available Yet</div>
-            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>
-              No insurance products are available right now. Please contact support or check back later.
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* How it works — shown only when no active plans */}
-            {activeEnrollments.length === 0 && (
-              <div style={{ background: '#f0f6ff', border: '1px solid #bfdbfe', borderRadius: 14, padding: '18px 22px', marginBottom: 20 }}>
-                <div style={{ fontWeight: 700, color: '#1e40af', fontSize: 14, marginBottom: 10 }}>How the application process works</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
-                  {[
-                    { step: '1', label: 'Choose a plan', icon: '👆', desc: 'Click Apply on any plan below' },
-                    { step: '2', label: 'Fill application', icon: '📝', desc: 'Complete the detailed quote form' },
-                    { step: '3', label: 'Underwriting review', icon: '🔍', desc: 'We review within 1–3 business days' },
-                    { step: '4', label: 'Accept & Pay', icon: '✅', desc: 'Accept the offer and pay via Chapa' },
-                  ].map(s => (
-                    <div key={s.step} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#1e40af', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, flexShrink: 0 }}>{s.step}</div>
-                      <div>
-                        <div style={{ fontWeight: 700, color: '#1e40af', fontSize: 13 }}>{s.icon} {s.label}</div>
-                        <div style={{ color: '#3b82f6', fontSize: 12, marginTop: 1 }}>{s.desc}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 18 }}>
-              {availableProducts.map(p => (
-                <ProductCard
-                  key={p._id}
-                  product={p}
-                  onApply={() => navigate(`/insured/quotes?productId=${p._id}`)}
-                />
-              ))}
-            </div>
-          </>
-        )}
-      </div>
+      )}
 
       {/* Endorsement / change request modal */}
       <EndorsementModal
