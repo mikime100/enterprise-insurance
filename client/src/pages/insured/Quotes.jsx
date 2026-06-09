@@ -396,7 +396,9 @@ export default function InsuredQuotes() {
       if (url) window.location.href = url;
       else { message.success('Enrollment confirmed!'); navigate('/insured/coverage'); }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Something went wrong. Please try again.';
+      const raw = err?.response?.data?.message;
+      const msg = typeof raw === 'string' ? raw
+        : (raw ? JSON.stringify(raw) : 'Something went wrong. Please try again.');
       setAcceptError(msg);
     } finally {
       setAccepting(false);

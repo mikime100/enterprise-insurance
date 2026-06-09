@@ -41,7 +41,7 @@ router.post('/initialize', requireAuth, async (req, res, next) => {
         callback_url: callbackUrl,
         customization: {
           title:       'Enterprise Insurance',
-          description: `${enrollment.product?.name || 'Insurance'} — ${enrollment.tier?.name || ''} Plan`,
+          description: `${enrollment.product?.name || 'Insurance'} ${enrollment.tier?.name || ''} Plan`.trim(),
         },
       },
       {
@@ -68,10 +68,10 @@ router.post('/initialize', requireAuth, async (req, res, next) => {
     });
   } catch (err) {
     if (err.response?.data) {
-      return res.status(400).json({
-        message: err.response.data.message || 'Chapa initialization failed',
-        detail:  err.response.data,
-      });
+      const raw = err.response.data.message;
+      const message = typeof raw === 'string' ? raw
+        : (raw ? JSON.stringify(raw) : 'Chapa initialization failed');
+      return res.status(400).json({ message, detail: err.response.data });
     }
     next(err);
   }
