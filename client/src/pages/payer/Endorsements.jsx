@@ -56,11 +56,59 @@ function DetailView({ endorsement }) {
   );
 
   if (type === 'add_dependent') {
-    const d = details.dependent || {};
+    const d   = details.dependent || {};
+    const ev  = details.qualifyingEvent;
+    const hd  = details.healthDeclaration;
+    const age = d.dateOfBirth ? Math.floor((Date.now() - new Date(d.dateOfBirth)) / 31557600000) : null;
+    const docs = details.documents || [];
     return (
-      <div style={{ fontSize: 13, color: '#374151' }}>
-        <div><strong>{d.firstName} {d.lastName}</strong> · {d.relationship}</div>
-        {d.dateOfBirth && <div style={{ color: '#9ca3af' }}>DOB: {new Date(d.dateOfBirth).toLocaleDateString()}</div>}
+      <div style={{ fontSize: 13, color: '#374151', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px' }}>
+          {[
+            ['Full Name',     `${d.firstName || ''} ${d.lastName || ''}`],
+            ['Relationship',  d.relationship],
+            ['Date of Birth', d.dateOfBirth ? new Date(d.dateOfBirth).toLocaleDateString() : '—'],
+            ['Age',           age !== null ? `${age} yrs` : '—'],
+            ['Gender',        d.gender || '—'],
+            ['National ID',   d.nationalId || '—'],
+          ].map(([k, v]) => (
+            <div key={k}>
+              <div style={{ color: '#9ca3af', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{k}</div>
+              <div style={{ fontWeight: 600, color: '#111827', marginTop: 1, textTransform: k === 'Relationship' || k === 'Gender' ? 'capitalize' : 'none' }}>{v}</div>
+            </div>
+          ))}
+        </div>
+        {ev && (
+          <div style={{ background: '#eff6ff', borderRadius: 8, padding: '7px 10px' }}>
+            <span style={{ color: '#9ca3af', fontSize: 10, fontWeight: 700, textTransform: 'uppercase' }}>Qualifying Event </span>
+            <span style={{ fontWeight: 600, color: '#1e40af' }}>{ev.replace(/_/g, ' ')}</span>
+            {details.qualifyingEventDate && <span style={{ color: '#6b7280', marginLeft: 8 }}>· {new Date(details.qualifyingEventDate).toLocaleDateString()}</span>}
+          </div>
+        )}
+        {hd && (hd.chronicConditions?.length > 0 || hd.currentMedications) && (
+          <div style={{ background: '#fef9c3', borderRadius: 8, padding: '7px 10px' }}>
+            <div style={{ color: '#92400e', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', marginBottom: 3 }}>Health Declaration</div>
+            {hd.chronicConditions?.length > 0 && <div>Conditions: {hd.chronicConditions.join(', ')}</div>}
+            {hd.currentMedications && <div>Medications: {hd.currentMedications}</div>}
+            {hd.smoker && <div>Smoking: {hd.smoker}</div>}
+          </div>
+        )}
+        {docs.length > 0 && (
+          <div>
+            <div style={{ color: '#9ca3af', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', marginBottom: 5 }}>Uploaded Documents ({docs.length})</div>
+            {docs.map((doc, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 0', borderBottom: i < docs.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                <span style={{ fontSize: 14 }}>📄</span>
+                <span style={{ fontSize: 12, color: '#374151', flex: 1 }}>{doc.originalName || doc.path?.split('/').pop()}</span>
+                {doc.path && (
+                  <a href={`${import.meta.env.VITE_API_URL || '/api'}/uploads/${doc.path?.split('/').pop()}`} target="_blank" rel="noreferrer"
+                    style={{ color: NAVY, fontSize: 11, fontWeight: 700 }}>View</a>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {docs.length === 0 && <div style={{ color: '#ef4444', fontSize: 12, fontWeight: 600 }}>⚠ No documents uploaded by applicant</div>}
       </div>
     );
   }
@@ -94,6 +142,7 @@ export default function PayerEndorsements() {
   const [search, setSearch]             = useState('');
   const [reviewing, setReviewing]       = useState(null);
   const [reviewNote, setReviewNote]     = useState('');
+  const [newPremium, setNewPremium]     = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -109,10 +158,15 @@ export default function PayerEndorsements() {
   const handleReview = async (id, status) => {
     setReviewing(id + status);
     try {
-      await api.patch(`/endorsements/${id}/review`, { status, reviewNote });
+      await api.patch(`/endorsements/${id}/review`, {
+        status,
+        reviewNote,
+        ...(newPremium ? { newPremiumAmount: parseFloat(newPremium) } : {}),
+      });
       message.success(status === 'approved' ? 'Endorsement approved and applied.' : status === 'rejected' ? 'Endorsement rejected.' : 'Marked as under review.');
       setDetail(null);
       setReviewNote('');
+      setNewPremium('');
       load();
     } catch (err) {
       message.error(err.response?.data?.message || 'Review failed');
@@ -260,6 +314,26 @@ export default function PayerEndorsements() {
                 onChange={e => setReviewNote(e.target.value)}
                 style={{ marginBottom: 14, borderRadius: 10 }}
               />
+              {['add_dependent','remove_dependent'].includes(detail.type) && (
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontWeight: 600, color: '#374151', fontSize: 13, marginBottom: 6 }}>
+                    Revised Annual Premium (ETB) <span style={{ color: '#9ca3af', fontWeight: 400 }}>— leave blank to keep current premium</span>
+                  </div>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder={`Current: ETB ${detail.enrollment?.tier?.annualPremium?.toLocaleString() ?? '—'}`}
+                    value={newPremium}
+                    onChange={e => setNewPremium(e.target.value)}
+                    style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #e5e7eb', borderRadius: 9, fontSize: 13, boxSizing: 'border-box' }}
+                  />
+                  {newPremium && (
+                    <div style={{ marginTop: 5, fontSize: 12, color: '#16a34a', fontWeight: 600 }}>
+                      New premium ETB {parseFloat(newPremium).toLocaleString()} / yr (≈ ETB {Math.round(parseFloat(newPremium)/12).toLocaleString()} / mo) will be applied on approval.
+                    </div>
+                  )}
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 10 }}>
                 <button
                   onClick={() => handleReview(detail._id, 'under_review')}

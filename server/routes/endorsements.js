@@ -108,8 +108,17 @@ router.patch('/:id/review', requireRole('payer_admin', 'underwriter', 'superadmi
       if (endorsement.type === 'add_dependent') {
         const person = await InsuredPerson.findById(enr.insuredPersons[0]);
         if (person) {
-          person.dependents.push(endorsement.details.dependent);
+          const dep = { ...(endorsement.details.dependent || {}) };
+          delete dep._id;
+          person.dependents.push(dep);
           await person.save();
+        }
+        // Allow payer to set revised premium on approval
+        const newAmt = parseFloat(req.body.newPremiumAmount);
+        if (!isNaN(newAmt) && newAmt > 0) {
+          enr.premium = enr.premium || {};
+          enr.premium.amount = newAmt;
+          await enr.save();
         }
       }
 
@@ -120,6 +129,12 @@ router.patch('/:id/review', requireRole('payer_admin', 'underwriter', 'superadmi
             d => d._id.toString() !== endorsement.details.dependentId
           );
           await person.save();
+        }
+        const newAmt = parseFloat(req.body.newPremiumAmount);
+        if (!isNaN(newAmt) && newAmt > 0) {
+          enr.premium = enr.premium || {};
+          enr.premium.amount = newAmt;
+          await enr.save();
         }
       }
 
@@ -151,6 +166,21 @@ router.patch('/:id/review', requireRole('payer_admin', 'underwriter', 'superadmi
       ]});
 
     res.json({ endorsement: populated });
+  } catch (err) { next(err); }
+});
+
+// ── GET /api/endorsements/:id ─────────────────────────────────────────────────
+router.get('/:id', async (req, res, next) => {
+  try {
+    const endorsement = await Endorsement.findById(req.params.id)
+      .populate('requestedBy', 'firstName lastName email')
+      .populate('reviewedBy',  'firstName lastName')
+      .populate({ path: 'enrollment', populate: [
+        { path: 'product', select: 'name productType' },
+        { path: 'tier',    select: 'name annualPremium' },
+      ]});
+    if (!endorsement) return res.status(404).json({ message: 'Not found' });
+    res.json({ endorsement });
   } catch (err) { next(err); }
 });
 
