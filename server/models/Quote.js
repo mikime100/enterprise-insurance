@@ -41,6 +41,7 @@ const quoteSchema = new mongoose.Schema({
     claimsHistory: { type: String, enum: ['none', 'low', 'moderate', 'high'], default: 'none' },
     riskScore:     { type: Number, min: 1, max: 10 }
   },
+  applicationData: { type: mongoose.Schema.Types.Mixed },
   scenarios:       [scenarioSchema],
   selectedScenario: Number, // index into scenarios array
   status: {

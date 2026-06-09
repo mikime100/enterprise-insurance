@@ -77,7 +77,7 @@ router.patch('/:id/underwrite', requireRole('underwriter', 'payer_admin', 'super
 // Approve / reject quote
 router.patch('/:id/status', requireRole('underwriter', 'payer_admin', 'superadmin'), async (req, res, next) => {
   try {
-    const { status, note, finalPremium } = req.body;
+    const { status, note, finalPremium, validUntil, selectedTierId } = req.body;
     const allowed = ['approved', 'rejected', 'under_review', 'expired'];
     if (!allowed.includes(status)) return res.status(400).json({ message: 'Invalid status' });
 
@@ -86,6 +86,8 @@ router.patch('/:id/status', requireRole('underwriter', 'payer_admin', 'superadmi
 
     quote.status = status;
     if (finalPremium !== undefined) quote.finalPremium = finalPremium;
+    if (validUntil) quote.validUntil = new Date(validUntil);
+    if (selectedTierId) quote.riskFactors = { ...(quote.riskFactors || {}), selectedTierId };
     if (note) quote.notes.push({ author: req.user._id, content: note });
     await quote.save();
     res.json({ quote });
