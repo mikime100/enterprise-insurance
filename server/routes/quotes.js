@@ -101,29 +101,38 @@ router.post('/:id/accept', async (req, res, next) => {
     if (!quote) return res.status(404).json({ message: 'Quote not found' });
     if (quote.status !== 'approved') return res.status(400).json({ message: 'Only approved quotes can be accepted' });
 
+    // Use a safe premium: prefer finalPremium if > 0, then scenario, then product base
     const selectedIdx = req.body.selectedScenario ?? 0;
+    const rawPremium = (quote.finalPremium > 0 ? quote.finalPremium : null)
+      ?? quote.scenarios[selectedIdx]?.annualPremium
+      ?? quote.product?.baseAnnualPremium;
+
+    if (!rawPremium || rawPremium <= 0) {
+      return res.status(400).json({ message: 'This quote has no approved premium amount. Please ask the insurer to revise the offer.' });
+    }
+
     quote.status = 'accepted';
     quote.selectedScenario = selectedIdx;
     await quote.save();
 
     const selectedTier = quote.scenarios[selectedIdx]?.tier;
-    const premium = quote.finalPremium || quote.scenarios[selectedIdx]?.annualPremium || quote.product.baseAnnualPremium;
-
     const startDate = new Date();
     const endDate = new Date(startDate);
     endDate.setFullYear(endDate.getFullYear() + 1);
 
     const enrollment = new PolicyEnrollment({
-      quote: quote._id,
-      product: quote.product._id,
-      tier: selectedTier,
-      payer: quote.payer,
-      institution: quote.institution || undefined,
-      status: 'pending',
+      quote:          quote._id,
+      product:        quote.product._id,
+      tier:           selectedTier,
+      payer:          quote.payer,
+      institution:    quote.institution || undefined,
+      // Link the insured person so Coverage page can find this enrollment
+      insuredPersons: quote.insuredPerson ? [quote.insuredPerson] : [],
+      status:         'pending',
       startDate,
       endDate,
-      renewalDate: endDate,
-      premium: { amount: premium, frequency: 'annual' }
+      renewalDate:    endDate,
+      premium: { amount: rawPremium, frequency: 'annual' },
     });
     await enrollment.save();
     res.status(201).json({ quote, enrollment });

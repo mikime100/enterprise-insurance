@@ -226,6 +226,7 @@ export default function InsuredQuotes() {
   const [reqOpen, setReqOpen]       = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [accepting, setAccepting]   = useState(false);
+  const [acceptError, setAcceptError] = useState('');
 
   const [formData, setFormData]     = useState(emptyForm());
   const [errors, setErrors]         = useState({});
@@ -273,6 +274,7 @@ export default function InsuredQuotes() {
   }, [products, searchParams]);
 
   const openDetail = async (q) => {
+    setAcceptError('');
     setDetail(q);
     try { const r = await api.get(`/quotes/${q._id}`); setDetail(r.data.quote); } catch (_) {}
   };
@@ -379,6 +381,13 @@ export default function InsuredQuotes() {
   };
 
   const handleAccept = async (quote) => {
+    setAcceptError('');
+    // Guard: premium must be set before proceeding
+    const premium = quote.finalPremium || quote.scenarios?.[0]?.annualPremium;
+    if (!premium || premium <= 0) {
+      setAcceptError('No premium amount has been set on this offer yet. Please contact the insurer.');
+      return;
+    }
     setAccepting(true);
     try {
       const { data } = await api.post(`/quotes/${quote._id}/accept`);
@@ -387,7 +396,8 @@ export default function InsuredQuotes() {
       if (url) window.location.href = url;
       else { message.success('Enrollment confirmed!'); navigate('/insured/coverage'); }
     } catch (err) {
-      message.error(err?.response?.data?.message || 'Failed to accept offer. Please try again.');
+      const msg = err?.response?.data?.message || 'Something went wrong. Please try again.';
+      setAcceptError(msg);
     } finally {
       setAccepting(false);
     }
@@ -586,17 +596,36 @@ export default function InsuredQuotes() {
               )}
               {detail.status === 'approved' && (
                 <>
-                  <div style={{ background: 'linear-gradient(135deg,#064e3b,#065f46)', borderRadius: 14, padding: '24px 28px', color: '#fff' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                      <CheckCircleOutlined style={{ fontSize: 20, color: '#6ee7b7' }} />
-                      <div style={{ fontWeight: 800, fontSize: 17 }}>Your Personalised Offer is Ready</div>
-                    </div>
-                    <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Final Annual Premium</div>
-                    <div style={{ fontSize: 38, fontWeight: 900, lineHeight: 1, marginBottom: 6 }}>
-                      ETB {(detail.finalPremium || detail.scenarios?.[0]?.annualPremium || 0).toLocaleString()}
-                    </div>
-                    {detail.finalPremium && <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13 }}>≈ ETB {Math.round(detail.finalPremium / 12).toLocaleString()} / month</div>}
-                  </div>
+                  {(() => {
+                    const offerPremium = detail.finalPremium > 0 ? detail.finalPremium : detail.scenarios?.[0]?.annualPremium;
+                    if (!offerPremium) {
+                      return (
+                        <div style={{ background: '#fef9c3', border: '1px solid #fde68a', borderRadius: 12, padding: '18px 20px', display: 'flex', gap: 12 }}>
+                          <span style={{ fontSize: 22 }}>⚠️</span>
+                          <div>
+                            <div style={{ fontWeight: 700, color: '#92400e', fontSize: 14 }}>Offer Pending Premium</div>
+                            <div style={{ color: '#78350f', fontSize: 13, marginTop: 4, lineHeight: 1.5 }}>
+                              The underwriter has approved your application but has not yet set the final premium amount. Please check back soon or contact the insurer.
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div style={{ background: 'linear-gradient(135deg,#064e3b,#065f46)', borderRadius: 14, padding: '24px 28px', color: '#fff' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                          <CheckCircleOutlined style={{ fontSize: 20, color: '#6ee7b7' }} />
+                          <div style={{ fontWeight: 800, fontSize: 17 }}>Your Personalised Offer is Ready</div>
+                        </div>
+                        <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Final Annual Premium</div>
+                        <div style={{ fontSize: 38, fontWeight: 900, lineHeight: 1, marginBottom: 6 }}>
+                          ETB {offerPremium.toLocaleString()}
+                        </div>
+                        <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13 }}>≈ ETB {Math.round(offerPremium / 12).toLocaleString()} / month</div>
+                      </div>
+                    );
+                  })()}
+
                   {detail.scenarios?.length > 0 && (
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 14, color: '#111827', marginBottom: 10 }}>Coverage Options</div>
@@ -621,13 +650,24 @@ export default function InsuredQuotes() {
               )}
             </div>
             {detail.status === 'approved' && (
-              <div style={{ padding: '16px 28px', borderTop: '1px solid #e5e7eb', background: '#f9fafb', display: 'flex', gap: 10 }}>
-                <button onClick={() => setDetail(null)} style={{ flex: 1, padding: '12px 0', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, color: '#6b7280', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>Decide Later</button>
-                <button onClick={() => handleAccept(detail)} disabled={accepting}
-                  style={{ flex: 2, padding: '12px 0', background: accepting ? '#9ca3af' : GREEN, border: 'none', borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: 15, cursor: accepting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                  {accepting ? <LoadingOutlined /> : <CheckOutlined />}
-                  {accepting ? 'Processing...' : 'Accept Offer & Pay with Chapa'}
-                </button>
+              <div style={{ borderTop: '1px solid #e5e7eb', background: '#f9fafb' }}>
+                {acceptError && (
+                  <div style={{ padding: '12px 28px', background: '#fee2e2', borderBottom: '1px solid #fecaca', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <span style={{ color: RED, fontSize: 18, flexShrink: 0, lineHeight: 1.4 }}>⚠</span>
+                    <div>
+                      <div style={{ color: '#991b1b', fontWeight: 700, fontSize: 13 }}>Could not process payment</div>
+                      <div style={{ color: '#b91c1c', fontSize: 13, marginTop: 2 }}>{acceptError}</div>
+                    </div>
+                  </div>
+                )}
+                <div style={{ padding: '16px 28px', display: 'flex', gap: 10 }}>
+                  <button onClick={() => { setDetail(null); setAcceptError(''); }} style={{ flex: 1, padding: '12px 0', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, color: '#6b7280', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>Decide Later</button>
+                  <button onClick={() => handleAccept(detail)} disabled={accepting}
+                    style={{ flex: 2, padding: '12px 0', background: accepting ? '#9ca3af' : GREEN, border: 'none', borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: 15, cursor: accepting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                    {accepting ? <LoadingOutlined /> : <CheckOutlined />}
+                    {accepting ? 'Processing...' : 'Accept Offer & Pay with Chapa'}
+                  </button>
+                </div>
               </div>
             )}
           </div>
