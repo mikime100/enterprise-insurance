@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Spin, message } from 'antd';
+import { Spin, message, DatePicker } from 'antd';
+import dayjs from 'dayjs';
 import {
   UserOutlined, PlusOutlined, ClockCircleOutlined, CheckCircleOutlined,
   CloseCircleOutlined, SyncOutlined, WarningOutlined, UploadOutlined,
@@ -350,7 +351,7 @@ function AddDependentModal({ enrollment, open, onClose, onSubmitted }) {
                 </div>
                 <div>
                   <Label required>Date of Birth</Label>
-                  <input type="date" style={inputStyle(errors.dateOfBirth)} value={form.dateOfBirth} onChange={e => sf('dateOfBirth', e.target.value)} />
+                  <DatePicker style={{ width: '100%' }} status={errors.dateOfBirth ? 'error' : ''} value={form.dateOfBirth ? dayjs(form.dateOfBirth) : null} onChange={d => sf('dateOfBirth', d ? d.format('YYYY-MM-DD') : '')} />
                   {errors.dateOfBirth && <div style={{ color: RED, fontSize: 11, marginTop: 3 }}>{errors.dateOfBirth}</div>}
                   {form.dateOfBirth && calcAge(form.dateOfBirth) !== null && (
                     <div style={{ color: '#6b7280', fontSize: 11, marginTop: 3 }}>Age: {calcAge(form.dateOfBirth)} years</div>
@@ -459,7 +460,7 @@ function AddDependentModal({ enrollment, open, onClose, onSubmitted }) {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 18px' }}>
                   <div>
                     <Label required>Event Date</Label>
-                    <input type="date" style={inputStyle(false)} value={form.qualifyingEventDate} onChange={e => sf('qualifyingEventDate', e.target.value)} />
+                    <DatePicker style={{ width: '100%' }} value={form.qualifyingEventDate ? dayjs(form.qualifyingEventDate) : null} onChange={d => sf('qualifyingEventDate', d ? d.format('YYYY-MM-DD') : '')} />
                   </div>
                   <div>
                     {form.qualifyingEvent === 'other' && (

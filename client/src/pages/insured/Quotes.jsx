@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Table, Spin, message } from 'antd';
+import { Table, Spin, message, DatePicker } from 'antd';
+import dayjs from 'dayjs';
 import {
   FileTextOutlined, PlusOutlined, CheckCircleOutlined, ClockCircleOutlined,
   ExclamationCircleOutlined, CheckOutlined, CloseCircleOutlined, UploadOutlined,
@@ -780,7 +781,7 @@ export default function InsuredQuotes() {
                     <SectionHead number="2" title="Personal Information" sub="Your basic personal details for underwriting" />
                     <Grid>
                       <Field label="Date of Birth" required>
-                        <input type="date" style={inputStyle(errors.dateOfBirth)} value={formData.dateOfBirth} onChange={e => sf('dateOfBirth', e.target.value)} />
+                        <DatePicker style={{ width: '100%' }} status={errors.dateOfBirth ? 'error' : ''} value={formData.dateOfBirth ? dayjs(formData.dateOfBirth) : null} onChange={d => sf('dateOfBirth', d ? d.format('YYYY-MM-DD') : '')} />
                         {errors.dateOfBirth && <div style={{ color: RED, fontSize: 11, marginTop: 3 }}>{errors.dateOfBirth}</div>}
                       </Field>
                       <Field label="Gender">
@@ -1026,10 +1027,10 @@ export default function InsuredQuotes() {
                           </select>
                         </Field>
                         <Field label="Departure Date" required>
-                          <input type="date" style={inputStyle(errors.departureDate)} value={formData.departureDate} onChange={e => sf('departureDate', e.target.value)} />
+                          <DatePicker style={{ width: '100%' }} status={errors.departureDate ? 'error' : ''} value={formData.departureDate ? dayjs(formData.departureDate) : null} onChange={d => sf('departureDate', d ? d.format('YYYY-MM-DD') : '')} />
                         </Field>
                         <Field label="Return Date" required>
-                          <input type="date" style={inputStyle(errors.returnDate)} value={formData.returnDate} onChange={e => sf('returnDate', e.target.value)} />
+                          <DatePicker style={{ width: '100%' }} status={errors.returnDate ? 'error' : ''} value={formData.returnDate ? dayjs(formData.returnDate) : null} onChange={d => sf('returnDate', d ? d.format('YYYY-MM-DD') : '')} />
                         </Field>
                         <Field label="Estimated Total Trip Cost (ETB)">
                           <input type="number" style={inputStyle(false)} placeholder="e.g. 80000" value={formData.estimatedTripCost} onChange={e => sf('estimatedTripCost', e.target.value)} />

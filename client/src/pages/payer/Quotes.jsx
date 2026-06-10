@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Spin } from 'antd';
+import { Spin, DatePicker } from 'antd';
+import dayjs from 'dayjs';
 import {
   CheckOutlined, CloseOutlined, WarningOutlined, CheckCircleOutlined,
   BankOutlined, DownloadOutlined, EyeOutlined, LoadingOutlined,
@@ -635,12 +636,7 @@ export default function PayerQuotes() {
                       {/* Offer validity */}
                       <div>
                         <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Offer Valid Until</div>
-                        <input
-                          type="date"
-                          value={offer.validUntil}
-                          onChange={e => setO('validUntil', e.target.value)}
-                          style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #e5e7eb', borderRadius: 9, fontSize: 13, boxSizing: 'border-box' }}
-                        />
+                        <DatePicker style={{ width: '100%' }} value={offer.validUntil ? dayjs(offer.validUntil) : null} onChange={d => setO('validUntil', d ? d.format('YYYY-MM-DD') : '')} />
                       </div>
 
                       {/* Underwriting conditions */}

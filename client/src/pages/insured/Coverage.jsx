@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Spin, Divider, message } from 'antd';
+import { Spin, Divider, message, DatePicker } from 'antd';
+import dayjs from 'dayjs';
 import {
   CheckCircleOutlined, InfoCircleOutlined, ArrowRightOutlined,
   CloseOutlined, SafetyOutlined, UploadOutlined,
@@ -345,8 +346,7 @@ function EndorsementModal({ enrollment, open, onClose, onSubmitted }) {
                     <input key={k} placeholder={l} value={details.dependent?.[k] || ''} onChange={e => setDep(k, e.target.value)}
                       style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13 }} />
                   ))}
-                  <input type="date" value={details.dependent?.dateOfBirth || ''} onChange={e => setDep('dateOfBirth', e.target.value)}
-                    style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13 }} />
+                  <DatePicker style={{ width: '100%' }} value={details.dependent?.dateOfBirth ? dayjs(details.dependent.dateOfBirth) : null} onChange={d => setDep('dateOfBirth', d ? d.format('YYYY-MM-DD') : '')} />
                   <select value={details.dependent?.relationship || ''} onChange={e => setDep('relationship', e.target.value)}
                     style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, background: '#fff' }}>
                     <option value="">Relationship…</option>
@@ -402,8 +402,7 @@ function EndorsementModal({ enrollment, open, onClose, onSubmitted }) {
                   </div>
                   <textarea placeholder="Reason *" value={details.reason || ''} onChange={e => set('reason', e.target.value)} rows={3}
                     style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, resize: 'vertical' }} />
-                  <input type="date" placeholder="Requested effective date" value={details.requestedDate || ''} onChange={e => set('requestedDate', e.target.value)}
-                    style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13 }} />
+                  <DatePicker placeholder="Requested effective date" style={{ width: '100%' }} value={details.requestedDate ? dayjs(details.requestedDate) : null} onChange={d => set('requestedDate', d ? d.format('YYYY-MM-DD') : '')} />
                 </div>
               )}
 

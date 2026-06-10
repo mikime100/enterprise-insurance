@@ -31,11 +31,27 @@ const STATUS_CFG = {
   closed:                  { color: '#9ca3af', bg: '#f3f4f6', label: 'Closed' },
 };
 
-const CLAIM_TYPES = [
-  'inpatient','outpatient','dental','optical','maternity',
-  'pharmacy','emergency','auto_accident','property_damage',
-  'liability','death','disability','travel','other',
-];
+const CLAIM_TYPE_LABELS = {
+  inpatient: 'Inpatient', outpatient: 'Outpatient', dental: 'Dental',
+  optical: 'Optical', maternity: 'Maternity', pharmacy: 'Pharmacy',
+  emergency: 'Emergency', auto_accident: 'Auto Accident',
+  property_damage: 'Property Damage', liability: 'Liability',
+  death: 'Death / Life', disability: 'Disability', travel: 'Travel', other: 'Other',
+};
+
+const CLAIM_TYPES_BY_PRODUCT = {
+  auto:       ['auto_accident', 'property_damage', 'liability', 'other'],
+  home:       ['property_damage', 'liability', 'other'],
+  renters:    ['property_damage', 'liability', 'other'],
+  business:   ['property_damage', 'liability', 'auto_accident', 'other'],
+  life:       ['death', 'disability', 'other'],
+  disability: ['disability', 'other'],
+  health:     ['inpatient','outpatient','dental','optical','maternity','pharmacy','emergency','death','disability','other'],
+  travel:     ['travel','emergency','inpatient','outpatient','other'],
+  pet:        ['inpatient','outpatient','emergency','pharmacy','other'],
+};
+
+const ALL_CLAIM_TYPES = Object.keys(CLAIM_TYPE_LABELS);
 
 const DOC_TYPES = [
   { value: 'receipt',        label: 'Receipt / Invoice' },
@@ -91,6 +107,7 @@ export default function InsuredClaims() {
   const [submitting, setSubmitting]   = useState(false);
   const [uploadedDocs, setUploadedDocs] = useState([]);
   const [claimTypeValue, setClaimTypeValue] = useState('');
+  const [selectedProductType, setSelectedProductType] = useState('');
   const [form] = Form.useForm();
   const { user } = useAuth();
 
@@ -333,11 +350,17 @@ export default function InsuredClaims() {
             </div>
 
             <div style={{ overflowY: 'auto', padding: '24px 28px', flex: 1 }}>
-              <Form form={form} layout="vertical" requiredMark={false}>
+              <Form form={form} layout="vertical" requiredMark={false} scrollToFirstError>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
 
                   <Form.Item name="enrollmentId" label="Policy" rules={[{ required: true, message: 'Select a policy' }]} style={{ gridColumn: '1 / -1' }}>
-                    <Select size="large" placeholder="Select your active policy">
+                    <Select size="large" placeholder="Select your active policy"
+                      onChange={v => {
+                        const enr = enrollments.find(e => e._id === v);
+                        setSelectedProductType(enr?.product?.productType || '');
+                        form.setFieldValue('claimType', undefined);
+                        setClaimTypeValue('');
+                      }}>
                       {enrollments.map(e => (
                         <Select.Option key={e._id} value={e._id}>
                           {e.enrollmentNumber} — {e.product?.name}
@@ -349,8 +372,8 @@ export default function InsuredClaims() {
                   <Form.Item name="claimType" label="Claim Type" rules={[{ required: true, message: 'Select claim type' }]}>
                     <Select size="large" placeholder="Type of claim"
                       onChange={v => setClaimTypeValue(v)}>
-                      {CLAIM_TYPES.map(v => (
-                        <Select.Option key={v} value={v}>{v.replace(/_/g, ' ')}</Select.Option>
+                      {(CLAIM_TYPES_BY_PRODUCT[selectedProductType] || ALL_CLAIM_TYPES).map(v => (
+                        <Select.Option key={v} value={v}>{CLAIM_TYPE_LABELS[v]}</Select.Option>
                       ))}
                     </Select>
                   </Form.Item>

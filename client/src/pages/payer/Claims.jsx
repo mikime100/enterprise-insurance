@@ -559,7 +559,7 @@ export default function PayerClaims() {
             <TextArea rows={3} placeholder="Provide context for this status change..." />
           </Form.Item>
           <Form.Item name="estimatedResolutionDate" label="Estimated Resolution Date">
-            <Input type="date" />
+            <DatePicker style={{ width: '100%' }} />
           </Form.Item>
         </Form>
       </Modal>
