@@ -38,6 +38,7 @@ const claimSchema = new mongoose.Schema({
     default: 'insured_reimbursement'
   },
   assignedOfficer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  payer: { type: mongoose.Schema.Types.ObjectId, ref: 'Payer' },
   claimType: {
     type: String,
     enum: [
@@ -59,9 +60,20 @@ const claimSchema = new mongoose.Schema({
     default: 'submitted'
   },
   priority:     { type: String, enum: ['low', 'medium', 'high', 'urgent'], default: 'medium' },
-  incidentDate: { type: Date, required: true },
+  incidentDate:     { type: Date, required: true },
+  incidentLocation: String,
+  policeReportRef:  String,
+  thirdParty: {
+    name:        String,
+    contact:     String,
+    vehicle:     String,
+    insurerName: String,
+  },
   description:  { type: String, required: true },
   diagnosis:    String,
+  documentationRequested: [String],
+  appealStatus: { type: String, enum: ['none', 'submitted', 'reviewed'], default: 'none' },
+  appealNote:   String,
   services:     [claimServiceSchema],
   documents:    [documentSchema],
   claimedAmount:   { type: Number, required: true },

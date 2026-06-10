@@ -21,6 +21,8 @@ router.get('/', async (req, res, next) => {
       filter.insuredPerson = req.user.linkedEntity.entityId;
     } else if (req.user.role === 'provider_admin' && req.user.linkedEntity?.entityId) {
       filter.provider = req.user.linkedEntity.entityId;
+    } else if (STAFF_ROLES.includes(req.user.role) && req.user.role !== 'superadmin' && req.user.linkedEntity?.entityId) {
+      filter.payer = req.user.linkedEntity.entityId;
     } else if (req.user.role === 'institution_admin') {
       const instId = req.user.linkedEntity?.entityId || req.user.institutionId;
       // Hard guard: never return all claims if institution is unresolvable
@@ -66,7 +68,8 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
   try {
     let { enrollmentId, insuredPersonId, providerId, submissionType, claimType,
-            incidentDate, description, diagnosis, claimedAmount, priority, services, documents } = req.body;
+            incidentDate, incidentLocation, policeReportRef, thirdParty,
+            description, diagnosis, claimedAmount, priority, services, documents } = req.body;
 
     // Mobile: auto-resolve enrollment and insuredPerson for insured_person role
     if (req.user.role === 'insured_person' && req.user.linkedEntity?.entityId) {
@@ -86,18 +89,22 @@ router.post('/', async (req, res, next) => {
 
     const claim = new Claim({
       insuredPerson: insuredPersonId,
-      enrollment: enrollmentId,
-      provider: providerId || undefined,
-      submittedBy: req.user._id,
+      enrollment:    enrollmentId,
+      payer:         enrollment.payer,
+      provider:      providerId || undefined,
+      submittedBy:   req.user._id,
       submissionType: submissionType || 'insured_reimbursement',
       claimType,
-      incidentDate: incidentDate || req.body.dateOfService,
+      incidentDate:     incidentDate || req.body.dateOfService,
+      incidentLocation: incidentLocation || undefined,
+      policeReportRef:  policeReportRef  || undefined,
+      thirdParty:       thirdParty       || undefined,
       description,
       diagnosis,
       claimedAmount,
-      priority: priority || 'medium',
-      services: services || [],
-      documents: documents || [],
+      priority:     priority || 'medium',
+      services:     services  || [],
+      documents:    documents || [],
       statusHistory: [{ status: 'submitted', changedBy: req.user._id }]
     });
     await claim.save();
@@ -125,6 +132,9 @@ router.patch('/:id/status', requireRole(...CLAIMS_ROLES), async (req, res, next)
 
     claim.status = status;
     claim.statusHistory.push({ status, changedBy: req.user._id, reason });
+    if (status === 'documentation_requested' && req.body.documentationRequested?.length) {
+      claim.documentationRequested = req.body.documentationRequested;
+    }
     if (approvedAmount !== undefined) claim.approvedAmount = approvedAmount;
     if (settlementAmount !== undefined) claim.settlementAmount = settlementAmount;
     if (estimatedResolutionDate) claim.estimatedResolutionDate = estimatedResolutionDate;
@@ -186,6 +196,58 @@ router.patch('/:id/priority', requireRole(...CLAIMS_ROLES), async (req, res, nex
   try {
     const claim = await Claim.findByIdAndUpdate(req.params.id, { priority: req.body.priority }, { new: true });
     if (!claim) return res.status(404).json({ message: 'Claim not found' });
+    res.json({ claim });
+  } catch (err) { next(err); }
+});
+
+// Insured submits additional documents (responds to documentation_requested)
+router.post('/:id/add-documents', async (req, res, next) => {
+  try {
+    const { documents } = req.body;
+    const claim = await Claim.findById(req.params.id);
+    if (!claim) return res.status(404).json({ message: 'Claim not found' });
+
+    if (req.user.role === 'insured_person') {
+      const personId = req.user.linkedEntity?.entityId?.toString();
+      if (claim.insuredPerson.toString() !== personId) {
+        return res.status(403).json({ message: 'Forbidden' });
+      }
+    }
+
+    if (Array.isArray(documents) && documents.length) {
+      claim.documents.push(...documents);
+    }
+
+    if (claim.status === 'documentation_requested') {
+      claim.status = 'under_review';
+      claim.statusHistory.push({
+        status: 'under_review',
+        changedBy: req.user._id,
+        reason: 'Additional documents submitted by insured',
+      });
+    }
+
+    await claim.save();
+    res.json({ claim });
+  } catch (err) { next(err); }
+});
+
+// Insured submits an appeal against a denied claim
+router.post('/:id/appeal', async (req, res, next) => {
+  try {
+    const { appealNote } = req.body;
+    if (!appealNote?.trim()) return res.status(400).json({ message: 'Appeal reason is required' });
+
+    const claim = await Claim.findById(req.params.id);
+    if (!claim) return res.status(404).json({ message: 'Claim not found' });
+    if (claim.status !== 'denied') return res.status(400).json({ message: 'Only denied claims can be appealed' });
+    if (claim.appealStatus === 'submitted') return res.status(400).json({ message: 'Appeal already submitted' });
+
+    claim.appealStatus = 'submitted';
+    claim.appealNote   = appealNote;
+    claim.notes.push({ author: req.user._id, content: `APPEAL: ${appealNote}`, isInternal: false });
+    await claim.save();
+
     res.json({ claim });
   } catch (err) { next(err); }
 });
