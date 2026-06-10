@@ -285,163 +285,158 @@ export default function PayerEnrollments() {
         open={!!detail}
         onCancel={() => setDetail(null)}
         footer={null}
-        width={720}
+        width={980}
         styles={{ content: { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 0 } }}
       >
-        {detail && (
-          <div>
-            {/* Modal header */}
-            <div style={{ padding: '20px 28px', borderBottom: `1px solid ${D.border}` }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {detail && (() => {
+          const isInstitutional = !!detail.institution;
+          const person          = detail.insuredPersons?.[0];
+          const appData         = detail.quote?.applicationData || {};
+          const appEntries      = Object.entries(appData).filter(([, v]) => v != null && v !== '');
+          const pv              = detail.paymentVerification;
+          const hasPendingProof = pv?.receiptUrl && pv?.status === 'pending';
+          const canReview       = ['payer_admin', 'superadmin'].includes(user?.role) && detail.status === 'pending';
+
+          const baseFields = [
+            { label: 'Product',         value: detail.product?.name || '—' },
+            { label: 'Tier',            value: detail.tier?.name || '—' },
+            { label: 'Annual Premium',  value: `${(detail.premium?.amount || 0).toLocaleString()} ETB` },
+            { label: 'Coverage Period', value: `${new Date(detail.startDate).toLocaleDateString()} – ${new Date(detail.endDate).toLocaleDateString()}` },
+          ];
+          const extraFields = isInstitutional ? [
+            { label: 'Employer Share', value: detail.premium?.employerShare ? `${detail.premium.employerShare.toLocaleString()} ETB` : '—' },
+            { label: 'Employee Share', value: detail.premium?.employeeShare ? `${detail.premium.employeeShare.toLocaleString()} ETB` : '—' },
+          ] : person ? [
+            { label: 'Primary Insured', value: `${person.firstName || ''} ${person.lastName || ''}`.trim() || '—' },
+            { label: 'Date of Birth',   value: person.dateOfBirth ? new Date(person.dateOfBirth).toLocaleDateString() : '—' },
+            { label: 'Email',           value: person.email || '—' },
+            { label: 'National ID',     value: person.nationalId || '—' },
+          ] : [];
+          const fields = [...baseFields, ...extraFields];
+
+          return (
+            <div>
+              {/* Header */}
+              <div style={{ padding: '18px 24px', borderBottom: `1px solid ${D.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
                   <h3 style={{ color: D.text, fontWeight: 800, margin: 0, fontSize: 18 }}>{detail.institution?.name || 'Individual Policy'}</h3>
                   <span style={{ color: D.sec, fontSize: 13 }}>{detail.enrollmentNumber}</span>
                 </div>
                 <StatusBadge status={detail.status} />
               </div>
-            </div>
 
-            {/* Policy details */}
-            <div style={{ padding: '20px 28px' }}>
-              {/* Core policy fields — institutional vs individual */}
-              {(() => {
-                const isInstitutional = !!detail.institution;
-                const person = detail.insuredPersons?.[0];
-                const appData = detail.quote?.applicationData || {};
-                const appEntries = Object.entries(appData).filter(([, v]) => v != null && v !== '');
+              {/* Two-column body */}
+              <div style={{ display: 'flex', gap: 0, alignItems: 'flex-start' }}>
 
-                const baseFields = [
-                  { label: 'Product',         value: detail.product?.name || '—' },
-                  { label: 'Tier',            value: detail.tier?.name || '—' },
-                  { label: 'Annual Premium',  value: `${(detail.premium?.amount || 0).toLocaleString()} ETB` },
-                  { label: 'Coverage Period', value: `${new Date(detail.startDate).toLocaleDateString()} – ${new Date(detail.endDate).toLocaleDateString()}` },
-                ];
+                {/* LEFT — policy info */}
+                <div style={{ flex: '1 1 0', padding: '20px 20px 20px 24px', borderRight: `1px solid ${D.border}`, minWidth: 0 }}>
 
-                const institutionFields = [
-                  { label: 'Employer Share', value: detail.premium?.employerShare ? `${detail.premium.employerShare.toLocaleString()} ETB` : '—' },
-                  { label: 'Employee Share', value: detail.premium?.employeeShare ? `${detail.premium.employeeShare.toLocaleString()} ETB` : '—' },
-                ];
-
-                const individualFields = person ? [
-                  { label: 'Primary Insured',  value: `${person.firstName || ''} ${person.lastName || ''}`.trim() || '—' },
-                  { label: 'Date of Birth',    value: person.dateOfBirth ? new Date(person.dateOfBirth).toLocaleDateString() : '—' },
-                  { label: 'Email',            value: person.email || '—' },
-                  { label: 'National ID',      value: person.nationalId || '—' },
-                ] : [];
-
-                const fields = isInstitutional
-                  ? [...baseFields, ...institutionFields]
-                  : [...baseFields, ...individualFields];
-
-                return (
-                  <>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
-                      {fields.map(f => (
-                        <div key={f.label} style={{ background: D.card2, borderRadius: 8, padding: 14 }}>
-                          <div style={{ color: D.sec, fontSize: 10, fontWeight: 700, letterSpacing: '0.07em', marginBottom: 5 }}>{f.label.toUpperCase()}</div>
-                          <div style={{ color: D.text, fontWeight: 600, fontSize: 14 }}>{f.value}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Application data from quote */}
-                    {appEntries.length > 0 && (
-                      <div style={{ marginBottom: 20 }}>
-                        <div style={{ color: D.sec, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 10 }}>
-                          APPLICATION DATA {detail.quote?.quoteNumber ? `— ${detail.quote.quoteNumber}` : ''}
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                          {appEntries.map(([key, val]) => (
-                            <div key={key} style={{ background: '#f0f6ff', borderRadius: 8, padding: '10px 12px' }}>
-                              <div style={{ color: D.sec, fontSize: 10, fontWeight: 700, letterSpacing: '0.07em', marginBottom: 4 }}>
-                                {key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim().toUpperCase()}
-                              </div>
-                              <div style={{ color: D.text, fontWeight: 600, fontSize: 13 }}>
-                                {typeof val === 'boolean' ? (val ? 'Yes' : 'No') : String(val)}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-
-
-              {/* Insured members */}
-              {detail.insuredPersons?.length > 0 && (
-                <div>
-                  <div style={{ color: D.sec, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 10 }}>INSURED MEMBERS ({detail.insuredPersons.length})</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 280, overflowY: 'auto' }}>
-                    {detail.insuredPersons.map((p, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, background: D.card2, borderRadius: 8, padding: '10px 14px' }}>
-                        <div style={{ width: 34, height: 34, borderRadius: '50%', background: D.blue, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#fff', fontSize: 13, flexShrink: 0 }}>
-                          {p.firstName?.[0]}{p.lastName?.[0]}
-                        </div>
-                        <div>
-                          <div style={{ color: D.text, fontWeight: 600, fontSize: 14 }}>{p.firstName} {p.lastName}</div>
-                          <div style={{ color: D.sec, fontSize: 12 }}>{p.email || '—'} · {p.dependents?.length || 0} dependents</div>
-                        </div>
+                  {/* Policy fields — 3-column grid */}
+                  <div style={{ color: D.sec, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 10 }}>POLICY DETAILS</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 18 }}>
+                    {fields.map(f => (
+                      <div key={f.label} style={{ background: D.card2, borderRadius: 8, padding: '10px 12px' }}>
+                        <div style={{ color: D.sec, fontSize: 10, fontWeight: 700, letterSpacing: '0.07em', marginBottom: 4 }}>{f.label.toUpperCase()}</div>
+                        <div style={{ color: D.text, fontWeight: 600, fontSize: 13 }}>{f.value}</div>
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
 
-              {/* Payment proof review */}
-              {['payer_admin', 'superadmin'].includes(user?.role) && detail.status === 'pending' && (() => {
-                const pv = detail.paymentVerification;
-                if (pv?.receiptUrl && pv?.status === 'pending') {
-                  return (
-                    <div style={{ marginTop: 20, border: '1.5px solid #fde68a', borderRadius: 12, overflow: 'hidden' }}>
-                      <div style={{ background: '#d97706', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <FileImageOutlined style={{ color: '#fff' }} />
-                        <div style={{ color: '#fff', fontWeight: 700, fontSize: 14 }}>Payment Receipt — Pending Review</div>
+                  {/* Application data */}
+                  {appEntries.length > 0 && (
+                    <>
+                      <div style={{ color: D.sec, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 10 }}>
+                        APPLICATION DATA{detail.quote?.quoteNumber ? ` — ${detail.quote.quoteNumber}` : ''}
                       </div>
-                      <div style={{ padding: 16, background: '#fffbeb', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        <a href={pv.receiptUrl} target="_blank" rel="noreferrer">
-                          <img src={pv.receiptUrl} alt="Payment receipt"
-                            style={{ width: '100%', maxHeight: 280, objectFit: 'contain', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' }} />
-                        </a>
-                        {pv.note && (
-                          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '10px 12px' }}>
-                            <div style={{ color: '#6b7280', fontSize: 11, fontWeight: 700, marginBottom: 4 }}>NOTE FROM APPLICANT</div>
-                            <div style={{ color: '#374151', fontSize: 13 }}>{pv.note}</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                        {appEntries.map(([key, val]) => (
+                          <div key={key} style={{ background: '#f0f6ff', borderRadius: 8, padding: '10px 12px' }}>
+                            <div style={{ color: '#1e40af', fontSize: 10, fontWeight: 700, letterSpacing: '0.07em', marginBottom: 4 }}>
+                              {key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim().toUpperCase()}
+                            </div>
+                            <div style={{ color: D.text, fontWeight: 600, fontSize: 13 }}>
+                              {typeof val === 'boolean' ? (val ? 'Yes' : 'No') : String(val)}
+                            </div>
                           </div>
-                        )}
-                        <div style={{ color: '#6b7280', fontSize: 12 }}>Submitted: {new Date(pv.submittedAt).toLocaleString()}</div>
-                        <div>
-                          <div style={{ color: '#374151', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Review Note (optional)</div>
-                          <textarea value={reviewNote} onChange={e => setReviewNote(e.target.value)}
-                            placeholder="Add a note for the applicant (required if rejecting)..."
-                            rows={2}
-                            style={{ width: '100%', padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, resize: 'vertical', boxSizing: 'border-box', outline: 'none' }} />
-                        </div>
-                        <div style={{ display: 'flex', gap: 10 }}>
-                          <button onClick={() => reviewProof('reject')} disabled={reviewing}
-                            style={{ flex: 1, padding: '11px 0', background: '#fff', border: '1.5px solid #ef4444', borderRadius: 9, color: '#ef4444', fontWeight: 700, fontSize: 13, cursor: reviewing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, opacity: reviewing ? 0.6 : 1 }}>
-                            <CloseCircleOutlined /> Reject
-                          </button>
-                          <button onClick={() => reviewProof('approve')} disabled={reviewing}
-                            style={{ flex: 2, padding: '11px 0', background: D.green, border: 'none', borderRadius: 9, color: '#fff', fontWeight: 700, fontSize: 13, cursor: reviewing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, opacity: reviewing ? 0.6 : 1 }}>
-                            <CheckCircleOutlined /> Approve &amp; Activate Policy
-                          </button>
-                        </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* RIGHT — members + payment action */}
+                <div style={{ flex: '0 0 300px', padding: '20px 24px 20px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                  {/* Insured members */}
+                  {detail.insuredPersons?.length > 0 && (
+                    <div>
+                      <div style={{ color: D.sec, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 10 }}>
+                        INSURED MEMBERS ({detail.insuredPersons.length})
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 7, maxHeight: 200, overflowY: 'auto' }}>
+                        {detail.insuredPersons.map((p, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, background: D.card2, borderRadius: 8, padding: '9px 12px' }}>
+                            <div style={{ width: 30, height: 30, borderRadius: '50%', background: D.blue, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#fff', fontSize: 12, flexShrink: 0 }}>
+                              {p.firstName?.[0]}{p.lastName?.[0]}
+                            </div>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ color: D.text, fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.firstName} {p.lastName}</div>
+                              <div style={{ color: D.sec, fontSize: 11 }}>{p.dependents?.length || 0} dependent{p.dependents?.length !== 1 ? 's' : ''}</div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  );
-                }
-                return (
-                  <button onClick={() => { activate(detail); setDetail(null); }}
-                    style={{ width: '100%', marginTop: 16, padding: 14, background: D.green, border: 'none', borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
-                    ✓ Activate Policy
-                  </button>
-                );
-              })()}
+                  )}
+
+                  {/* Payment proof / activate */}
+                  {canReview && (
+                    hasPendingProof ? (
+                      <div style={{ border: '1.5px solid #fde68a', borderRadius: 12, overflow: 'hidden' }}>
+                        <div style={{ background: '#d97706', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <FileImageOutlined style={{ color: '#fff' }} />
+                          <div style={{ color: '#fff', fontWeight: 700, fontSize: 13 }}>Payment Receipt</div>
+                        </div>
+                        <div style={{ padding: 12, background: '#fffbeb', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                          <a href={pv.receiptUrl} target="_blank" rel="noreferrer">
+                            <img src={pv.receiptUrl} alt="Payment receipt"
+                              style={{ width: '100%', maxHeight: 160, objectFit: 'contain', borderRadius: 7, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'block' }} />
+                          </a>
+                          {pv.note && (
+                            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 7, padding: '8px 10px' }}>
+                              <div style={{ color: '#6b7280', fontSize: 10, fontWeight: 700, marginBottom: 3 }}>APPLICANT NOTE</div>
+                              <div style={{ color: '#374151', fontSize: 12 }}>{pv.note}</div>
+                            </div>
+                          )}
+                          <div style={{ color: '#6b7280', fontSize: 11 }}>Submitted: {new Date(pv.submittedAt).toLocaleString()}</div>
+                          <textarea value={reviewNote} onChange={e => setReviewNote(e.target.value)}
+                            placeholder="Review note (required if rejecting)..."
+                            rows={2}
+                            style={{ width: '100%', padding: '7px 9px', border: '1px solid #e5e7eb', borderRadius: 7, fontSize: 12, resize: 'vertical', boxSizing: 'border-box', outline: 'none' }} />
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button onClick={() => reviewProof('reject')} disabled={reviewing}
+                              style={{ flex: 1, padding: '9px 0', background: '#fff', border: '1.5px solid #ef4444', borderRadius: 8, color: '#ef4444', fontWeight: 700, fontSize: 12, cursor: reviewing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: reviewing ? 0.6 : 1 }}>
+                              <CloseCircleOutlined /> Reject
+                            </button>
+                            <button onClick={() => reviewProof('approve')} disabled={reviewing}
+                              style={{ flex: 2, padding: '9px 0', background: D.green, border: 'none', borderRadius: 8, color: '#fff', fontWeight: 700, fontSize: 12, cursor: reviewing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: reviewing ? 0.6 : 1 }}>
+                              <CheckCircleOutlined /> Approve &amp; Activate
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => { activate(detail); setDetail(null); }}
+                        style={{ width: '100%', padding: 13, background: D.green, border: 'none', borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+                        ✓ Activate Policy
+                      </button>
+                    )
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </Modal>
     </div>
   );
