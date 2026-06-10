@@ -41,7 +41,8 @@ router.get('/:id', async (req, res, next) => {
       .populate({ path: 'tier', populate: { path: 'coverages.coverage' } })
       .populate('payer', 'name contactEmail')
       .populate('institution', 'name contactEmail')
-      .populate('insuredPersons', 'firstName lastName email dateOfBirth dependents')
+      .populate('insuredPersons', 'firstName lastName email dateOfBirth gender phone nationalId dependents')
+      .populate('quote', 'applicationData quoteNumber')
       .populate('coverages')
       .populate('paymentHistory.paidBy', 'firstName lastName');
     if (!enrollment) return res.status(404).json({ message: 'Enrollment not found' });

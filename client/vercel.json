@@ -5,6 +5,10 @@
       "destination": "https://enterprise-insurance-api.onrender.com/api/:path*"
     },
     {
+      "source": "/uploads/:path*",
+      "destination": "https://enterprise-insurance-api.onrender.com/uploads/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

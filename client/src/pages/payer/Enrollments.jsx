@@ -303,21 +303,71 @@ export default function PayerEnrollments() {
 
             {/* Policy details */}
             <div style={{ padding: '20px 28px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
-                {[
-                  { label: 'Product',          value: detail.product?.name || '—' },
-                  { label: 'Tier',             value: detail.tier?.name || '—' },
-                  { label: 'Annual Premium',   value: `${(detail.premium?.amount || 0).toLocaleString()} ETB` },
-                  { label: 'Employer Share',   value: detail.premium?.employerShare ? `${detail.premium.employerShare.toLocaleString()} ETB` : '—' },
-                  { label: 'Employee Share',   value: detail.premium?.employeeShare ? `${detail.premium.employeeShare.toLocaleString()} ETB` : '—' },
-                  { label: 'Coverage Period',  value: `${new Date(detail.startDate).toLocaleDateString()} – ${new Date(detail.endDate).toLocaleDateString()}` },
-                ].map(f => (
-                  <div key={f.label} style={{ background: D.card2, borderRadius: 8, padding: 14 }}>
-                    <div style={{ color: D.sec, fontSize: 10, fontWeight: 700, letterSpacing: '0.07em', marginBottom: 5 }}>{f.label.toUpperCase()}</div>
-                    <div style={{ color: D.text, fontWeight: 600, fontSize: 14 }}>{f.value}</div>
-                  </div>
-                ))}
-              </div>
+              {/* Core policy fields — institutional vs individual */}
+              {(() => {
+                const isInstitutional = !!detail.institution;
+                const person = detail.insuredPersons?.[0];
+                const appData = detail.quote?.applicationData || {};
+                const appEntries = Object.entries(appData).filter(([, v]) => v != null && v !== '');
+
+                const baseFields = [
+                  { label: 'Product',         value: detail.product?.name || '—' },
+                  { label: 'Tier',            value: detail.tier?.name || '—' },
+                  { label: 'Annual Premium',  value: `${(detail.premium?.amount || 0).toLocaleString()} ETB` },
+                  { label: 'Coverage Period', value: `${new Date(detail.startDate).toLocaleDateString()} – ${new Date(detail.endDate).toLocaleDateString()}` },
+                ];
+
+                const institutionFields = [
+                  { label: 'Employer Share', value: detail.premium?.employerShare ? `${detail.premium.employerShare.toLocaleString()} ETB` : '—' },
+                  { label: 'Employee Share', value: detail.premium?.employeeShare ? `${detail.premium.employeeShare.toLocaleString()} ETB` : '—' },
+                ];
+
+                const individualFields = person ? [
+                  { label: 'Primary Insured',  value: `${person.firstName || ''} ${person.lastName || ''}`.trim() || '—' },
+                  { label: 'Date of Birth',    value: person.dateOfBirth ? new Date(person.dateOfBirth).toLocaleDateString() : '—' },
+                  { label: 'Email',            value: person.email || '—' },
+                  { label: 'National ID',      value: person.nationalId || '—' },
+                ] : [];
+
+                const fields = isInstitutional
+                  ? [...baseFields, ...institutionFields]
+                  : [...baseFields, ...individualFields];
+
+                return (
+                  <>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+                      {fields.map(f => (
+                        <div key={f.label} style={{ background: D.card2, borderRadius: 8, padding: 14 }}>
+                          <div style={{ color: D.sec, fontSize: 10, fontWeight: 700, letterSpacing: '0.07em', marginBottom: 5 }}>{f.label.toUpperCase()}</div>
+                          <div style={{ color: D.text, fontWeight: 600, fontSize: 14 }}>{f.value}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Application data from quote */}
+                    {appEntries.length > 0 && (
+                      <div style={{ marginBottom: 20 }}>
+                        <div style={{ color: D.sec, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 10 }}>
+                          APPLICATION DATA {detail.quote?.quoteNumber ? `— ${detail.quote.quoteNumber}` : ''}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                          {appEntries.map(([key, val]) => (
+                            <div key={key} style={{ background: '#f0f6ff', borderRadius: 8, padding: '10px 12px' }}>
+                              <div style={{ color: D.sec, fontSize: 10, fontWeight: 700, letterSpacing: '0.07em', marginBottom: 4 }}>
+                                {key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim().toUpperCase()}
+                              </div>
+                              <div style={{ color: D.text, fontWeight: 600, fontSize: 13 }}>
+                                {typeof val === 'boolean' ? (val ? 'Yes' : 'No') : String(val)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+
 
               {/* Insured members */}
               {detail.insuredPersons?.length > 0 && (

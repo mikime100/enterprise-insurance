@@ -21,7 +21,7 @@ const TYPE_META = {
 };
 const typeMeta = t => TYPE_META[t] || { emoji: '📋', color: NAVY, bg: '#f1f5f9', label: t };
 
-function ProductCard({ product, onApply }) {
+function ProductCard({ product, onApply, onViewDetails }) {
   const meta         = typeMeta(product.productType);
   const tiers        = product.tiers || [];
   const minPrice     = tiers.length ? Math.min(...tiers.map(t => t.annualPremium)) : null;
