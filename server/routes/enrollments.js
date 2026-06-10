@@ -182,6 +182,69 @@ router.post('/:id/payment', requireRole('institution_admin', 'payer_admin', 'fin
   } catch (err) { next(err); }
 });
 
+// Submit Chapa payment receipt for admin review
+router.post('/:id/submit-payment-proof', async (req, res, next) => {
+  try {
+    const { receiptUrl, note } = req.body;
+    if (!receiptUrl) return res.status(400).json({ message: 'receiptUrl required' });
+
+    const enrollment = await PolicyEnrollment.findById(req.params.id);
+    if (!enrollment) return res.status(404).json({ message: 'Enrollment not found' });
+
+    const linkedId = req.user.linkedEntity?.entityId?.toString();
+    const isOwner  = enrollment.insuredPersons.some(p => p.toString() === linkedId);
+    if (!isOwner && !['payer_admin', 'superadmin'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Not authorised' });
+    }
+    if (enrollment.status !== 'pending') {
+      return res.status(400).json({ message: 'Enrollment is not in pending state' });
+    }
+
+    enrollment.paymentVerification = {
+      receiptUrl,
+      note:        note || '',
+      submittedAt: new Date(),
+      submittedBy: req.user._id,
+      status:      'pending',
+    };
+    await enrollment.save();
+    res.json({ message: 'Payment proof submitted — a payer admin will review it shortly.', enrollment });
+  } catch (err) { next(err); }
+});
+
+// Payer admin approves or rejects submitted payment proof
+router.post('/:id/review-payment-proof', requireRole('payer_admin', 'superadmin'), async (req, res, next) => {
+  try {
+    const { action, reviewNote } = req.body;
+    if (!['approve', 'reject'].includes(action)) return res.status(400).json({ message: 'action must be approve or reject' });
+
+    const enrollment = await PolicyEnrollment.findById(req.params.id);
+    if (!enrollment) return res.status(404).json({ message: 'Enrollment not found' });
+    if (!enrollment.paymentVerification?.receiptUrl) {
+      return res.status(400).json({ message: 'No payment proof on file for this enrollment' });
+    }
+
+    enrollment.paymentVerification.status     = action === 'approve' ? 'approved' : 'rejected';
+    enrollment.paymentVerification.reviewNote = reviewNote || '';
+    enrollment.paymentVerification.reviewedBy = req.user._id;
+    enrollment.paymentVerification.reviewedAt = new Date();
+
+    if (action === 'approve') {
+      enrollment.status = 'active';
+      enrollment.paymentHistory.push({
+        amount:    enrollment.premium.amount,
+        method:    'mobile_money',
+        status:    'completed',
+        paidBy:    enrollment.paymentVerification.submittedBy,
+        reference: `PROOF_${Date.now()}`,
+      });
+    }
+
+    await enrollment.save();
+    res.json({ message: action === 'approve' ? 'Enrollment activated.' : 'Payment proof rejected.', enrollment });
+  } catch (err) { next(err); }
+});
+
 // Renew: create a new pending enrollment for the next period
 router.post('/:id/renew', async (req, res, next) => {
   try {

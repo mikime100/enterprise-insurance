@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Table, Tag, Button, Space, Modal, Spin, Avatar } from 'antd';
-import { PlusOutlined, CheckCircleOutlined, EyeOutlined } from '@ant-design/icons';
+import { Table, Space, Modal, Spin } from 'antd';
+import { PlusOutlined, CheckCircleOutlined, EyeOutlined, CloseCircleOutlined, FileImageOutlined } from '@ant-design/icons';
 import api from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -40,6 +40,7 @@ function StatusBadge({ status }) {
 
 const FILTER_TABS = [
   { key: 'all',            label: 'All' },
+  { key: 'proof_review',   label: '🔍 Proof Review' },
   { key: 'active',         label: 'Active' },
   { key: 'pending_renewal',label: 'Renewals' },
   { key: 'expired',        label: 'Expired' },
@@ -54,6 +55,9 @@ export default function PayerEnrollments() {
   const [activeTab, setActiveTab]     = useState('all');
   const { user } = useAuth();
 
+  const [reviewNote, setReviewNote]   = useState('');
+  const [reviewing, setReviewing]     = useState(false);
+
   const load = () => {
     setLoading(true);
     api.get('/enrollments')
@@ -63,16 +67,30 @@ export default function PayerEnrollments() {
   };
   useEffect(() => { load(); }, []);
 
-  const openDetail = (e) => api.get(`/enrollments/${e._id}`).then(r => setDetail(r.data.enrollment));
+  const openDetail = (e) => api.get(`/enrollments/${e._id}`).then(r => { setDetail(r.data.enrollment); setReviewNote(''); });
   const activate   = async (e) => { await api.patch(`/enrollments/${e._id}/status`, { status: 'active', notes: 'Activated by payer admin' }); load(); };
 
+  const reviewProof = async (action) => {
+    if (!detail) return;
+    setReviewing(true);
+    try {
+      await api.post(`/enrollments/${detail._id}/review-payment-proof`, { action, reviewNote });
+      load();
+      setDetail(null);
+    } catch (err) {
+      console.error(err);
+    } finally { setReviewing(false); }
+  };
+
   const counts = {
-    active:   enrollments.filter(e => e.status === 'active').length,
-    renewals: enrollments.filter(e => e.status === 'pending_renewal').length,
+    active:     enrollments.filter(e => e.status === 'active').length,
+    renewals:   enrollments.filter(e => e.status === 'pending_renewal').length,
+    proofReview:enrollments.filter(e => e.paymentVerification?.status === 'pending' && e.paymentVerification?.receiptUrl).length,
     totalPremium: enrollments.reduce((sum, e) => sum + (e.premium?.amount || 0), 0),
   };
 
   const filtered = enrollments.filter(e => {
+    if (activeTab === 'proof_review') return e.paymentVerification?.status === 'pending' && e.paymentVerification?.receiptUrl;
     if (activeTab !== 'all' && e.status !== activeTab) return false;
     if (search) {
       const s = search.toLowerCase();
@@ -125,13 +143,18 @@ export default function PayerEnrollments() {
       render: (_, r) => <StatusBadge status={r.status} />,
     },
     {
-      title: '', key: 'actions', width: 100,
+      title: '', key: 'actions', width: 120,
       render: (_, r) => (
         <Space size={6}>
           <button onClick={() => openDetail(r)} style={iconBtn}>
             <EyeOutlined />
           </button>
-          {['payer_admin', 'superadmin'].includes(user?.role) && r.status === 'pending' && (
+          {r.paymentVerification?.status === 'pending' && r.paymentVerification?.receiptUrl && (
+            <button onClick={() => openDetail(r)} style={{ ...iconBtn, color: D.amber, borderColor: D.amber, background: '#fffbeb' }} title="Receipt awaiting review">
+              <FileImageOutlined />
+            </button>
+          )}
+          {['payer_admin', 'superadmin'].includes(user?.role) && r.status === 'pending' && !r.paymentVerification?.receiptUrl && (
             <button onClick={() => activate(r)} style={{ ...iconBtn, color: D.green }}>
               <CheckCircleOutlined />
             </button>
@@ -188,7 +211,7 @@ export default function PayerEnrollments() {
           {
             label: 'ACTIVE VOLUME',
             value: counts.active,
-            sub: `+${Math.max(0, counts.active - 230)} this quarter`,
+            sub: 'Currently active policies',
             color: D.link,
             icon: '🏢',
           },
@@ -200,18 +223,26 @@ export default function PayerEnrollments() {
             icon: '💰',
           },
           {
+            label: 'PROOF REVIEW',
+            value: counts.proofReview,
+            sub: counts.proofReview > 0 ? 'Receipts awaiting approval' : 'No receipts pending',
+            color: counts.proofReview > 0 ? D.amber : D.green,
+            icon: '🧾',
+            onClick: counts.proofReview > 0 ? () => setActiveTab('proof_review') : undefined,
+          },
+          {
             label: 'PENDING RENEWALS',
             value: counts.renewals,
-            sub: counts.renewals > 0 ? 'Requires immediate audit' : 'All renewals current',
+            sub: counts.renewals > 0 ? 'Requires audit' : 'All renewals current',
             color: counts.renewals > 0 ? D.amber : D.green,
             icon: '📅',
           },
         ].map(s => (
-          <div key={s.label} style={{ background: D.card, border: `1px solid ${D.border}`, borderRadius: 12, padding: '24px 28px', position: 'relative', overflow: 'hidden' }}>
+          <div key={s.label} onClick={s.onClick} style={{ background: D.card, border: `1px solid ${s.onClick ? D.amber : D.border}`, borderRadius: 12, padding: '24px 28px', position: 'relative', overflow: 'hidden', cursor: s.onClick ? 'pointer' : 'default' }}>
             <div style={{ position: 'absolute', right: 20, top: 20, fontSize: 30, opacity: 0.06 }}>{s.icon}</div>
             <div style={{ color: D.sec, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', marginBottom: 12 }}>{s.label}</div>
             <div style={{ fontSize: 38, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
-            <div style={{ color: s.label === 'PENDING RENEWALS' && counts.renewals > 0 ? D.amber : D.sec, fontSize: 12, marginTop: 8, fontWeight: counts.renewals > 0 && s.label === 'PENDING RENEWALS' ? 600 : 400 }}>{s.sub}</div>
+            <div style={{ color: s.color !== D.text && s.value > 0 ? s.color : D.sec, fontSize: 12, marginTop: 8, fontWeight: s.value > 0 ? 600 : 400 }}>{s.sub}</div>
           </div>
         ))}
       </div>
@@ -308,13 +339,56 @@ export default function PayerEnrollments() {
                 </div>
               )}
 
-              {/* Activate button */}
-              {['payer_admin', 'superadmin'].includes(user?.role) && detail.status === 'pending' && (
-                <button onClick={() => { activate(detail); setDetail(null); }}
-                  style={{ width: '100%', marginTop: 16, padding: 14, background: D.green, border: 'none', borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
-                  ✓ Activate Policy
-                </button>
-              )}
+              {/* Payment proof review */}
+              {['payer_admin', 'superadmin'].includes(user?.role) && detail.status === 'pending' && (() => {
+                const pv = detail.paymentVerification;
+                if (pv?.receiptUrl && pv?.status === 'pending') {
+                  return (
+                    <div style={{ marginTop: 20, border: '1.5px solid #fde68a', borderRadius: 12, overflow: 'hidden' }}>
+                      <div style={{ background: '#d97706', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <FileImageOutlined style={{ color: '#fff' }} />
+                        <div style={{ color: '#fff', fontWeight: 700, fontSize: 14 }}>Payment Receipt — Pending Review</div>
+                      </div>
+                      <div style={{ padding: 16, background: '#fffbeb', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        <a href={pv.receiptUrl} target="_blank" rel="noreferrer">
+                          <img src={pv.receiptUrl} alt="Payment receipt"
+                            style={{ width: '100%', maxHeight: 280, objectFit: 'contain', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' }} />
+                        </a>
+                        {pv.note && (
+                          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '10px 12px' }}>
+                            <div style={{ color: '#6b7280', fontSize: 11, fontWeight: 700, marginBottom: 4 }}>NOTE FROM APPLICANT</div>
+                            <div style={{ color: '#374151', fontSize: 13 }}>{pv.note}</div>
+                          </div>
+                        )}
+                        <div style={{ color: '#6b7280', fontSize: 12 }}>Submitted: {new Date(pv.submittedAt).toLocaleString()}</div>
+                        <div>
+                          <div style={{ color: '#374151', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Review Note (optional)</div>
+                          <textarea value={reviewNote} onChange={e => setReviewNote(e.target.value)}
+                            placeholder="Add a note for the applicant (required if rejecting)..."
+                            rows={2}
+                            style={{ width: '100%', padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, resize: 'vertical', boxSizing: 'border-box', outline: 'none' }} />
+                        </div>
+                        <div style={{ display: 'flex', gap: 10 }}>
+                          <button onClick={() => reviewProof('reject')} disabled={reviewing}
+                            style={{ flex: 1, padding: '11px 0', background: '#fff', border: '1.5px solid #ef4444', borderRadius: 9, color: '#ef4444', fontWeight: 700, fontSize: 13, cursor: reviewing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, opacity: reviewing ? 0.6 : 1 }}>
+                            <CloseCircleOutlined /> Reject
+                          </button>
+                          <button onClick={() => reviewProof('approve')} disabled={reviewing}
+                            style={{ flex: 2, padding: '11px 0', background: D.green, border: 'none', borderRadius: 9, color: '#fff', fontWeight: 700, fontSize: 13, cursor: reviewing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, opacity: reviewing ? 0.6 : 1 }}>
+                            <CheckCircleOutlined /> Approve &amp; Activate Policy
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <button onClick={() => { activate(detail); setDetail(null); }}
+                    style={{ width: '100%', marginTop: 16, padding: 14, background: D.green, border: 'none', borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+                    ✓ Activate Policy
+                  </button>
+                );
+              })()}
             </div>
           </div>
         )}

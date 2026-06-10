@@ -99,20 +99,24 @@ function ProductCard({ product, onApply }) {
           <span>No commitment yet — submitting an application starts the underwriting review. An underwriter will send you a personalised offer within 1–3 business days.</span>
         </div>
 
-        <button
-          onClick={onApply}
-          style={{
-            marginTop: 'auto', width: '100%', padding: '12px 0',
-            background: NAVY, border: 'none', borderRadius: 10,
-            color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            transition: 'background 0.15s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#1a3356'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = NAVY; }}
-        >
-          <FileTextOutlined /> Apply for this Coverage <ArrowRightOutlined />
-        </button>
+        <div style={{ marginTop: 'auto', display: 'flex', gap: 8 }}>
+          <button
+            onClick={onViewDetails}
+            style={{ flex: 1, padding: '11px 0', background: '#fff', border: `2px solid ${NAVY}`, borderRadius: 10, color: NAVY, fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'all 0.12s' }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#f0f6ff'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}
+          >
+            View Details
+          </button>
+          <button
+            onClick={onApply}
+            style={{ flex: 2, padding: '11px 0', background: NAVY, border: 'none', borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, transition: 'background 0.15s' }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#1a3356'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = NAVY; }}
+          >
+            <FileTextOutlined /> Apply <ArrowRightOutlined />
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -216,7 +220,12 @@ export default function ExploreCoverage() {
           <div style={{ color: '#6b7280', fontSize: 13 }}>{visible.length} plan{visible.length !== 1 ? 's' : ''} available</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 18 }}>
             {visible.map(p => (
-              <ProductCard key={p._id} product={p} onApply={() => navigate(`/insured/quotes?productId=${p._id}`)} />
+              <ProductCard
+                key={p._id}
+                product={p}
+                onApply={() => navigate(`/insured/quotes?productId=${p._id}`)}
+                onViewDetails={() => navigate(`/insured/explore/${p._id}`)}
+              />
             ))}
           </div>
         </>

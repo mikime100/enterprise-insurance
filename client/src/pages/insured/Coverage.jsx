@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Spin, Divider, message } from 'antd';
 import {
   CheckCircleOutlined, InfoCircleOutlined, ArrowRightOutlined,
-  CloseOutlined, SafetyOutlined,
+  CloseOutlined, SafetyOutlined, UploadOutlined,
   CheckOutlined, LoadingOutlined, EditOutlined, StopOutlined, DownloadOutlined,
   WarningOutlined, SyncOutlined,
 } from '@ant-design/icons';
@@ -463,6 +463,125 @@ function RenewalBanner({ enrollment, onRenew, renewing }) {
   );
 }
 
+// ── Payment proof upload modal ────────────────────────────────────────────────
+
+function PaymentProofModal({ enrollment, open, onClose, onSubmitted }) {
+  const [file, setFile]           = useState(null);
+  const [preview, setPreview]     = useState(null);
+  const [note, setNote]           = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => { if (open) { setFile(null); setPreview(null); setNote(''); } }, [open]);
+
+  const handleFile = f => {
+    if (!f || !f.type.startsWith('image/')) { message.error('Please select an image file.'); return; }
+    if (f.size > 5 * 1024 * 1024) { message.error('File must be under 5 MB.'); return; }
+    setFile(f);
+    const reader = new FileReader();
+    reader.onload = ev => setPreview(ev.target.result);
+    reader.readAsDataURL(f);
+  };
+
+  const handleSubmit = async () => {
+    if (!file) { message.error('Please upload your payment receipt first.'); return; }
+    setUploading(true);
+    let receiptUrl = '';
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const up = await api.post('/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      receiptUrl = up.data.url || '';
+      if (receiptUrl && !receiptUrl.startsWith('http')) {
+        const base = import.meta.env.VITE_API_URL || '';
+        try { receiptUrl = new URL(base).origin + receiptUrl; } catch (_) {}
+      }
+    } catch { message.error('Could not upload the receipt. Please try again.'); setUploading(false); return; }
+    setUploading(false);
+    setSubmitting(true);
+    try {
+      await api.post(`/enrollments/${enrollment._id}/submit-payment-proof`, { receiptUrl, note });
+      message.success('Receipt submitted! A payer admin will review it shortly.', 5);
+      onSubmitted();
+      onClose();
+    } catch (err) {
+      message.error(err.response?.data?.message || 'Submission failed. Please try again.');
+    } finally { setSubmitting(false); }
+  };
+
+  if (!open || !enrollment) return null;
+
+  const busy = uploading || submitting;
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)', padding: 16 }}>
+      <div style={{ background: '#fff', borderRadius: 18, width: '100%', maxWidth: 500, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', maxHeight: '90vh', overflow: 'auto' }}>
+        <div style={{ background: '#d97706', padding: '18px 24px', borderRadius: '18px 18px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ color: '#fff', fontWeight: 800, fontSize: 16 }}>Submit Payment Receipt</div>
+            <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, marginTop: 2 }}>
+              {enrollment.product?.name} · {enrollment.enrollmentNumber}
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', fontSize: 20, cursor: 'pointer' }}>✕</button>
+        </div>
+
+        <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '12px 14px', fontSize: 13, color: '#78350f', lineHeight: 1.6 }}>
+            Upload a screenshot or photo of your Chapa payment receipt. A payer admin will review it and activate your coverage within 1 business day.
+          </div>
+
+          <div>
+            <div style={{ fontWeight: 600, color: '#374151', fontSize: 13, marginBottom: 8 }}>Payment Receipt *</div>
+            {preview ? (
+              <div style={{ position: 'relative' }}>
+                <img src={preview} alt="Receipt preview" style={{ width: '100%', maxHeight: 260, objectFit: 'contain', borderRadius: 10, border: '1px solid #e5e7eb', background: '#f9fafb' }} />
+                <button onClick={() => { setFile(null); setPreview(null); }}
+                  style={{ position: 'absolute', top: 8, right: 8, background: '#ef4444', border: 'none', borderRadius: '50%', width: 28, height: 28, color: '#fff', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <label style={{ display: 'block', cursor: 'pointer' }}>
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleFile(e.target.files[0])} />
+                <div
+                  style={{ border: '2px dashed #d1d5db', borderRadius: 12, padding: '32px 24px', textAlign: 'center', background: '#f9fafb' }}
+                  onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = '#d97706'; }}
+                  onDragLeave={e => { e.currentTarget.style.borderColor = '#d1d5db'; }}
+                  onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = '#d1d5db'; handleFile(e.dataTransfer.files[0]); }}
+                >
+                  <UploadOutlined style={{ fontSize: 32, color: '#9ca3af', marginBottom: 10, display: 'block' }} />
+                  <div style={{ fontWeight: 600, color: '#374151', fontSize: 14 }}>Click to upload or drag &amp; drop</div>
+                  <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>PNG, JPG, JPEG — max 5 MB</div>
+                </div>
+              </label>
+            )}
+          </div>
+
+          <div>
+            <div style={{ fontWeight: 600, color: '#374151', fontSize: 13, marginBottom: 6 }}>Note (optional)</div>
+            <textarea value={note} onChange={e => setNote(e.target.value)}
+              placeholder="Transaction ID, date paid, or any other notes..."
+              rows={3}
+              style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #e5e7eb', borderRadius: 10, fontSize: 13, resize: 'vertical', boxSizing: 'border-box', outline: 'none' }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={onClose} style={{ flex: 1, padding: '11px 0', border: '1px solid #e5e7eb', borderRadius: 10, background: '#fff', color: '#374151', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>
+              Cancel
+            </button>
+            <button onClick={handleSubmit} disabled={!file || busy}
+              style={{ flex: 2, padding: '11px 0', border: 'none', borderRadius: 10, background: !file || busy ? '#e5e7eb' : '#d97706', color: !file || busy ? '#9ca3af' : '#fff', fontWeight: 700, cursor: !file || busy ? 'not-allowed' : 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              {uploading ? <><LoadingOutlined /> Uploading…</> : submitting ? <><LoadingOutlined /> Submitting…</> : <><CheckOutlined /> Submit Receipt</>}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main page ──────────────────────────────────────────────────────────────────
 
 export default function InsuredCoverage() {
@@ -475,7 +594,7 @@ export default function InsuredCoverage() {
   const [renewingId, setRenewingId]               = useState(null);
   const [endorseEnrollment, setEndorseEnrollment] = useState(null);
   const [paymentStatus, setPaymentStatus]         = useState(null);
-  const [verifyingId, setVerifyingId]             = useState(null);
+  const [proofEnrollment, setProofEnrollment]     = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -527,23 +646,6 @@ export default function InsuredCoverage() {
     } catch (err) {
       message.error(err.response?.data?.message || 'Could not start renewal. Please try again.');
       setRenewingId(null);
-    }
-  };
-
-  const handleVerifyPending = async (enrollment) => {
-    const txRef = [...(enrollment.paymentHistory || [])].reverse().find(p => p.reference)?.reference;
-    if (!txRef) { message.error('No payment reference found. Contact support.'); return; }
-    setVerifyingId(enrollment._id);
-    try {
-      await api.get(`/chapa/verify/${txRef}`);
-      message.success('Payment verified! Your coverage is now active.', 5);
-      load();
-    } catch (err) {
-      const raw = err.response?.data?.message;
-      const msg = typeof raw === 'string' ? raw : 'Verification failed. If you have paid, please contact support.';
-      message.error(msg, 6);
-    } finally {
-      setVerifyingId(null);
     }
   };
 
@@ -610,9 +712,10 @@ export default function InsuredCoverage() {
             <SyncOutlined style={{ color: '#d97706' }} /> Awaiting Payment Verification
           </div>
           {pendingEnrollments.map(e => {
-            const txRef      = [...(e.paymentHistory || [])].reverse().find(p => p.reference)?.reference;
-            const isVerifying = verifyingId === e._id;
-            const meta       = typeMeta(e.product?.productType);
+            const pv            = e.paymentVerification;
+            const proofPending  = pv?.receiptUrl && pv?.status === 'pending';
+            const proofRejected = pv?.status === 'rejected';
+            const meta          = typeMeta(e.product?.productType);
             return (
               <div key={e._id} style={{ border: '1.5px solid #fde68a', borderRadius: 16, overflow: 'hidden', background: '#fffbeb' }}>
                 <div style={{ background: '#d97706', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -625,36 +728,50 @@ export default function InsuredCoverage() {
                       </div>
                     </div>
                   </div>
-                  <div style={{ background: '#fef3c7', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 700, color: '#92400e' }}>
-                    ⏳ PAYMENT PENDING
+                  <div style={{ background: '#fef3c7', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 700, color: proofRejected ? '#991b1b' : '#92400e' }}>
+                    {proofPending ? '⏳ AWAITING REVIEW' : proofRejected ? '❌ PROOF REJECTED' : '⏳ PAYMENT PENDING'}
                   </div>
                 </div>
                 <div style={{ padding: '18px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <div style={{ color: '#78350f', fontSize: 14, lineHeight: 1.6 }}>
-                    Your coverage will activate once payment is confirmed. If you already paid via Chapa, click <strong>Verify Payment</strong> to activate your plan.
-                  </div>
-                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-                    {txRef ? (
-                      <button
-                        onClick={() => handleVerifyPending(e)}
-                        disabled={isVerifying}
-                        style={{ padding: '10px 20px', background: '#d97706', border: 'none', borderRadius: 9, color: '#fff', fontWeight: 700, fontSize: 13, cursor: isVerifying ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 7, opacity: isVerifying ? 0.7 : 1 }}
-                      >
-                        {isVerifying ? <LoadingOutlined /> : <CheckOutlined />}
-                        {isVerifying ? 'Verifying…' : 'Verify Payment'}
-                      </button>
-                    ) : (
-                      <div style={{ color: '#92400e', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <InfoCircleOutlined /> No payment reference on file — contact support to activate.
+                  {proofPending ? (
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: '#fffbeb', borderRadius: 10, padding: '12px 14px', border: '1px solid #fde68a' }}>
+                      <SyncOutlined style={{ color: '#d97706', marginTop: 1, flexShrink: 0 }} />
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#92400e', fontSize: 14 }}>Receipt submitted — awaiting admin review</div>
+                        <div style={{ color: '#78350f', fontSize: 13, marginTop: 3 }}>
+                          Submitted on {new Date(pv.submittedAt).toLocaleDateString()}. A payer admin will review your receipt and activate your coverage within 1 business day.
+                        </div>
                       </div>
-                    )}
-                    <button
-                      onClick={() => navigate('/insured/quotes')}
-                      style={{ padding: '10px 18px', background: 'transparent', border: '1.5px solid #d97706', borderRadius: 9, color: '#92400e', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
-                    >
-                      View My Applications
-                    </button>
-                  </div>
+                    </div>
+                  ) : proofRejected ? (
+                    <>
+                      <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 10, padding: '12px 14px' }}>
+                        <div style={{ fontWeight: 700, color: '#991b1b', fontSize: 14, marginBottom: 4 }}>Receipt was rejected</div>
+                        {pv.reviewNote && <div style={{ color: '#991b1b', fontSize: 13 }}>Reason: {pv.reviewNote}</div>}
+                        <div style={{ color: '#b91c1c', fontSize: 13, marginTop: 4 }}>Please upload a clearer or correct receipt.</div>
+                      </div>
+                      <button onClick={() => setProofEnrollment(e)}
+                        style={{ alignSelf: 'flex-start', padding: '10px 20px', background: '#d97706', border: 'none', borderRadius: 9, color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7 }}>
+                        <UploadOutlined /> Resubmit Receipt
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ color: '#78350f', fontSize: 14, lineHeight: 1.6 }}>
+                        Your coverage will activate once your payment is confirmed. Upload your Chapa payment receipt so our team can verify and activate your plan.
+                      </div>
+                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                        <button onClick={() => setProofEnrollment(e)}
+                          style={{ padding: '10px 20px', background: '#d97706', border: 'none', borderRadius: 9, color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7 }}>
+                          <UploadOutlined /> Upload Payment Receipt
+                        </button>
+                        <button onClick={() => navigate('/insured/quotes')}
+                          style={{ padding: '10px 18px', background: 'transparent', border: '1.5px solid #d97706', borderRadius: 9, color: '#92400e', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+                          View My Applications
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             );
@@ -701,6 +818,14 @@ export default function InsuredCoverage() {
         enrollment={endorseEnrollment}
         open={!!endorseEnrollment}
         onClose={() => setEndorseEnrollment(null)}
+        onSubmitted={load}
+      />
+
+      {/* Payment proof upload modal */}
+      <PaymentProofModal
+        enrollment={proofEnrollment}
+        open={!!proofEnrollment}
+        onClose={() => setProofEnrollment(null)}
         onSubmitted={load}
       />
     </div>

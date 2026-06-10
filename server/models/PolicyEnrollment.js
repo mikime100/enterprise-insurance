@@ -33,6 +33,16 @@ const policyEnrollmentSchema = new mongoose.Schema({
     employeeShare: Number
   },
   paymentHistory: [enrollmentPaymentSchema],
+  paymentVerification: {
+    receiptUrl:  String,
+    note:        String,
+    submittedAt: Date,
+    submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    status:      { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+    reviewNote:  String,
+    reviewedBy:  { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    reviewedAt:  Date,
+  },
   notes: String
 }, { timestamps: true });
 

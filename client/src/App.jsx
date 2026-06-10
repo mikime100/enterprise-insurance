@@ -58,6 +58,7 @@ import InsuredClaims      from './pages/insured/Claims';
 import InsuredDependents  from './pages/insured/Dependents';
 import InsuredQuotes      from './pages/insured/Quotes';
 import ExploreCoverage    from './pages/insured/ExploreCoverage';
+import ProductDetail      from './pages/insured/ProductDetail';
 
 // Admin portal
 import AdminDashboard    from './pages/admin/Dashboard';
@@ -167,6 +168,7 @@ function AppRoutes() {
         <Route path="dashboard"  element={<InsuredDashboard />} />
         <Route path="coverage"   element={<InsuredCoverage />} />
         <Route path="explore"    element={<ExploreCoverage />} />
+        <Route path="explore/:productId" element={<ProductDetail />} />
         <Route path="claims"     element={<InsuredClaims />} />
         <Route path="dependents" element={<InsuredDependents />} />
         <Route path="quotes"     element={<InsuredQuotes />} />
