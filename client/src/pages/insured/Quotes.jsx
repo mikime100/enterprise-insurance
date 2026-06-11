@@ -58,7 +58,7 @@ const CHRONIC_CONDITIONS = ['Diabetes', 'Hypertension', 'Asthma', 'Heart Disease
 const emptyForm = () => ({
   productId: '', purpose: '',
   // personal
-  dateOfBirth: '', gender: '', occupation: '', incomeRange: '', maritalStatus: '', dependentCount: '0', phone: '',
+  dateOfBirth: '', nationalId: '', gender: '', occupation: '', incomeRange: '', maritalStatus: '', dependentCount: '0', phone: '',
   // health
   height: '', weight: '', chronicConditions: [], smoker: '', alcoholUse: '', familyHistory: '', currentMedications: '', surgicalHistory: '', surgicalDetail: '',
   // auto
@@ -316,6 +316,7 @@ export default function InsuredQuotes() {
     const e = {};
     if (!formData.productId)      e.productId     = 'Required';
     if (!formData.dateOfBirth)    e.dateOfBirth   = 'Required';
+    if (!formData.nationalId)     e.nationalId    = 'Required';
     if (!formData.occupation)     e.occupation    = 'Required';
     if (!formData.claimsHistory)  e.claimsHistory = 'Required';
 
@@ -783,6 +784,10 @@ export default function InsuredQuotes() {
                       <Field label="Date of Birth" required>
                         <DatePicker style={{ width: '100%' }} status={errors.dateOfBirth ? 'error' : ''} value={formData.dateOfBirth ? dayjs(formData.dateOfBirth) : null} onChange={d => sf('dateOfBirth', d ? d.format('YYYY-MM-DD') : '')} />
                         {errors.dateOfBirth && <div style={{ color: RED, fontSize: 11, marginTop: 3 }}>{errors.dateOfBirth}</div>}
+                      </Field>
+                      <Field label="National ID" required>
+                        <input style={inputStyle(errors.nationalId)} placeholder="e.g. ETH-1234567890" value={formData.nationalId} onChange={e => sf('nationalId', e.target.value)} />
+                        {errors.nationalId && <div style={{ color: RED, fontSize: 11, marginTop: 3 }}>{errors.nationalId}</div>}
                       </Field>
                       <Field label="Gender">
                         <select style={selectStyle} value={formData.gender} onChange={e => sf('gender', e.target.value)}>

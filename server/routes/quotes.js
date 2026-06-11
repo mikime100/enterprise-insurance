@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Quote = require('../models/Quote');
 const PolicyEnrollment = require('../models/PolicyEnrollment');
+const InsuredPerson = require('../models/InsuredPerson');
 const { requireAuth, requireRole } = require('../middleware/auth');
 
 router.use(requireAuth);
@@ -54,6 +55,16 @@ router.post('/', async (req, res, next) => {
       validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
     });
     await quote.save();
+
+    // Persist nationalId and dateOfBirth from the application onto the InsuredPerson profile
+    const appData = req.body.applicationData || {};
+    if (req.body.insuredPerson && (appData.nationalId || appData.dateOfBirth)) {
+      const updates = {};
+      if (appData.nationalId)  updates.nationalId  = appData.nationalId;
+      if (appData.dateOfBirth) updates.dateOfBirth = new Date(appData.dateOfBirth);
+      await InsuredPerson.findByIdAndUpdate(req.body.insuredPerson, updates).catch(() => {});
+    }
+
     res.status(201).json({ quote });
   } catch (err) { next(err); }
 });

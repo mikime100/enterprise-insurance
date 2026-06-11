@@ -98,7 +98,7 @@ function generatePolicyPdf(enrollment) {
   field('Product',    product?.name || '—', MARGIN + col + 20, y, col);
   y += 28;
   field('Email',      person?.email || '—', MARGIN, y, col);
-  field('Tier / Plan', tier?.name || '—',  MARGIN + col + 20, y, col);
+  field('Tier',        tier?.name || '—',  MARGIN + col + 20, y, col);
   y += 28;
   field('National ID', person?.nationalId || '—', MARGIN, y, col);
   field('Insurer',    payer?.name || 'Enterprise Insurance S.C.', MARGIN + col + 20, y, col);
@@ -205,8 +205,30 @@ function generatePolicyPdf(enrollment) {
   doc.moveTo(MARGIN, y + 30).lineTo(MARGIN + 160, y + 30).stroke();
   doc.fillColor([107,114,128]).fontSize(8).font('Helvetica')
     .text('Authorised Signatory', MARGIN, y + 34, { width: 160 });
-  doc.fillColor([17,24,39]).fontSize(9).font('Helvetica-Bold')
-    .text('Enterprise Insurance S.C.', MARGIN, y + 46, { width: 160 });
+  // Script-style signature name
+  doc.fillColor([17,24,39]).fontSize(11).font('Times-BoldItalic')
+    .text('Enterprise Insurance S.C.', MARGIN, y + 44, { width: 170 });
+
+  // ── Company Seal (centered between the two sig blocks) ──
+  const SX = W / 2;
+  const SY = y + 28;
+  const SR = 38;
+  const [sR, sG, sB] = hex(NAVY);
+  // Outer ring
+  doc.circle(SX, SY, SR).lineWidth(2).stroke([sR, sG, sB]);
+  // Inner ring
+  doc.circle(SX, SY, SR - 7).lineWidth(0.7).stroke([sR, sG, sB]);
+  // Top arc label
+  doc.fillColor([sR, sG, sB]).fontSize(5.5).font('Helvetica-Bold')
+    .text('· ENTERPRISE INSURANCE S.C. ·', SX - SR + 5, SY - SR + 9, { width: (SR - 5) * 2, align: 'center' });
+  // Centre star symbol
+  doc.fontSize(18).text('✦', SX - 10, SY - 12, { width: 22, align: 'center' });
+  // "CERTIFIED" label
+  doc.fontSize(5.5).font('Helvetica-Bold')
+    .text('CERTIFIED', SX - SR + 5, SY + 6, { width: (SR - 5) * 2, align: 'center' });
+  // Bottom arc label
+  doc.fontSize(5).font('Helvetica')
+    .text('ADDIS ABABA · ETHIOPIA', SX - SR + 5, SY + SR - 14, { width: (SR - 5) * 2, align: 'center' });
 
   // Right date block
   strokeHex('#9ca3af');
