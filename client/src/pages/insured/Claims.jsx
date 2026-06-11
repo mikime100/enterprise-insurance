@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Table, Form, Select, Input, InputNumber, DatePicker, Spin, message, Upload, Timeline } from 'antd';
 import {
-  PlusOutlined, EyeOutlined, UploadOutlined,
+  PlusOutlined, EyeOutlined, UploadOutlined, DollarOutlined,
   CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined,
   FilePdfOutlined, FileImageOutlined, FileOutlined, SendOutlined, DeleteOutlined,
   WarningOutlined, SyncOutlined,
@@ -26,6 +26,8 @@ const STATUS_CFG = {
   approved:                { color: GREEN,    bg: '#dcfce7', label: 'Approved' },
   partially_approved:      { color: '#059669', bg: '#d1fae5', label: 'Partly Approved' },
   denied:                  { color: RED,      bg: '#fee2e2', label: 'Denied' },
+  awaiting_client_approval:{ color: '#9333ea', bg: '#f3e8ff', label: 'Offer Received' },
+  disputed:                { color: '#ea580c', bg: '#ffedd5', label: 'Disputed' },
   payment_initiated:       { color: '#2563eb', bg: '#dbeafe', label: 'Payment Initiated' },
   settled:                 { color: '#16a34a', bg: '#dcfce7', label: 'Settled' },
   closed:                  { color: '#9ca3af', bg: '#f3f4f6', label: 'Closed' },
@@ -121,6 +123,11 @@ export default function InsuredClaims() {
   const [appealText, setAppealText]         = useState('');
   const [submittingAppeal, setSubmittingAppeal] = useState(false);
 
+  // Settlement offer response
+  const [offerDisputeOpen, setOfferDisputeOpen]     = useState(false);
+  const [offerDisputeText, setOfferDisputeText]     = useState('');
+  const [submittingOffer, setSubmittingOffer]       = useState(false);
+
   const load = () => {
     setLoading(true);
     Promise.all([
@@ -138,6 +145,8 @@ export default function InsuredClaims() {
 
   const openDetail = (c) => {
     setDetail(c);
+    setOfferDisputeOpen(false);
+    setOfferDisputeText('');
     api.get(`/claims/${c._id}`).then(r => setDetail(r.data.claim)).catch(() => {});
   };
 
@@ -236,6 +245,30 @@ export default function InsuredClaims() {
       message.error(err?.response?.data?.message || 'Failed to submit appeal');
     } finally {
       setSubmittingAppeal(false);
+    }
+  };
+
+  // ── Respond to settlement offer ──────────────────────────────────────────────
+  const respondToOffer = async (accepted) => {
+    if (!accepted && !offerDisputeText.trim()) return;
+    setSubmittingOffer(true);
+    try {
+      await api.post(`/claims/${detail._id}/client-respond`, {
+        accepted,
+        reason: accepted ? undefined : offerDisputeText,
+      });
+      message.success(accepted
+        ? 'You have accepted the settlement offer. Payment will be initiated shortly.'
+        : 'Your dispute has been submitted. The claims team will contact you with a revised offer.', 6);
+      setOfferDisputeOpen(false);
+      setOfferDisputeText('');
+      const r = await api.get(`/claims/${detail._id}`);
+      setDetail(r.data.claim);
+      load();
+    } catch (err) {
+      message.error(err?.response?.data?.message || 'Failed to submit response');
+    } finally {
+      setSubmittingOffer(false);
     }
   };
 
@@ -518,6 +551,75 @@ export default function InsuredClaims() {
                 <div style={{ background: '#f9fafb', borderRadius: 10, padding: '14px 16px' }}>
                   <div style={{ color: '#9ca3af', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>Description</div>
                   <div style={{ color: '#374151', fontSize: 13, lineHeight: 1.6 }}>{detail.description}</div>
+                </div>
+              )}
+
+              {/* ── awaiting_client_approval banner ─────────────────────────── */}
+              {detail.status === 'awaiting_client_approval' && (
+                <div style={{ background: '#fdf4ff', border: '1.5px solid #d8b4fe', borderRadius: 12, padding: '16px 20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                    <DollarOutlined style={{ color: '#9333ea', fontSize: 18 }} />
+                    <div style={{ fontWeight: 800, color: '#7e22ce', fontSize: 15 }}>Settlement Offer Received</div>
+                  </div>
+                  <div style={{ background: '#fff', borderRadius: 10, padding: '14px 16px', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#6b7280', fontSize: 13 }}>Offered Amount</span>
+                    <span style={{ fontWeight: 800, fontSize: 22, color: '#7e22ce' }}>ETB {detail.offeredAmount?.toLocaleString()}</span>
+                  </div>
+                  <div style={{ color: '#6b21a8', fontSize: 13, marginBottom: 14 }}>
+                    The insurance company has reviewed your claim and proposed the above settlement. Please accept or dispute this offer.
+                  </div>
+                  {!offerDisputeOpen ? (
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <button onClick={() => respondToOffer(true)} disabled={submittingOffer}
+                        style={{ flex: 1, padding: '11px 0', background: GREEN, border: 'none', borderRadius: 9, color: '#fff', fontWeight: 700, fontSize: 13, cursor: submittingOffer ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                        <CheckCircleOutlined /> Accept Offer
+                      </button>
+                      <button onClick={() => setOfferDisputeOpen(true)}
+                        style={{ flex: 1, padding: '11px 0', background: '#fff', border: '1.5px solid #ef4444', borderRadius: 9, color: RED, fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                        <CloseCircleOutlined /> Dispute Offer
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div style={{ fontWeight: 600, color: '#374151', fontSize: 13 }}>Reason for dispute *</div>
+                      <textarea
+                        value={offerDisputeText}
+                        onChange={e => setOfferDisputeText(e.target.value)}
+                        placeholder="Explain why you are disputing this offer and what amount you believe is fair..."
+                        rows={3}
+                        style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #e5e7eb', borderRadius: 10, fontSize: 13, resize: 'vertical', boxSizing: 'border-box', outline: 'none' }}
+                      />
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <button onClick={() => { setOfferDisputeOpen(false); setOfferDisputeText(''); }}
+                          style={{ flex: 1, padding: '10px 0', border: '1px solid #e5e7eb', borderRadius: 9, background: '#fff', color: '#374151', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>
+                          Cancel
+                        </button>
+                        <button onClick={() => respondToOffer(false)} disabled={!offerDisputeText.trim() || submittingOffer}
+                          style={{ flex: 2, padding: '10px 0', border: 'none', borderRadius: 9, background: !offerDisputeText.trim() || submittingOffer ? '#e5e7eb' : RED, color: !offerDisputeText.trim() || submittingOffer ? '#9ca3af' : '#fff', fontWeight: 700, cursor: !offerDisputeText.trim() || submittingOffer ? 'not-allowed' : 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                          {submittingOffer ? <Spin size="small" /> : <SendOutlined />}
+                          Submit Dispute
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── disputed banner ──────────────────────────────────────────── */}
+              {detail.status === 'disputed' && (
+                <div style={{ background: '#fff7ed', border: '1.5px solid #fed7aa', borderRadius: 12, padding: '16px 20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <WarningOutlined style={{ color: '#ea580c', fontSize: 18 }} />
+                    <div style={{ fontWeight: 800, color: '#c2410c', fontSize: 15 }}>Under Renegotiation</div>
+                  </div>
+                  <div style={{ color: '#9a3412', fontSize: 13 }}>
+                    You have disputed the settlement offer. The claims team will review your dispute and contact you with a revised proposal.
+                  </div>
+                  {detail.clientApproval?.reason && (
+                    <div style={{ background: '#fff', borderRadius: 9, padding: '10px 14px', marginTop: 10, color: '#78350f', fontSize: 13 }}>
+                      <strong>Your stated reason:</strong> {detail.clientApproval.reason}
+                    </div>
+                  )}
                 </div>
               )}
 

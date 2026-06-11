@@ -53,6 +53,7 @@ const claimSchema = new mongoose.Schema({
     enum: [
       'submitted', 'acknowledged', 'under_review',
       'documentation_requested', 'investigation', 'assessment',
+      'awaiting_client_approval', 'disputed',
       'pending_finance_approval',
       'approved', 'partially_approved', 'denied',
       'payment_initiated', 'settled', 'closed'
@@ -76,9 +77,15 @@ const claimSchema = new mongoose.Schema({
   appealNote:   String,
   services:     [claimServiceSchema],
   documents:    [documentSchema],
-  claimedAmount:   { type: Number, required: true },
-  approvedAmount:  Number,
+  claimedAmount:    { type: Number, required: true },
+  offeredAmount:    Number,   // proposed by claims officer at assessment stage
+  approvedAmount:   Number,   // set when client accepts / finance approves
   settlementAmount: Number,
+  clientApproval: {
+    status:      { type: String, enum: ['pending', 'accepted', 'disputed'], default: 'pending' },
+    reason:      String,
+    respondedAt: Date,
+  },
   financeApproval: {
     approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     approvedAt: Date,
@@ -91,19 +98,22 @@ const claimSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const VALID_TRANSITIONS = {
-  submitted:                  ['acknowledged'],
-  acknowledged:               ['under_review'],
-  under_review:               ['documentation_requested', 'investigation', 'assessment'],
-  documentation_requested:    ['under_review'],
-  investigation:              ['assessment'],
-  assessment:                 ['pending_finance_approval', 'denied'],
-  pending_finance_approval:   ['approved', 'partially_approved', 'denied'],
-  approved:                   ['payment_initiated'],
-  partially_approved:         ['payment_initiated'],
-  denied:                     ['closed'],
-  payment_initiated:          ['settled'],
-  settled:                    ['closed'],
-  closed:                     []
+  submitted:                   ['acknowledged'],
+  acknowledged:                ['under_review'],
+  under_review:                ['documentation_requested', 'investigation', 'assessment', 'denied'],
+  documentation_requested:     ['under_review'],
+  investigation:               ['assessment', 'denied'],
+  assessment:                  ['awaiting_client_approval', 'denied'],
+  awaiting_client_approval:    [],   // only changed via POST /:id/client-respond
+  disputed:                    ['under_review', 'assessment', 'denied'],
+  payment_initiated:           ['settled'],
+  settled:                     ['closed'],
+  denied:                      ['closed'],
+  closed:                      [],
+  // legacy — kept for backward compat with existing claims
+  pending_finance_approval:    ['approved', 'partially_approved', 'denied'],
+  approved:                    ['payment_initiated'],
+  partially_approved:          ['payment_initiated'],
 };
 
 claimSchema.methods.canTransitionTo = function (newStatus) {

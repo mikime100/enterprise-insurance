@@ -139,9 +139,16 @@ router.patch('/:id/status', requireRole(...CLAIMS_ROLES), async (req, res, next)
 
     claim.status = status;
     claim.statusHistory.push({ status, changedBy: req.user._id, reason });
+
     if (status === 'documentation_requested' && req.body.documentationRequested?.length) {
       claim.documentationRequested = req.body.documentationRequested;
     }
+    // offeredAmount is set when transitioning TO awaiting_client_approval (assessment result)
+    if (status === 'awaiting_client_approval' && req.body.offeredAmount != null) {
+      claim.offeredAmount = req.body.offeredAmount;
+      claim.clientApproval = { status: 'pending' };
+    }
+    // approvedAmount only settable by finance/admin for legacy flows
     if (approvedAmount !== undefined) claim.approvedAmount = approvedAmount;
     if (settlementAmount !== undefined) claim.settlementAmount = settlementAmount;
     if (estimatedResolutionDate) claim.estimatedResolutionDate = estimatedResolutionDate;
@@ -255,6 +262,40 @@ router.post('/:id/appeal', async (req, res, next) => {
     claim.notes.push({ author: req.user._id, content: `APPEAL: ${appealNote}`, isInternal: false });
     await claim.save();
 
+    res.json({ claim });
+  } catch (err) { next(err); }
+});
+
+// Insured responds to settlement offer (accept or dispute)
+router.post('/:id/client-respond', async (req, res, next) => {
+  try {
+    const { accepted, reason } = req.body;
+    const claim = await Claim.findById(req.params.id);
+    if (!claim) return res.status(404).json({ message: 'Claim not found' });
+    if (claim.status !== 'awaiting_client_approval') {
+      return res.status(400).json({ message: 'This claim is not currently awaiting your response' });
+    }
+    if (req.user.role === 'insured_person') {
+      const personId = req.user.linkedEntity?.entityId?.toString();
+      if (claim.insuredPerson.toString() !== personId) {
+        return res.status(403).json({ message: 'Forbidden' });
+      }
+    }
+
+    if (accepted) {
+      claim.status = 'payment_initiated';
+      claim.approvedAmount = claim.offeredAmount;
+      claim.clientApproval = { status: 'accepted', respondedAt: new Date() };
+      claim.statusHistory.push({ status: 'payment_initiated', changedBy: req.user._id, reason: 'Client accepted the settlement offer' });
+    } else {
+      if (!reason?.trim()) return res.status(400).json({ message: 'Please provide a reason for disputing' });
+      claim.status = 'disputed';
+      claim.clientApproval = { status: 'disputed', reason, respondedAt: new Date() };
+      claim.statusHistory.push({ status: 'disputed', changedBy: req.user._id, reason: `Client disputed: ${reason}` });
+      claim.notes.push({ author: req.user._id, content: `DISPUTE: ${reason}`, isInternal: false });
+    }
+
+    await claim.save();
     res.json({ claim });
   } catch (err) { next(err); }
 });

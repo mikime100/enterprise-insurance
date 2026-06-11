@@ -14,15 +14,20 @@ const { TextArea } = Input;
 const VALID_NEXT = {
   submitted:               ['acknowledged'],
   acknowledged:            ['under_review'],
-  under_review:            ['documentation_requested', 'investigation', 'assessment'],
+  under_review:            ['documentation_requested', 'investigation', 'assessment', 'denied'],
   documentation_requested: ['under_review'],
-  investigation:           ['assessment'],
-  assessment:              ['pending_finance_approval', 'denied'],
+  investigation:           ['assessment', 'denied'],
+  assessment:              ['awaiting_client_approval', 'denied'],
+  disputed:                ['under_review', 'assessment', 'denied'],
+  payment_initiated:       ['settled'],
+  settled:                 ['closed'],
+  denied:                  ['closed'],
 };
 
 const STATUS_COLOR = {
   submitted: 'blue', acknowledged: 'cyan', under_review: 'processing',
   documentation_requested: 'orange', investigation: 'gold', assessment: 'purple',
+  awaiting_client_approval: 'magenta', disputed: 'volcano',
   pending_finance_approval: 'volcano', approved: 'green', partially_approved: 'lime',
   denied: 'red', payment_initiated: 'geekblue', settled: 'success', closed: 'default',
 };
@@ -175,7 +180,7 @@ export default function PayerClaims() {
     { title: '', key: 'actions', render: (_, r) => (
       <Space>
         <Button size="small" icon={<EyeOutlined />} onClick={() => openDetail(r)} />
-        {isClaimsRole && !['closed', 'settled', 'denied'].includes(r.status) && r.status !== 'pending_finance_approval' && (
+        {isClaimsRole && !['closed', 'settled', 'denied', 'awaiting_client_approval'].includes(r.status) && r.status !== 'pending_finance_approval' && (
           <Button size="small" style={{ background: '#1e3a5f', borderColor: '#1e3a5f', color: '#fff' }}
             icon={<ArrowRightOutlined />}
             onClick={() => { statusForm.resetFields(); setDocRequestItems([]); setWatchedStatus(''); setStatusModal({ open: true, claim: r }); }} />
@@ -344,6 +349,32 @@ export default function PayerClaims() {
                     )}
                     <Descriptions.Item label="Description" span={2}>{detail.description}</Descriptions.Item>
                   </Descriptions>
+
+                  {/* Offered / client approval status */}
+                  {detail.offeredAmount != null && (
+                    <div style={{ background: '#fdf4ff', border: '1px solid #d8b4fe', borderRadius: 9, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                      <div>
+                        <div style={{ color: '#7e22ce', fontWeight: 700, fontSize: 13 }}>Offered to Client</div>
+                        <div style={{ color: '#9333ea', fontSize: 20, fontWeight: 800 }}>ETB {detail.offeredAmount?.toLocaleString()}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ color: '#6b7280', fontSize: 12 }}>Client Response</div>
+                        <div style={{ fontWeight: 700, fontSize: 13,
+                          color: detail.clientApproval?.status === 'accepted' ? '#16a34a'
+                               : detail.clientApproval?.status === 'disputed' ? '#dc2626'
+                               : '#d97706' }}>
+                          {detail.clientApproval?.status === 'accepted' ? '✓ Accepted'
+                           : detail.clientApproval?.status === 'disputed' ? '✗ Disputed'
+                           : '⏳ Awaiting response'}
+                        </div>
+                        {detail.clientApproval?.reason && (
+                          <div style={{ color: '#6b7280', fontSize: 12, maxWidth: 220, textAlign: 'right', marginTop: 4 }}>
+                            "{detail.clientApproval.reason}"
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Third-party details */}
                   {detail.thirdParty?.name && (
@@ -586,7 +617,8 @@ export default function PayerClaims() {
                         icon={<DollarOutlined />}
                         onClick={() => {
                           statusForm.resetFields();
-                          statusForm.setFieldsValue({ approvedAmount: suggested });
+                          statusForm.setFieldsValue({ offeredAmount: suggested, status: 'awaiting_client_approval' });
+                          setWatchedStatus('awaiting_client_approval');
                           setStatusModal({ open: true, claim: detail });
                         }}
                         style={{ background: '#1e40af', borderColor: '#1e40af' }}
@@ -707,9 +739,12 @@ export default function PayerClaims() {
             </Form.Item>
           )}
 
-          <Form.Item name="approvedAmount" label="Approved Amount (ETB)">
-            <InputNumber style={{ width: '100%' }} min={0} />
-          </Form.Item>
+          {watchedStatus === 'awaiting_client_approval' && (
+            <Form.Item name="offeredAmount" label="Offered Settlement Amount (ETB)" rules={[{ required: true, message: 'Enter the amount to offer the client' }]}>
+              <InputNumber style={{ width: '100%' }} min={0} />
+            </Form.Item>
+          )}
+
           <Form.Item name="reason" label="Reason / Note">
             <TextArea rows={3} placeholder="Provide context for this status change..." />
           </Form.Item>
