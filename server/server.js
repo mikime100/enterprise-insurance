@@ -77,6 +77,7 @@ async function start() {
   app.use('/api/chapa',             require('./routes/chapa'));
   app.use('/api/policy-agreements', require('./routes/policyAgreements'));
   app.use('/api/upload',            require('./routes/upload'));
+  app.use('/api/uploads',           require('./routes/upload')); // serve stored files at /api/uploads/:filename
   app.use('/api/endorsements',      require('./routes/endorsements'));
 
   // Start renewal cron (daily 08:00 + startup check after 30s)
