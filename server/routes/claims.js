@@ -45,7 +45,14 @@ router.get('/:id', async (req, res, next) => {
   try {
     const claim = await Claim.findById(req.params.id)
       .populate('insuredPerson', 'firstName lastName email phone')
-      .populate({ path: 'enrollment', populate: { path: 'product', select: 'name productType' } })
+      .populate({
+        path: 'enrollment',
+        populate: [
+          { path: 'product', select: 'name productType' },
+          { path: 'tier', select: 'name annualPremium description',
+            populate: { path: 'coverages.coverage', select: 'name deductible copaymentPct limits productType' } },
+        ],
+      })
       .populate('provider', 'name type contactEmail')
       .populate('submittedBy', 'firstName lastName role')
       .populate('assignedOfficer', 'firstName lastName')

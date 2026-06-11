@@ -3,7 +3,8 @@ import { Row, Col, Table, Tag, Button, Space, Card, Typography, Modal, Form, Sel
          InputNumber, Input, Descriptions, Divider, Spin, Timeline, Alert, Tabs, Checkbox, DatePicker } from 'antd';
 import { EyeOutlined, ArrowRightOutlined, DollarOutlined, DownloadOutlined, WarningOutlined,
          PaperClipOutlined, MessageOutlined, HistoryOutlined, InfoCircleOutlined,
-         FilePdfOutlined, FileImageOutlined, FileOutlined, SendOutlined } from '@ant-design/icons';
+         FilePdfOutlined, FileImageOutlined, FileOutlined, SendOutlined,
+         SafetyOutlined, CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import api from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -492,6 +493,160 @@ export default function PayerClaims() {
                   )}
                 </div>
               ),
+            },
+            {
+              key: 'policy',
+              label: 'Policy Check',
+              icon: <SafetyOutlined />,
+              children: (() => {
+                const enr = detail.enrollment;
+                const incident  = detail.incidentDate ? new Date(detail.incidentDate) : null;
+                const start     = enr?.startDate ? new Date(enr.startDate) : null;
+                const end       = enr?.endDate   ? new Date(enr.endDate)   : null;
+                const isActive  = enr?.status === 'active';
+                const inPeriod  = incident && start && end ? (incident >= start && incident <= end) : null;
+                const hasPmtOk  = enr?.paymentHistory?.some(p => p.status === 'completed')
+                                  || enr?.paymentVerification?.status === 'approved';
+                const tierCovs  = enr?.tier?.coverages || [];
+                // Find smallest non-zero deductible from tier coverages
+                const deductible = tierCovs.reduce((best, tc) => {
+                  const d = tc.coverage?.deductible || 0;
+                  return d > 0 && d < best ? d : best;
+                }, Infinity);
+                const ded = deductible === Infinity ? 0 : deductible;
+                const suggested = Math.max(0, (detail.claimedAmount || 0) - ded);
+
+                const Check = ({ ok, label, sub }) => (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', background: ok ? '#f0fdf4' : ok === false ? '#fef2f2' : '#f9fafb', border: `1px solid ${ok ? '#86efac' : ok === false ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 9 }}>
+                    <span style={{ fontSize: 18, lineHeight: 1, marginTop: 1 }}>
+                      {ok === true  ? <CheckCircleOutlined style={{ color: '#16a34a' }} />
+                       : ok === false ? <CloseCircleOutlined style={{ color: '#ef4444' }} />
+                       : <ExclamationCircleOutlined style={{ color: '#f59e0b' }} />}
+                    </span>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: '#111827' }}>{label}</div>
+                      {sub && <div style={{ color: '#6b7280', fontSize: 12, marginTop: 2 }}>{sub}</div>}
+                    </div>
+                  </div>
+                );
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {/* Header */}
+                    <div style={{ background: '#1e3a5f', borderRadius: 10, padding: '14px 18px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: 16 }}>{enr?.enrollmentNumber || '—'}</div>
+                        <div style={{ color: '#93c5fd', fontSize: 13 }}>{enr?.product?.name} {enr?.tier ? `· ${enr.tier.name} Tier` : ''}</div>
+                      </div>
+                      <Tag color={isActive ? 'success' : 'error'} style={{ fontSize: 13, padding: '3px 12px' }}>
+                        {enr?.status?.toUpperCase() || '—'}
+                      </Tag>
+                    </div>
+
+                    {/* Verification checks */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <Check ok={isActive}
+                        label="Policy Status"
+                        sub={isActive ? 'Policy is active' : `Status: ${enr?.status || 'unknown'}`} />
+                      <Check ok={inPeriod === null ? null : inPeriod}
+                        label="Incident Within Coverage Period"
+                        sub={start && end
+                          ? `${start.toLocaleDateString()} → ${end.toLocaleDateString()}${incident ? ` · Incident: ${incident.toLocaleDateString()}` : ''}`
+                          : 'Coverage dates unavailable'} />
+                      <Check ok={hasPmtOk}
+                        label="Premium Paid"
+                        sub={hasPmtOk
+                          ? `ETB ${enr?.premium?.amount?.toLocaleString()} / ${enr?.premium?.frequency}`
+                          : 'No confirmed payment on record'} />
+                      <Check ok={enr?.tier ? true : null}
+                        label="Tier / Plan"
+                        sub={enr?.tier
+                          ? `${enr.tier.name} · ETB ${enr.tier.annualPremium?.toLocaleString()} p.a.`
+                          : 'No tier linked to this enrollment'} />
+                    </div>
+
+                    {/* Deductible calculator */}
+                    <div style={{ background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 10, padding: '16px 18px' }}>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: '#1e40af', marginBottom: 12 }}>Deductible & Suggested Payable</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 14 }}>
+                        {[
+                          { label: 'Claimed',     value: `ETB ${(detail.claimedAmount || 0).toLocaleString()}`, color: '#111827' },
+                          { label: 'Deductible',  value: ded > 0 ? `ETB ${ded.toLocaleString()}` : 'None',       color: '#dc2626' },
+                          { label: 'Suggested',   value: `ETB ${suggested.toLocaleString()}`,                    color: '#16a34a' },
+                        ].map(f => (
+                          <div key={f.label} style={{ background: '#fff', borderRadius: 8, padding: '10px 14px', textAlign: 'center' }}>
+                            <div style={{ color: '#9ca3af', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{f.label}</div>
+                            <div style={{ color: f.color, fontWeight: 800, fontSize: 15 }}>{f.value}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <Button
+                        type="primary"
+                        size="small"
+                        icon={<DollarOutlined />}
+                        onClick={() => {
+                          statusForm.resetFields();
+                          statusForm.setFieldsValue({ approvedAmount: suggested });
+                          setStatusModal({ open: true, claim: detail });
+                        }}
+                        style={{ background: '#1e40af', borderColor: '#1e40af' }}
+                      >
+                        Use Suggested Amount in Status Update
+                      </Button>
+                    </div>
+
+                    {/* Tier coverages table */}
+                    {tierCovs.length > 0 && (
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: '#374151', marginBottom: 8 }}>Coverages in this Tier</div>
+                        <Table
+                          dataSource={tierCovs}
+                          rowKey={(_, i) => i}
+                          size="small"
+                          pagination={false}
+                          columns={[
+                            { title: 'Coverage', key: 'n', render: (_, r) => r.coverage?.name || '—' },
+                            { title: 'Annual Limit (ETB)', key: 'l', align: 'right',
+                              render: (_, r) => {
+                                const lim = r.customLimit || r.coverage?.limits?.annual;
+                                return lim ? <span style={{ color: '#16a34a', fontWeight: 700 }}>{lim.toLocaleString()}</span> : '—';
+                              }},
+                            { title: 'Deductible (ETB)', key: 'd', align: 'right',
+                              render: (_, r) => r.coverage?.deductible > 0
+                                ? <span style={{ color: '#dc2626', fontWeight: 600 }}>{r.coverage.deductible.toLocaleString()}</span>
+                                : <span style={{ color: '#9ca3af' }}>None</span> },
+                            { title: 'Co-pay', key: 'c', align: 'right',
+                              render: (_, r) => r.coverage?.copaymentPct > 0 ? `${r.coverage.copaymentPct}%` : '0%' },
+                          ]}
+                        />
+                      </div>
+                    )}
+
+                    {/* Subrogation notice */}
+                    {detail.thirdParty?.name && ['approved','partially_approved','settled','closed'].includes(detail.status) && (
+                      <div style={{ background: '#fefce8', border: '1.5px solid #fde047', borderRadius: 10, padding: '14px 18px' }}>
+                        <div style={{ fontWeight: 700, color: '#854d0e', fontSize: 13, marginBottom: 6 }}>
+                          ⚖️ Subrogation / Recovery Candidate
+                        </div>
+                        <div style={{ color: '#713f12', fontSize: 13, marginBottom: 8 }}>
+                          A third party is identified. Consider pursuing cost recovery from their insurer
+                          {detail.thirdParty.insurerName ? ` (${detail.thirdParty.insurerName})` : ''}.
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 6 }}>
+                          {[
+                            ['Third Party', detail.thirdParty.name],
+                            ['Contact',     detail.thirdParty.contact],
+                            ['Vehicle',     detail.thirdParty.vehicle],
+                            ['Their Insurer', detail.thirdParty.insurerName],
+                          ].filter(([,v]) => v).map(([k,v]) => (
+                            <div key={k}><span style={{ color: '#92400e', fontSize: 12 }}>{k}: </span><strong style={{ fontSize: 13 }}>{v}</strong></div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })(),
             },
             {
               key: 'timeline',
