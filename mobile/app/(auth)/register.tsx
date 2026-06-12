@@ -59,7 +59,7 @@ export default function RegisterScreen() {
       ]);
 
       router.push({
-        pathname: '/(auth)/verify-otp',
+        pathname: '/(auth)/verify-otp' as any,
         params: { email: form.email.trim().toLowerCase() },
       });
     } catch (e: any) {

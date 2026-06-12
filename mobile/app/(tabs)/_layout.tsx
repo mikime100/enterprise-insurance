@@ -16,15 +16,19 @@ export default function TabLayout() {
         headerShown: false,
         tabBarStyle: {
           backgroundColor: '#fff',
-          borderTopWidth: 1,
-          borderTopColor: '#e5e7eb',
-          height: 72,
+          borderTopWidth: 0,
+          height: 74,
           paddingBottom: 16,
-          paddingTop: 8,
+          paddingTop: 10,
+          shadowColor: '#0a1628',
+          shadowOpacity: 0.08,
+          shadowRadius: 16,
+          shadowOffset: { width: 0, height: -4 },
+          elevation: 12,
         },
         tabBarActiveTintColor: '#1e3a5f',
         tabBarInactiveTintColor: '#9ca3af',
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600', marginTop: 2 },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700', marginTop: 3 },
       }}
     >
       {/* ── Home — all roles ── */}

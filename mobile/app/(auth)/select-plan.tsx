@@ -62,7 +62,7 @@ export default function SelectPlanScreen() {
     const plan = products.find(p => p._id === selected);
     if (!plan) { Alert.alert('Select a Plan', 'Please choose a plan to continue.'); return; }
     router.push({
-      pathname: '/(auth)/register',
+      pathname: '/(auth)/register' as any,
       params: { planId: plan._id, planName: plan.name, planType: plan.productType },
     });
   };

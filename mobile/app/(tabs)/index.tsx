@@ -1,68 +1,61 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, ActivityIndicator,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
+import { C, R, SHADOW, statusCfg, fmtMoney, fmtDate, CLAIM_TYPE_ICONS } from '../../lib/theme';
+import { FadeIn, Press, StatusPill, Skeleton } from '../../components/ui';
 
-const NAVY  = '#1e3a5f';
-const GREEN = '#22c55e';
-const BLUE  = '#2563eb';
+const ACTION_NEEDED = ['awaiting_client_approval', 'documentation_requested'];
 
-// ─── Shared components ────────────────────────────────────────────────────────
+// ─── Shared bits ──────────────────────────────────────────────────────────────
 
-function Header({ user }: { user: any }) {
+function Header({ user, subtitle }: { user: any; subtitle?: string }) {
+  const h = new Date().getHours();
+  const greet = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
   return (
-    <View style={styles.header}>
-      <View>
-        <Text style={styles.greeting}>Good day,</Text>
-        <Text style={styles.name}>{user?.firstName} {user?.lastName}</Text>
+    <View style={st.header}>
+      <View style={{ flex: 1 }}>
+        <Text style={st.greeting}>{greet},</Text>
+        <Text style={st.name}>{user?.firstName} {user?.lastName}</Text>
+        {subtitle ? <Text style={st.headerSub}>{subtitle}</Text> : null}
       </View>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{user?.firstName?.[0]}{user?.lastName?.[0]}</Text>
+      <View style={st.avatar}>
+        <Text style={st.avatarText}>{user?.firstName?.[0]}{user?.lastName?.[0]}</Text>
       </View>
     </View>
   );
 }
 
-function StatCard({ label, value, color, icon }: { label: string; value: string | number; color: string; icon: string }) {
+function StatCard({ label, value, color, icon, delay = 0 }: {
+  label: string; value: string | number; color: string; icon: string; delay?: number;
+}) {
   return (
-    <View style={[styles.statCard, { borderLeftColor: color }]}>
-      <Ionicons name={icon as any} size={20} color={color} style={{ marginBottom: 6 }} />
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
+    <FadeIn delay={delay} style={{ flex: 1 }}>
+      <View style={st.statCard}>
+        <View style={[st.statIcon, { backgroundColor: `${color}16` }]}>
+          <Ionicons name={icon as any} size={17} color={color} />
+        </View>
+        <Text style={st.statValue}>{value}</Text>
+        <Text style={st.statLabel}>{label}</Text>
+      </View>
+    </FadeIn>
   );
 }
 
-function ActionBtn({ icon, label, onPress, color = NAVY }: { icon: string; label: string; onPress: () => void; color?: string }) {
+function ActionTile({ icon, label, color, onPress }: { icon: string; label: string; color: string; onPress: () => void }) {
   return (
-    <TouchableOpacity style={styles.actionBtn} onPress={onPress}>
-      <Ionicons name={icon as any} size={28} color={color} />
-      <Text style={styles.actionLabel}>{label}</Text>
-    </TouchableOpacity>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { bg: string; color: string }> = {
-    submitted:    { bg: '#dbeafe', color: '#1d4ed8' },
-    under_review: { bg: '#fef9c3', color: '#a16207' },
-    approved:     { bg: '#dcfce7', color: '#16a34a' },
-    denied:       { bg: '#fee2e2', color: '#dc2626' },
-    settled:      { bg: '#f0fdf4', color: '#15803d' },
-    active:       { bg: '#dcfce7', color: '#16a34a' },
-    pending:      { bg: '#fef9c3', color: '#a16207' },
-  };
-  const s = map[status] || { bg: '#f3f4f6', color: '#374151' };
-  return (
-    <View style={[styles.badge, { backgroundColor: s.bg }]}>
-      <Text style={[styles.badgeText, { color: s.color }]}>{status.replace(/_/g, ' ')}</Text>
-    </View>
+    <Press onPress={onPress} style={st.actionTile}>
+      <View style={[st.actionIcon, { backgroundColor: `${color}14` }]}>
+        <Ionicons name={icon as any} size={23} color={color} />
+      </View>
+      <Text style={st.actionLabel}>{label}</Text>
+    </Press>
   );
 }
 
@@ -86,84 +79,146 @@ function InsuredHome({ user, router, insets }: any) {
       }
       if (cRes.status === 'fulfilled') {
         const list = cRes.value.data.claims;
-        if (Array.isArray(list)) setClaims(list.slice(0, 3));
+        if (Array.isArray(list)) setClaims(list);
       }
     } finally { setLoading(false); setRefreshing(false); }
   };
+  useFocusEffect(useCallback(() => { load(); }, []));
 
-  useEffect(() => { load(); }, []);
-  const onRefresh = () => { setRefreshing(true); load(); };
-  const openClaims = claims.filter(c => ['submitted', 'under_review', 'approved'].includes(c.status)).length;
+  const openClaims    = claims.filter(c => !['settled', 'closed', 'denied'].includes(c.status));
+  const actionClaims  = claims.filter(c => ACTION_NEEDED.includes(c.status));
+  const settledAmt    = claims.filter(c => c.status === 'settled')
+    .reduce((sum, c) => sum + (c.settlementAmount || c.approvedAmount || 0), 0);
+  const daysLeft = enrollment?.endDate
+    ? Math.max(0, Math.ceil((new Date(enrollment.endDate).getTime() - Date.now()) / 86_400_000))
+    : null;
 
   return (
-    <ScrollView style={styles.root} contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={NAVY} />}>
+    <ScrollView style={st.root}
+      contentContainerStyle={[st.content, { paddingTop: insets.top + 16 }]}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.navy} />}>
       <Header user={user} />
 
       {loading ? (
-        /* Skeleton — keeps layout visible so the user knows which screen they're on */
-        <>
-          <View style={{ height: 140, borderRadius: 16, backgroundColor: '#e2e8f0', marginBottom: 16 }} />
-          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
-            <View style={{ flex: 1, height: 80, borderRadius: 12, backgroundColor: '#e2e8f0' }} />
-            <View style={{ flex: 1, height: 80, borderRadius: 12, backgroundColor: '#e2e8f0' }} />
+        <View style={{ gap: 14 }}>
+          <Skeleton height={170} radius={R.xl} />
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <Skeleton height={92} style={{ flex: 1 }} /><Skeleton height={92} style={{ flex: 1 }} /><Skeleton height={92} style={{ flex: 1 }} />
           </View>
-          <View style={{ height: 110, borderRadius: 12, backgroundColor: '#e2e8f0', marginBottom: 12 }} />
-        </>
+          <Skeleton height={120} />
+        </View>
       ) : (
         <>
-          {/* Policy card */}
-          <View style={styles.policyCard}>
-            <Text style={styles.policyLabel}>ACTIVE POLICY</Text>
-            {enrollment ? (
-              <>
-                <Text style={styles.policyTier}>{enrollment.tier?.name || 'Standard Plan'}</Text>
-                <View style={styles.policyMeta}>
-                  <Text style={styles.policyMetaText}>Status: </Text>
-                  <StatusBadge status={enrollment.status} />
-                </View>
-                {enrollment.endDate && (
-                  <Text style={styles.policyExpiry}>Expires: {new Date(enrollment.endDate).toLocaleDateString()}</Text>
+          {/* ── Action needed banners ──────────────────────────────────── */}
+          {actionClaims.map((c, i) => {
+            const cfg = statusCfg(c.status);
+            const isOffer = c.status === 'awaiting_client_approval';
+            return (
+              <FadeIn key={c._id} delay={i * 70}>
+                <Press onPress={() => router.push(`/claim/${c._id}`)}
+                  style={[st.alertCard, { backgroundColor: cfg.bg, borderColor: cfg.color }]}>
+                  <View style={[st.alertIcon, { backgroundColor: cfg.color }]}>
+                    <Ionicons name={isOffer ? 'cash' : 'document-attach'} size={18} color="#fff" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[st.alertTitle, { color: cfg.color }]}>
+                      {isOffer ? 'Settlement Offer Awaits You' : 'Documents Requested'}
+                    </Text>
+                    <Text style={st.alertSub} numberOfLines={1}>
+                      {c.claimNumber}{isOffer ? ` — ${fmtMoney(c.offeredAmount)} offered` : ' — upload to continue'}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={cfg.color} />
+                </Press>
+              </FadeIn>
+            );
+          })}
+
+          {/* ── Policy hero card ───────────────────────────────────────── */}
+          <FadeIn delay={60}>
+            <LinearGradient colors={[C.navyDark, C.navy, '#27548a']} start={{ x: 0, y: 0 }} end={{ x: 1.2, y: 1.2 }}
+              style={st.hero}>
+              <View style={st.heroDecor} />
+              <View style={st.heroDecor2} />
+              <View style={st.heroTopRow}>
+                <Text style={st.heroEyebrow}>MY POLICY</Text>
+                {enrollment && (
+                  <View style={st.heroPill}>
+                    <View style={st.heroPillDot} />
+                    <Text style={st.heroPillText}>ACTIVE</Text>
+                  </View>
                 )}
-              </>
-            ) : (
-              <>
-                <Text style={styles.noPolicy}>No active coverage yet</Text>
-                <TouchableOpacity style={styles.getStartedBtn} onPress={() => router.push('/(tabs)/coverage')}>
-                  <Text style={styles.getStartedText}>Browse Plans →</Text>
-                </TouchableOpacity>
-              </>
-            )}
+              </View>
+              {enrollment ? (
+                <>
+                  <Text style={st.heroPlan}>{enrollment.tier?.name || 'Standard Plan'}</Text>
+                  <Text style={st.heroProduct}>{enrollment.product?.name || ''}</Text>
+                  <View style={st.heroFooter}>
+                    <View>
+                      <Text style={st.heroMetaLabel}>Policy No.</Text>
+                      <Text style={st.heroMetaValue}>{enrollment.enrollmentNumber || '—'}</Text>
+                    </View>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <Text style={st.heroMetaLabel}>Expires</Text>
+                      <Text style={st.heroMetaValue}>
+                        {fmtDate(enrollment.endDate)}{daysLeft !== null ? `  ·  ${daysLeft}d left` : ''}
+                      </Text>
+                    </View>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <Text style={st.heroPlan}>No active coverage</Text>
+                  <Text style={st.heroProduct}>Protect yourself and your family today.</Text>
+                  <Press onPress={() => router.push('/(tabs)/coverage')} style={st.heroCta}>
+                    <Text style={st.heroCtaText}>Browse Plans</Text>
+                    <Ionicons name="arrow-forward" size={15} color={C.navyDark} />
+                  </Press>
+                </>
+              )}
+            </LinearGradient>
+          </FadeIn>
+
+          {/* ── Stats ──────────────────────────────────────────────────── */}
+          <View style={st.statsRow}>
+            <StatCard label="Open Claims" value={openClaims.length} color={C.amber} icon="time" delay={120} />
+            <StatCard label="Total Claims" value={claims.length} color={C.blue} icon="documents" delay={170} />
+            <StatCard label="Settled" value={settledAmt > 0 ? `${(settledAmt / 1000).toFixed(settledAmt >= 10000 ? 0 : 1)}k` : '0'} color={C.green} icon="wallet" delay={220} />
           </View>
 
-          <View style={styles.statsRow}>
-            <StatCard label="Open Claims" value={openClaims} color="#f59e0b" icon="alert-circle" />
-            <StatCard label="Total Claims" value={claims.length || 0} color={BLUE} icon="document-text" />
-          </View>
+          {/* ── Quick actions ──────────────────────────────────────────── */}
+          <FadeIn delay={260}>
+            <Text style={st.sectionTitle}>Quick Actions</Text>
+            <View style={st.actionsRow}>
+              <ActionTile icon="add-circle" label="File Claim" color={C.green} onPress={() => router.push('/new-claim')} />
+              <ActionTile icon="folder-open" label="My Claims" color={C.blue} onPress={() => router.push('/(tabs)/claims')} />
+              <ActionTile icon="shield-checkmark" label="My Policy" color={C.purple} onPress={() => router.push('/(tabs)/coverage')} />
+              <ActionTile icon="person-circle" label="Profile" color={C.cyan} onPress={() => router.push('/(tabs)/profile')} />
+            </View>
+          </FadeIn>
 
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={styles.actionsRow}>
-            <ActionBtn icon="create-outline"           label="File Claim" onPress={() => router.push('/new-claim' as any)} />
-            <ActionBtn icon="list-outline"             label="My Claims"  onPress={() => router.push('/(tabs)/claims' as any)} />
-            <ActionBtn icon="shield-checkmark-outline" label="Coverage"   onPress={() => router.push('/(tabs)/coverage' as any)} />
-          </View>
-
+          {/* ── Recent claims ──────────────────────────────────────────── */}
           {claims.length > 0 && (
-            <>
-              <Text style={styles.sectionTitle}>Recent Claims</Text>
-              {claims.map(claim => (
-                <View key={claim._id} style={styles.claimRow}>
-                  <View style={styles.claimLeft}>
-                    <Text style={styles.claimNumber}>{claim.claimNumber}</Text>
-                    <Text style={styles.claimType}>{claim.claimType?.replace(/_/g, ' ')}</Text>
+            <FadeIn delay={320}>
+              <View style={st.recentHead}>
+                <Text style={st.sectionTitle}>Recent Claims</Text>
+                <TouchableOpacity onPress={() => router.push('/(tabs)/claims')}>
+                  <Text style={st.seeAll}>See all</Text>
+                </TouchableOpacity>
+              </View>
+              {claims.slice(0, 3).map(claim => (
+                <Press key={claim._id} onPress={() => router.push(`/claim/${claim._id}`)} style={st.claimRow}>
+                  <View style={st.claimIcon}>
+                    <Ionicons name={(CLAIM_TYPE_ICONS[claim.claimType] || 'document') as any} size={17} color={C.navy} />
                   </View>
-                  <View style={styles.claimRight}>
-                    <Text style={styles.claimAmount}>ETB {claim.claimedAmount?.toLocaleString()}</Text>
-                    <StatusBadge status={claim.status} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={st.claimNumber}>{claim.claimNumber}</Text>
+                    <Text style={st.claimType}>{claim.claimType?.replace(/_/g, ' ')} · {fmtMoney(claim.claimedAmount)}</Text>
                   </View>
-                </View>
+                  <StatusPill status={claim.status} size="sm" />
+                </Press>
               ))}
-            </>
+            </FadeIn>
           )}
         </>
       )}
@@ -174,8 +229,8 @@ function InsuredHome({ user, router, insets }: any) {
 // ─── Broker home ──────────────────────────────────────────────────────────────
 
 function BrokerHome({ user, router, insets }: any) {
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [loading, setLoading]     = useState(true);
+  const [customers, setCustomers]   = useState<any[]>([]);
+  const [loading, setLoading]       = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = async () => {
@@ -184,51 +239,48 @@ function BrokerHome({ user, router, insets }: any) {
       setCustomers(res.data.customers || []);
     } finally { setLoading(false); setRefreshing(false); }
   };
+  useFocusEffect(useCallback(() => { load(); }, []));
 
-  useEffect(() => { load(); }, []);
-  const onRefresh = () => { setRefreshing(true); load(); };
-
-  const active   = customers.filter(c => !c.mustChangePassword).length;
-  const pending  = customers.filter(c => c.mustChangePassword).length;
-  const recent   = customers.slice(0, 5);
-
-  if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color={NAVY} /></View>;
+  const active  = customers.filter(c => !c.mustChangePassword).length;
+  const pending = customers.filter(c => c.mustChangePassword).length;
 
   return (
-    <ScrollView style={styles.root} contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={NAVY} />}>
-      <Header user={user} />
-
-      {/* Broker banner */}
-      <View style={[styles.policyCard, { backgroundColor: '#312e81' }]}>
-        <Text style={styles.policyLabel}>BROKER PORTAL</Text>
-        <Text style={styles.policyTier}>Sales Dashboard</Text>
-        <Text style={styles.policyExpiry}>{customers.length} customers registered</Text>
-      </View>
-
-      <View style={styles.statsRow}>
-        <StatCard label="Active"  value={active}  color={GREEN} icon="checkmark-circle" />
-        <StatCard label="Pending" value={pending} color="#f59e0b" icon="time" />
-        <StatCard label="Total"   value={customers.length} color={BLUE} icon="people" />
-      </View>
-
-      <Text style={styles.sectionTitle}>Quick Actions</Text>
-      <View style={styles.actionsRow}>
-        <ActionBtn icon="person-add-outline" label="Register" onPress={() => router.push('/(tabs)/customers')} color="#312e81" />
-        <ActionBtn icon="people-outline"     label="Customers" onPress={() => router.push('/(tabs)/customers')} color={BLUE} />
-      </View>
-
-      {recent.length > 0 && (
+    <ScrollView style={st.root}
+      contentContainerStyle={[st.content, { paddingTop: insets.top + 16 }]}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.navy} />}>
+      <Header user={user} subtitle="Broker Portal" />
+      {loading ? <Skeleton height={150} radius={R.xl} /> : (
         <>
-          <Text style={styles.sectionTitle}>Recent Customers</Text>
-          {recent.map(c => (
-            <View key={c._id} style={styles.claimRow}>
-              <View style={styles.claimLeft}>
-                <Text style={styles.claimNumber}>{c.firstName} {c.lastName}</Text>
-                <Text style={styles.claimType}>{c.email}</Text>
-              </View>
-              <StatusBadge status={c.mustChangePassword ? 'pending' : 'active'} />
+          <FadeIn>
+            <LinearGradient colors={['#1e1b4b', '#312e81', '#4338ca']} start={{ x: 0, y: 0 }} end={{ x: 1.2, y: 1.2 }} style={st.hero}>
+              <Text style={st.heroEyebrow}>SALES DASHBOARD</Text>
+              <Text style={st.heroPlan}>{customers.length} Customers</Text>
+              <Text style={st.heroProduct}>{active} active · {pending} pending activation</Text>
+            </LinearGradient>
+          </FadeIn>
+          <View style={st.statsRow}>
+            <StatCard label="Active" value={active} color={C.green} icon="checkmark-circle" delay={80} />
+            <StatCard label="Pending" value={pending} color={C.amber} icon="time" delay={130} />
+            <StatCard label="Total" value={customers.length} color={C.blue} icon="people" delay={180} />
+          </View>
+          <FadeIn delay={220}>
+            <Text style={st.sectionTitle}>Quick Actions</Text>
+            <View style={st.actionsRow}>
+              <ActionTile icon="person-add" label="Register" color="#4338ca" onPress={() => router.push('/(tabs)/customers')} />
+              <ActionTile icon="people" label="Customers" color={C.blue} onPress={() => router.push('/(tabs)/customers')} />
             </View>
+          </FadeIn>
+          {customers.slice(0, 5).map((c, i) => (
+            <FadeIn key={c._id} delay={260 + i * 50}>
+              <View style={st.claimRow}>
+                <View style={st.claimIcon}><Text style={{ fontWeight: '800', color: C.navy, fontSize: 13 }}>{c.firstName?.[0]}{c.lastName?.[0]}</Text></View>
+                <View style={{ flex: 1 }}>
+                  <Text style={st.claimNumber}>{c.firstName} {c.lastName}</Text>
+                  <Text style={st.claimType}>{c.email}</Text>
+                </View>
+                <StatusPill status={c.mustChangePassword ? 'submitted' : 'settled'} size="sm" />
+              </View>
+            </FadeIn>
           ))}
         </>
       )}
@@ -239,10 +291,10 @@ function BrokerHome({ user, router, insets }: any) {
 // ─── Institution home ─────────────────────────────────────────────────────────
 
 function InstitutionHome({ user, router, insets }: any) {
-  const [employees, setEmployees]   = useState<any[]>([]);
+  const [employees, setEmployees]     = useState<any[]>([]);
   const [institution, setInstitution] = useState<any>(null);
-  const [loading, setLoading]       = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading]         = useState(true);
+  const [refreshing, setRefreshing]   = useState(false);
 
   const load = async () => {
     try {
@@ -254,50 +306,48 @@ function InstitutionHome({ user, router, insets }: any) {
       if (iRes.status === 'fulfilled') setInstitution(iRes.value.data.institution);
     } finally { setLoading(false); setRefreshing(false); }
   };
-
-  useEffect(() => { load(); }, []);
-  const onRefresh = () => { setRefreshing(true); load(); };
+  useFocusEffect(useCallback(() => { load(); }, []));
 
   const activated = employees.filter(e => !e.mustChangePassword).length;
   const pending   = employees.filter(e => e.mustChangePassword).length;
-  const recent    = employees.slice(0, 5);
-
-  if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color={NAVY} /></View>;
 
   return (
-    <ScrollView style={styles.root} contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={NAVY} />}>
-      <Header user={user} />
-
-      <View style={[styles.policyCard, { backgroundColor: '#0f2847' }]}>
-        <Text style={styles.policyLabel}>INSTITUTION HR</Text>
-        <Text style={styles.policyTier}>{institution?.name || 'My Organisation'}</Text>
-        <Text style={styles.policyExpiry}>{employees.length} employees on record</Text>
-      </View>
-
-      <View style={styles.statsRow}>
-        <StatCard label="Active"  value={activated} color={GREEN}   icon="checkmark-circle" />
-        <StatCard label="Pending" value={pending}   color="#f59e0b" icon="time" />
-        <StatCard label="Total"   value={employees.length} color={BLUE} icon="business" />
-      </View>
-
-      <Text style={styles.sectionTitle}>Quick Actions</Text>
-      <View style={styles.actionsRow}>
-        <ActionBtn icon="person-add-outline" label="Invite"     onPress={() => router.push('/(tabs)/employees')} color={BLUE} />
-        <ActionBtn icon="people-outline"     label="Employees"  onPress={() => router.push('/(tabs)/employees')} color={NAVY} />
-      </View>
-
-      {recent.length > 0 && (
+    <ScrollView style={st.root}
+      contentContainerStyle={[st.content, { paddingTop: insets.top + 16 }]}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.navy} />}>
+      <Header user={user} subtitle="Institution HR" />
+      {loading ? <Skeleton height={150} radius={R.xl} /> : (
         <>
-          <Text style={styles.sectionTitle}>Recent Employees</Text>
-          {recent.map(e => (
-            <View key={e._id} style={styles.claimRow}>
-              <View style={styles.claimLeft}>
-                <Text style={styles.claimNumber}>{e.firstName} {e.lastName}</Text>
-                <Text style={styles.claimType}>{e.email}</Text>
-              </View>
-              <StatusBadge status={e.mustChangePassword ? 'pending' : 'active'} />
+          <FadeIn>
+            <LinearGradient colors={[C.navyDark, '#0f2847', C.navy]} start={{ x: 0, y: 0 }} end={{ x: 1.2, y: 1.2 }} style={st.hero}>
+              <Text style={st.heroEyebrow}>INSTITUTION HR</Text>
+              <Text style={st.heroPlan}>{institution?.name || 'My Organisation'}</Text>
+              <Text style={st.heroProduct}>{employees.length} employees on record</Text>
+            </LinearGradient>
+          </FadeIn>
+          <View style={st.statsRow}>
+            <StatCard label="Active" value={activated} color={C.green} icon="checkmark-circle" delay={80} />
+            <StatCard label="Pending" value={pending} color={C.amber} icon="time" delay={130} />
+            <StatCard label="Total" value={employees.length} color={C.blue} icon="business" delay={180} />
+          </View>
+          <FadeIn delay={220}>
+            <Text style={st.sectionTitle}>Quick Actions</Text>
+            <View style={st.actionsRow}>
+              <ActionTile icon="person-add" label="Invite" color={C.blue} onPress={() => router.push('/(tabs)/employees')} />
+              <ActionTile icon="people" label="Employees" color={C.navy} onPress={() => router.push('/(tabs)/employees')} />
             </View>
+          </FadeIn>
+          {employees.slice(0, 5).map((e, i) => (
+            <FadeIn key={e._id} delay={260 + i * 50}>
+              <View style={st.claimRow}>
+                <View style={st.claimIcon}><Text style={{ fontWeight: '800', color: C.navy, fontSize: 13 }}>{e.firstName?.[0]}{e.lastName?.[0]}</Text></View>
+                <View style={{ flex: 1 }}>
+                  <Text style={st.claimNumber}>{e.firstName} {e.lastName}</Text>
+                  <Text style={st.claimType}>{e.email}</Text>
+                </View>
+                <StatusPill status={e.mustChangePassword ? 'submitted' : 'settled'} size="sm" />
+              </View>
+            </FadeIn>
           ))}
         </>
       )}
@@ -319,58 +369,73 @@ export default function HomeScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  root:    { flex: 1, backgroundColor: '#f8fafc' },
-  content: { padding: 20, paddingBottom: 32 },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  greeting: { fontSize: 14, color: '#6b7280' },
-  name:     { fontSize: 22, fontWeight: '700', color: '#111827' },
-  avatar:   { width: 44, height: 44, borderRadius: 22, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+const st = StyleSheet.create({
+  root:    { flex: 1, backgroundColor: C.bg },
+  content: { padding: 20, paddingBottom: 40 },
 
-  policyCard: {
-    backgroundColor: NAVY, borderRadius: 16, padding: 20, marginBottom: 16,
-    shadowColor: NAVY, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6,
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
+  greeting: { fontSize: 14, color: C.gray },
+  name:     { fontSize: 23, fontWeight: '900', color: C.ink, letterSpacing: -0.5 },
+  headerSub:{ fontSize: 12, color: C.grayLight, marginTop: 2 },
+  avatar:   { width: 46, height: 46, borderRadius: 23, backgroundColor: C.navy, alignItems: 'center', justifyContent: 'center', ...SHADOW.card },
+  avatarText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+
+  alertCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    borderRadius: R.md, borderWidth: 1.5, padding: 13, marginBottom: 12,
   },
-  policyLabel:    { fontSize: 11, color: '#93c5fd', marginBottom: 4, letterSpacing: 1, fontWeight: '700' },
-  policyTier:     { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: 8 },
-  policyMeta:     { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-  policyMetaText: { fontSize: 13, color: '#cbd5e1' },
-  policyExpiry:   { fontSize: 12, color: '#94a3b8', marginTop: 4 },
-  noPolicy:       { fontSize: 15, color: '#94a3b8', marginBottom: 12 },
-  getStartedBtn:  { alignSelf: 'flex-start', backgroundColor: GREEN, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 },
-  getStartedText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  alertIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  alertTitle: { fontSize: 13.5, fontWeight: '800' },
+  alertSub: { fontSize: 12, color: C.slate, marginTop: 1 },
 
-  statsRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
-  statCard: {
-    flex: 1, backgroundColor: '#fff', borderRadius: 12, padding: 14,
-    borderLeftWidth: 4,
-    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+  hero: { borderRadius: R.xl, padding: 22, marginBottom: 16, overflow: 'hidden', ...SHADOW.float },
+  heroDecor: {
+    position: 'absolute', right: -50, top: -50, width: 170, height: 170,
+    borderRadius: 85, backgroundColor: 'rgba(255,255,255,0.06)',
   },
-  statValue: { fontSize: 24, fontWeight: '700', color: '#111827' },
-  statLabel: { fontSize: 11, color: '#6b7280', marginTop: 2 },
-
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 12 },
-  actionsRow:   { flexDirection: 'row', gap: 12, marginBottom: 24 },
-  actionBtn:    {
-    flex: 1, backgroundColor: '#fff', borderRadius: 12, padding: 16,
-    alignItems: 'center', gap: 6,
-    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+  heroDecor2: {
+    position: 'absolute', right: 30, bottom: -70, width: 140, height: 140,
+    borderRadius: 70, backgroundColor: 'rgba(255,255,255,0.04)',
   },
-  actionLabel: { fontSize: 12, fontWeight: '600', color: '#374151' },
+  heroTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  heroEyebrow: { fontSize: 10.5, color: 'rgba(147,197,253,0.9)', fontWeight: '800', letterSpacing: 1.4 },
+  heroPill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(34,197,94,0.18)', borderRadius: 20, paddingHorizontal: 9, paddingVertical: 4 },
+  heroPillDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.green },
+  heroPillText: { fontSize: 10, color: '#86efac', fontWeight: '800', letterSpacing: 0.5 },
+  heroPlan: { fontSize: 26, fontWeight: '900', color: '#fff', letterSpacing: -0.5 },
+  heroProduct: { fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 3 },
+  heroFooter: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: R.md,
+    paddingHorizontal: 14, paddingVertical: 11, marginTop: 18,
+  },
+  heroMetaLabel: { fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: '700', letterSpacing: 0.5, marginBottom: 3 },
+  heroMetaValue: { fontSize: 13, color: '#fff', fontWeight: '700' },
+  heroCta: {
+    alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 7,
+    backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 18, paddingVertical: 11, marginTop: 16,
+  },
+  heroCtaText: { color: C.navyDark, fontWeight: '800', fontSize: 14 },
 
+  statsRow: { flexDirection: 'row', gap: 11, marginBottom: 20 },
+  statCard: { backgroundColor: '#fff', borderRadius: R.md, padding: 13, ...SHADOW.card },
+  statIcon: { width: 32, height: 32, borderRadius: 9, alignItems: 'center', justifyContent: 'center', marginBottom: 9 },
+  statValue: { fontSize: 21, fontWeight: '900', color: C.ink, letterSpacing: -0.5 },
+  statLabel: { fontSize: 10.5, color: C.gray, marginTop: 1, fontWeight: '600' },
+
+  sectionTitle: { fontSize: 16.5, fontWeight: '800', color: C.ink, marginBottom: 12, letterSpacing: -0.3 },
+  actionsRow: { flexDirection: 'row', gap: 11, marginBottom: 22 },
+  actionTile: { flex: 1, backgroundColor: '#fff', borderRadius: R.md, paddingVertical: 15, alignItems: 'center', gap: 7, ...SHADOW.card },
+  actionIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  actionLabel: { fontSize: 11, fontWeight: '700', color: C.slate },
+
+  recentHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  seeAll: { fontSize: 13, color: C.blue, fontWeight: '700', marginBottom: 12 },
   claimRow: {
-    backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 10,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+    backgroundColor: '#fff', borderRadius: R.md, padding: 14, marginBottom: 9,
+    flexDirection: 'row', alignItems: 'center', gap: 12, ...SHADOW.card,
   },
-  claimLeft:   { flex: 1 },
-  claimNumber: { fontSize: 14, fontWeight: '700', color: '#111827' },
-  claimType:   { fontSize: 12, color: '#6b7280', marginTop: 2, textTransform: 'capitalize' },
-  claimRight:  { alignItems: 'flex-end' },
-  claimAmount: { fontSize: 14, fontWeight: '600', color: '#111827', marginBottom: 4 },
-
-  badge:     { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  badgeText: { fontSize: 11, fontWeight: '600', textTransform: 'capitalize' },
+  claimIcon: { width: 38, height: 38, borderRadius: 11, backgroundColor: '#eef4fb', alignItems: 'center', justifyContent: 'center' },
+  claimNumber: { fontSize: 13.5, fontWeight: '800', color: C.ink },
+  claimType: { fontSize: 11.5, color: C.gray, marginTop: 1, textTransform: 'capitalize' },
 });
