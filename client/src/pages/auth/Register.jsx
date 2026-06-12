@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Form, Input, Button, Typography, Alert, Steps, Row, Col } from 'antd';
 import {
   UserOutlined, LockOutlined, MailOutlined, PhoneOutlined,
-  SafetyOutlined, AlertOutlined, CheckCircleOutlined,
+  SafetyOutlined, AlertOutlined, CheckCircleOutlined, ArrowLeftOutlined,
 } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
@@ -102,12 +102,19 @@ export default function Register() {
 
       {/* Right panel */}
       <div style={{ width: '100%', maxWidth: 520, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', padding: '32px 40px', overflowY: 'auto', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 15, color: '#fff', flexShrink: 0 }}>E</div>
-          <div>
-            <div style={{ color: '#111827', fontSize: 14, fontWeight: 700 }}>Enterprise Insurance</div>
-            <div style={{ color: '#6b7280', fontSize: 11 }}>Management Platform</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 15, color: '#fff', flexShrink: 0 }}>E</div>
+            <div>
+              <div style={{ color: '#111827', fontSize: 14, fontWeight: 700 }}>Enterprise Insurance</div>
+              <div style={{ color: '#6b7280', fontSize: 11 }}>Management Platform</div>
+            </div>
           </div>
+          <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#6b7280', fontSize: 13, fontWeight: 500, textDecoration: 'none', padding: '5px 10px', borderRadius: 8, border: '1px solid #e5e7eb', transition: 'all 0.15s' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#1d4ed8'; e.currentTarget.style.color = '#1d4ed8'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#6b7280'; }}>
+            <ArrowLeftOutlined /> Home
+          </Link>
         </div>
 
         <Steps current={step} size="small" style={{ marginBottom: 28 }} items={[{ title: 'Your Details' }, { title: 'Verify Email' }]} />
