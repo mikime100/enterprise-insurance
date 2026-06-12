@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Spin } from 'antd';
-import { CheckOutlined, ArrowRightOutlined, UserOutlined, BankOutlined, TeamOutlined } from '@ant-design/icons';
+import { CheckOutlined, ArrowRightOutlined, ArrowLeftOutlined, UserOutlined, BankOutlined, TeamOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
 const API   = import.meta.env.VITE_API_URL || '/api';
@@ -396,6 +396,11 @@ export default function Plans() {
           <span style={{ color: '#fff', fontWeight: 700, fontSize: 15 }}>Enterprise Insurance</span>
         </Link>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.75)', fontSize: 14, fontWeight: 500, textDecoration: 'none', padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', transition: 'all 0.15s' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.75)'; }}>
+            <ArrowLeftOutlined /> Back to Home
+          </Link>
           <Link to="/login" style={{ color: 'rgba(255,255,255,0.75)', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>Sign In</Link>
           <Link to="/register" style={{ background: GREEN, borderRadius: 8, color: '#fff', padding: '8px 18px', fontWeight: 700, fontSize: 14, textDecoration: 'none' }}>
             Get Started
