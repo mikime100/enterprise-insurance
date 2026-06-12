@@ -22,7 +22,17 @@ export const C = {
   card:      '#ffffff',
 };
 
-export const R = { sm: 10, md: 14, lg: 18, xl: 24 };
+export const R = { sm: 10, md: 12, lg: 20, xl: 24 };
+
+// Typography — Archivo Narrow for headings (condensed "newsroom" feel),
+// Work Sans for body and currency figures, per the Stitch design system.
+export const F = {
+  head:     'ArchivoNarrow_700Bold',
+  headSemi: 'ArchivoNarrow_600SemiBold',
+  body:     'WorkSans_400Regular',
+  bodySemi: 'WorkSans_600SemiBold',
+  bodyBold: 'WorkSans_700Bold',
+};
 
 export const SHADOW = {
   card: {

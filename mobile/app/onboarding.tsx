@@ -171,16 +171,16 @@ export default function OnboardingScreen() {
           )}
           <TouchableOpacity
             onPress={goNext}
-            style={[styles.nextBtn, { backgroundColor: accent }]}
+            style={[styles.nextBtn, { backgroundColor: '#16a34a' }]}
             activeOpacity={0.85}
           >
-            <Text style={[styles.nextText, { color: isLast ? '#fff' : '#000' }]}>
-              {isLast ? 'Get Started' : 'Next'}
+            <Text style={[styles.nextText, { color: '#fff' }]}>
+              {isLast ? 'Get Started' : 'Continue'}
             </Text>
             <Ionicons
-              name={isLast ? 'arrow-forward-circle' : 'chevron-forward'}
+              name={isLast ? 'arrow-forward-circle' : 'arrow-forward'}
               size={20}
-              color={isLast ? '#fff' : '#000'}
+              color="#fff"
             />
           </TouchableOpacity>
         </View>

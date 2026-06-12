@@ -4,6 +4,8 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFonts, ArchivoNarrow_600SemiBold, ArchivoNarrow_700Bold } from '@expo-google-fonts/archivo-narrow';
+import { WorkSans_400Regular, WorkSans_600SemiBold, WorkSans_700Bold } from '@expo-google-fonts/work-sans';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 
 // ─── Branded splash shown while AuthContext resolves ─────────────────────────
@@ -92,11 +94,15 @@ function RootGuard() {
 
 function Inner() {
   const { loading } = useAuth();
+  const [fontsLoaded] = useFonts({
+    ArchivoNarrow_600SemiBold, ArchivoNarrow_700Bold,
+    WorkSans_400Regular, WorkSans_600SemiBold, WorkSans_700Bold,
+  });
 
   // Block the entire navigator while auth state resolves.
   // Without this, expo-router renders (tabs) immediately and InsuredHome
   // shows a context-free spinner before the redirect fires.
-  if (loading) return <AppLoadingScreen />;
+  if (loading || !fontsLoaded) return <AppLoadingScreen />;
 
   return (
     <>

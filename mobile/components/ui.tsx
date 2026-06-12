@@ -5,7 +5,7 @@ import {
   ActivityIndicator, ViewStyle, StyleProp,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { C, R, SHADOW, statusCfg, CLAIM_STAGES } from '../lib/theme';
+import { C, R, F, statusCfg, CLAIM_STAGES } from '../lib/theme';
 
 // Fade + slide-up entrance. Stagger with `delay`.
 export function FadeIn({ children, delay = 0, style, from = 18 }: {
@@ -97,7 +97,9 @@ export function ClaimProgress({ status }: { status?: string }) {
 }
 
 // Primary CTA button
-export function Button({ label, onPress, loading, disabled, icon, color = C.navy, variant = 'solid', style }: {
+// Default CTA color is green — per the design system, green drives all
+// primary actions; navy is reserved for headers, heroes, and navigation.
+export function Button({ label, onPress, loading, disabled, icon, color = C.greenDark, variant = 'solid', style }: {
   label: string; onPress?: () => void; loading?: boolean; disabled?: boolean;
   icon?: string; color?: string; variant?: 'solid' | 'outline'; style?: StyleProp<ViewStyle>;
 }) {
@@ -155,11 +157,11 @@ const ui = StyleSheet.create({
     borderRadius: R.md, paddingVertical: 15, paddingHorizontal: 18,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
   },
-  btnText: { fontSize: 15, fontWeight: '800', letterSpacing: 0.2 },
+  btnText: { fontSize: 15, fontFamily: F.bodyBold, letterSpacing: 0.2 },
 
   secRow: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 12, marginTop: 4 },
-  secTitle: { fontSize: 17, fontWeight: '800', color: C.ink, letterSpacing: -0.3 },
-  secSub: { fontSize: 12, color: C.grayLight, marginTop: 2 },
+  secTitle: { fontSize: 19, fontFamily: F.head, color: C.ink, letterSpacing: -0.2 },
+  secSub: { fontSize: 12, fontFamily: F.body, color: C.grayLight, marginTop: 2 },
 
   empty: { alignItems: 'center', paddingVertical: 44, gap: 8 },
   emptyIcon: {

@@ -11,7 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import api from '../../lib/api';
-import { C, R, SHADOW, statusCfg, absUrl, fmtMoney, fmtDate, DOC_TYPES } from '../../lib/theme';
+import { C, R, F, SHADOW, statusCfg, absUrl, fmtMoney, fmtDate, DOC_TYPES } from '../../lib/theme';
 import { FadeIn, Press, StatusPill, ClaimProgress, Button, Skeleton } from '../../components/ui';
 
 export default function ClaimDetailScreen() {
@@ -143,7 +143,6 @@ export default function ClaimDetailScreen() {
     );
   }
 
-  const cfg = statusCfg(claim.status);
   const externalNotes = (claim.notes || []).filter((n: any) => !n.isInternal);
   const history = [...(claim.statusHistory || [])].reverse();
 
@@ -193,10 +192,10 @@ export default function ClaimDetailScreen() {
               </Text>
               {!disputeOpen ? (
                 <View style={{ flexDirection: 'row', gap: 10 }}>
-                  <Button label="Accept" icon="checkmark-circle" color={C.greenDark}
-                    onPress={confirmAccept} loading={responding} style={{ flex: 1 }} />
-                  <Button label="Dispute" icon="close-circle" color={C.red} variant="outline"
+                  <Button label="Dispute" color={C.gray} variant="outline"
                     onPress={() => setDisputeOpen(true)} disabled={responding} style={{ flex: 1 }} />
+                  <Button label="Accept Offer" icon="checkmark-circle" color={C.greenDark}
+                    onPress={confirmAccept} loading={responding} style={{ flex: 1.4 }} />
                 </View>
               ) : (
                 <View>
@@ -320,19 +319,20 @@ export default function ClaimDetailScreen() {
           </FadeIn>
         )}
 
-        {/* ── Amounts ─────────────────────────────────────────────────────── */}
+        {/* ── Amounts — Claimed / Offered / Approved, with Pending placeholder ── */}
         <FadeIn delay={60}>
           <View style={s.amountsCard}>
             <AmountCell label="Claimed" value={fmtMoney(claim.claimedAmount)} color={C.ink} />
             {claim.offeredAmount != null && (
               <AmountCell label="Offered" value={fmtMoney(claim.offeredAmount)} color="#9333ea" />
             )}
-            {claim.approvedAmount != null && (
-              <AmountCell label="Approved" value={fmtMoney(claim.approvedAmount)} color={C.greenDark} />
-            )}
-            {claim.settlementAmount != null && (
+            {claim.settlementAmount != null ? (
               <AmountCell label="Settled" value={fmtMoney(claim.settlementAmount)} color={C.cyan} />
-            )}
+            ) : claim.approvedAmount != null ? (
+              <AmountCell label="Approved" value={fmtMoney(claim.approvedAmount)} color={C.greenDark} />
+            ) : claim.offeredAmount != null ? (
+              <AmountCell label="Approved" value="Pending" color={C.grayLight} pending />
+            ) : null}
           </View>
         </FadeIn>
 
@@ -388,15 +388,18 @@ export default function ClaimDetailScreen() {
           </FadeIn>
         )}
 
-        {/* ── Notes from claims team ──────────────────────────────────────── */}
+        {/* ── Adjuster notes — amber card per design system ───────────────── */}
         {externalNotes.length > 0 && (
           <FadeIn delay={210}>
-            <View style={s.card}>
-              <Text style={s.cardTitle}>Notes from Claims Team</Text>
+            <View style={s.adjusterCard}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+                <Ionicons name="chatbox-ellipses" size={14} color="#b45309" />
+                <Text style={s.adjusterTitle}>ADJUSTER NOTES</Text>
+              </View>
               {externalNotes.map((n: any, i: number) => (
-                <View key={i} style={s.noteRow}>
-                  <Text style={s.noteContent}>{n.content}</Text>
-                  <Text style={s.noteDate}>{new Date(n.createdAt || n.timestamp || Date.now()).toLocaleString()}</Text>
+                <View key={i} style={i > 0 ? { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#fde68a' } : undefined}>
+                  <Text style={s.adjusterContent}>"{n.content}"</Text>
+                  <Text style={s.adjusterDate}>{new Date(n.createdAt || n.timestamp || Date.now()).toLocaleString()}</Text>
                 </View>
               ))}
             </View>
@@ -432,11 +435,12 @@ export default function ClaimDetailScreen() {
   );
 }
 
-function AmountCell({ label, value, color }: { label: string; value: string; color: string }) {
+function AmountCell({ label, value, color, pending }: { label: string; value: string; color: string; pending?: boolean }) {
   return (
     <View style={s.amtCell}>
       <Text style={s.amtLabel}>{label}</Text>
-      <Text style={[s.amtValue, { color }]} numberOfLines={1} adjustsFontSizeToFit>{value}</Text>
+      <Text style={[s.amtValue, { color }, pending && { fontStyle: 'italic', fontFamily: F.body }]}
+        numberOfLines={1} adjustsFontSizeToFit>{value}</Text>
     </View>
   );
 }
@@ -457,8 +461,8 @@ const s = StyleSheet.create({
 
   hero: { paddingHorizontal: 20, paddingBottom: 18, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 },
   heroNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
-  heroNavTitle: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  heroNumber: { color: '#fff', fontSize: 22, fontWeight: '900', letterSpacing: 0.3 },
+  heroNavTitle: { color: '#fff', fontSize: 17, fontFamily: F.headSemi },
+  heroNumber: { color: '#fff', fontSize: 24, fontFamily: F.head, letterSpacing: 0.3 },
   heroDate: { color: 'rgba(255,255,255,0.5)', fontSize: 12 },
   heroProgress: { backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: R.md, paddingHorizontal: 8, paddingVertical: 10, marginTop: 14 },
 
@@ -498,7 +502,7 @@ const s = StyleSheet.create({
   amtValue: { fontSize: 15, fontWeight: '800' },
 
   card: { backgroundColor: '#fff', borderRadius: R.lg, padding: 18, marginBottom: 16, ...SHADOW.card },
-  cardTitle: { fontSize: 15, fontWeight: '800', color: C.ink, marginBottom: 12 },
+  cardTitle: { fontSize: 17, fontFamily: F.head, color: C.ink, marginBottom: 12 },
 
   detRow: { flexDirection: 'row', alignItems: 'center', gap: 9, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: C.lineSoft },
   detLabel: { fontSize: 13, color: C.gray, width: 100 },
@@ -511,9 +515,14 @@ const s = StyleSheet.create({
   docName: { fontSize: 13.5, fontWeight: '700', color: C.ink },
   docType: { fontSize: 11.5, color: C.grayLight, textTransform: 'capitalize', marginTop: 1 },
 
-  noteRow: { backgroundColor: '#f0f9ff', borderWidth: 1, borderColor: '#bae6fd', borderRadius: R.sm, padding: 12, marginBottom: 8 },
-  noteContent: { fontSize: 13.5, color: C.slate, lineHeight: 19 },
-  noteDate: { fontSize: 11, color: C.grayLight, marginTop: 6 },
+  adjusterCard: {
+    backgroundColor: '#fefce8', borderWidth: 1, borderColor: '#fde68a',
+    borderLeftWidth: 4, borderLeftColor: C.amber,
+    borderRadius: R.md, padding: 14, marginBottom: 16,
+  },
+  adjusterTitle: { fontSize: 11, fontFamily: F.bodyBold, color: '#b45309', letterSpacing: 1 },
+  adjusterContent: { fontSize: 13.5, color: '#713f12', lineHeight: 20, fontStyle: 'italic', fontFamily: F.body },
+  adjusterDate: { fontSize: 11, color: '#b45309', marginTop: 6, fontFamily: F.body },
 
   histRow: { flexDirection: 'row', gap: 12 },
   histDot: { width: 12, height: 12, borderRadius: 6, marginTop: 3 },

@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/api';
-import { C, R, SHADOW, statusCfg, fmtMoney, fmtDate, CLAIM_TYPE_ICONS } from '../../lib/theme';
+import { C, R, F, SHADOW, statusCfg, fmtMoney, fmtDate, CLAIM_TYPE_ICONS } from '../../lib/theme';
 import { FadeIn, Press, StatusPill, Skeleton } from '../../components/ui';
 
 const ACTION_NEEDED = ['awaiting_client_approval', 'documentation_requested'];
@@ -121,14 +121,16 @@ function InsuredHome({ user, router, insets }: any) {
                     <Ionicons name={isOffer ? 'cash' : 'document-attach'} size={18} color="#fff" />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={[st.alertTitle, { color: cfg.color }]}>
-                      {isOffer ? 'Settlement Offer Awaits You' : 'Documents Requested'}
+                    <Text style={[st.alertTitle, { color: cfg.color }]}>Action Needed</Text>
+                    <Text style={st.alertSub} numberOfLines={2}>
+                      {isOffer
+                        ? `A settlement offer of ${fmtMoney(c.offeredAmount)} for ${c.claimNumber} is awaiting your response.`
+                        : `Additional documents were requested for ${c.claimNumber}.`}
                     </Text>
-                    <Text style={st.alertSub} numberOfLines={1}>
-                      {c.claimNumber}{isOffer ? ` — ${fmtMoney(c.offeredAmount)} offered` : ' — upload to continue'}
+                    <Text style={[st.alertCta, { color: cfg.color }]}>
+                      {isOffer ? 'REVIEW OFFER  →' : 'UPLOAD DOCUMENTS  →'}
                     </Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={18} color={cfg.color} />
                 </Press>
               </FadeIn>
             );
@@ -151,19 +153,20 @@ function InsuredHome({ user, router, insets }: any) {
               </View>
               {enrollment ? (
                 <>
-                  <Text style={st.heroPlan}>{enrollment.tier?.name || 'Standard Plan'}</Text>
-                  <Text style={st.heroProduct}>{enrollment.product?.name || ''}</Text>
+                  <Text style={st.heroPlan}>{enrollment.product?.name || enrollment.tier?.name || 'My Plan'}</Text>
+                  <Text style={st.heroProduct}>{enrollment.tier?.name ? `${enrollment.tier.name} Tier` : ''}</Text>
+                  <Text style={st.heroMetaLabel}>POLICY NUMBER</Text>
+                  <Text style={st.heroPolicyNo}>{enrollment.enrollmentNumber || '—'}</Text>
                   <View style={st.heroFooter}>
-                    <View>
-                      <Text style={st.heroMetaLabel}>Policy No.</Text>
-                      <Text style={st.heroMetaValue}>{enrollment.enrollmentNumber || '—'}</Text>
-                    </View>
-                    <View style={{ alignItems: 'flex-end' }}>
-                      <Text style={st.heroMetaLabel}>Expires</Text>
-                      <Text style={st.heroMetaValue}>
-                        {fmtDate(enrollment.endDate)}{daysLeft !== null ? `  ·  ${daysLeft}d left` : ''}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+                      <Ionicons name="timer-outline" size={15} color={C.green} />
+                      <Text style={st.heroExpires}>
+                        {daysLeft !== null ? `Expires in ${daysLeft} days` : `Expires ${fmtDate(enrollment.endDate)}`}
                       </Text>
                     </View>
+                    <Press onPress={() => router.push('/(tabs)/coverage')} style={st.renewBtn}>
+                      <Text style={st.renewBtnText}>Renew</Text>
+                    </Press>
                   </View>
                 </>
               ) : (
@@ -374,8 +377,8 @@ const st = StyleSheet.create({
   content: { padding: 20, paddingBottom: 40 },
 
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
-  greeting: { fontSize: 14, color: C.gray },
-  name:     { fontSize: 23, fontWeight: '900', color: C.ink, letterSpacing: -0.5 },
+  greeting: { fontSize: 13, color: C.gray, fontFamily: F.bodySemi, letterSpacing: 0.6, textTransform: 'uppercase' },
+  name:     { fontSize: 25, fontFamily: F.head, color: C.ink, letterSpacing: -0.3 },
   headerSub:{ fontSize: 12, color: C.grayLight, marginTop: 2 },
   avatar:   { width: 46, height: 46, borderRadius: 23, backgroundColor: C.navy, alignItems: 'center', justifyContent: 'center', ...SHADOW.card },
   avatarText: { color: '#fff', fontWeight: '800', fontSize: 15 },
@@ -385,8 +388,9 @@ const st = StyleSheet.create({
     borderRadius: R.md, borderWidth: 1.5, padding: 13, marginBottom: 12,
   },
   alertIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  alertTitle: { fontSize: 13.5, fontWeight: '800' },
-  alertSub: { fontSize: 12, color: C.slate, marginTop: 1 },
+  alertTitle: { fontSize: 15, fontFamily: F.headSemi },
+  alertSub: { fontSize: 12.5, color: C.slate, marginTop: 2, fontFamily: F.body, lineHeight: 18 },
+  alertCta: { fontSize: 11.5, fontFamily: F.bodyBold, letterSpacing: 1, marginTop: 8 },
 
   hero: { borderRadius: R.xl, padding: 22, marginBottom: 16, overflow: 'hidden', ...SHADOW.float },
   heroDecor: {
@@ -402,15 +406,14 @@ const st = StyleSheet.create({
   heroPill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(34,197,94,0.18)', borderRadius: 20, paddingHorizontal: 9, paddingVertical: 4 },
   heroPillDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.green },
   heroPillText: { fontSize: 10, color: '#86efac', fontWeight: '800', letterSpacing: 0.5 },
-  heroPlan: { fontSize: 26, fontWeight: '900', color: '#fff', letterSpacing: -0.5 },
-  heroProduct: { fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 3 },
-  heroFooter: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: R.md,
-    paddingHorizontal: 14, paddingVertical: 11, marginTop: 18,
-  },
-  heroMetaLabel: { fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: '700', letterSpacing: 0.5, marginBottom: 3 },
-  heroMetaValue: { fontSize: 13, color: '#fff', fontWeight: '700' },
+  heroPlan: { fontSize: 28, fontFamily: F.head, color: '#fff', letterSpacing: -0.3 },
+  heroProduct: { fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 3, fontFamily: F.body },
+  heroMetaLabel: { fontSize: 10, color: 'rgba(255,255,255,0.45)', fontFamily: F.bodyBold, letterSpacing: 1.2, marginTop: 16, marginBottom: 4 },
+  heroPolicyNo: { fontSize: 17, color: '#fff', fontFamily: F.bodyBold, letterSpacing: 2.5 },
+  heroFooter: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16 },
+  heroExpires: { fontSize: 13, color: C.green, fontFamily: F.bodySemi },
+  renewBtn: { backgroundColor: '#fff', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 8 },
+  renewBtnText: { color: C.navyDark, fontFamily: F.bodyBold, fontSize: 13 },
   heroCta: {
     alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 7,
     backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 18, paddingVertical: 11, marginTop: 16,
@@ -420,10 +423,10 @@ const st = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 11, marginBottom: 20 },
   statCard: { backgroundColor: '#fff', borderRadius: R.md, padding: 13, ...SHADOW.card },
   statIcon: { width: 32, height: 32, borderRadius: 9, alignItems: 'center', justifyContent: 'center', marginBottom: 9 },
-  statValue: { fontSize: 21, fontWeight: '900', color: C.ink, letterSpacing: -0.5 },
-  statLabel: { fontSize: 10.5, color: C.gray, marginTop: 1, fontWeight: '600' },
+  statValue: { fontSize: 21, fontFamily: F.bodyBold, color: C.ink, letterSpacing: -0.5 },
+  statLabel: { fontSize: 10, color: C.gray, marginTop: 2, fontFamily: F.bodySemi, letterSpacing: 0.6, textTransform: 'uppercase' },
 
-  sectionTitle: { fontSize: 16.5, fontWeight: '800', color: C.ink, marginBottom: 12, letterSpacing: -0.3 },
+  sectionTitle: { fontSize: 19, fontFamily: F.head, color: C.ink, marginBottom: 12, letterSpacing: -0.2 },
   actionsRow: { flexDirection: 'row', gap: 11, marginBottom: 22 },
   actionTile: { flex: 1, backgroundColor: '#fff', borderRadius: R.md, paddingVertical: 15, alignItems: 'center', gap: 7, ...SHADOW.card },
   actionIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },

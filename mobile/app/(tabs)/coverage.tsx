@@ -7,9 +7,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Linking } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import api from '../../lib/api';
+import { F } from '../../lib/theme';
 
 const NAVY  = '#1e3a5f';
+const NAVY_DARK = '#0a1628';
 const BLUE  = '#2563eb';
 const GREEN = '#22c55e';
 
@@ -373,20 +376,24 @@ const dm = StyleSheet.create({
 
 // ─── Tier card (browse) ──────────────────────────────────────────────────────
 
-function TierCard({ tier, product, onDetails }: { tier: any; product: any; onDetails: (t: any, p: any) => void }) {
+function TierCard({ tier, product, onDetails, popular }: { tier: any; product: any; onDetails: (t: any, p: any) => void; popular?: boolean }) {
   const coverageNames: string[] = (tier.coverages || [])
     .map((c: any) => c.coverage?.name || '').filter(Boolean);
 
   return (
-    <View style={tc.card}>
+    <View style={[tc.card, popular && tc.cardPopular]}>
+      {popular && (
+        <View style={tc.popularBadge}>
+          <Text style={tc.popularBadgeText}>POPULAR</Text>
+        </View>
+      )}
       <View style={tc.header}>
         <View>
           <Text style={tc.name}>{tier.name}</Text>
           <Text style={tc.desc}>{tier.description || ''}</Text>
         </View>
         <View style={tc.priceBox}>
-          <Text style={tc.price}>ETB {tier.annualPremium?.toLocaleString()}</Text>
-          <Text style={tc.priceLabel}>/year</Text>
+          <Text style={tc.price}>{tier.annualPremium?.toLocaleString()} <Text style={tc.priceLabel}>ETB/yr</Text></Text>
         </View>
       </View>
 
@@ -394,7 +401,7 @@ function TierCard({ tier, product, onDetails }: { tier: any; product: any; onDet
         <View style={tc.pills}>
           {coverageNames.slice(0, 4).map((name, i) => (
             <View key={i} style={tc.pill}>
-              <Ionicons name="checkmark-circle" size={12} color={GREEN} />
+              <Ionicons name="checkmark-circle" size={12} color="#16a34a" />
               <Text style={tc.pillText}>{name.split('&')[0].trim()}</Text>
             </View>
           ))}
@@ -406,9 +413,8 @@ function TierCard({ tier, product, onDetails }: { tier: any; product: any; onDet
         </View>
       )}
 
-      <TouchableOpacity style={tc.btn} onPress={() => onDetails(tier, product)} activeOpacity={0.85}>
-        <Ionicons name="document-text-outline" size={16} color="#fff" />
-        <Text style={tc.btnText}>View Details &amp; Enroll</Text>
+      <TouchableOpacity style={[tc.btn, !popular && tc.btnOutline]} onPress={() => onDetails(tier, product)} activeOpacity={0.85}>
+        <Text style={[tc.btnText, !popular && tc.btnTextOutline]}>View Details &amp; Enroll</Text>
       </TouchableOpacity>
     </View>
   );
@@ -416,17 +422,25 @@ function TierCard({ tier, product, onDetails }: { tier: any; product: any; onDet
 
 const tc = StyleSheet.create({
   card: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: '#e5e7eb', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 },
+  cardPopular: { borderWidth: 1.5, borderColor: NAVY_DARK },
+  popularBadge: {
+    position: 'absolute', top: -10, right: 14, backgroundColor: NAVY_DARK,
+    borderRadius: 20, paddingHorizontal: 11, paddingVertical: 4,
+  },
+  popularBadgeText: { color: '#fff', fontSize: 9.5, fontFamily: F.bodyBold, letterSpacing: 1 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
-  name:  { fontSize: 17, fontWeight: '700', color: '#111827' },
-  desc:  { fontSize: 12, color: '#6b7280', marginTop: 2, maxWidth: 200 },
+  name:  { fontSize: 18, fontFamily: F.head, color: '#111827' },
+  desc:  { fontSize: 12, color: '#6b7280', marginTop: 2, maxWidth: 190, fontFamily: F.body },
   priceBox: { alignItems: 'flex-end' },
-  price: { fontSize: 16, fontWeight: '800', color: NAVY },
-  priceLabel: { fontSize: 11, color: '#9ca3af' },
+  price: { fontSize: 16, fontFamily: F.bodyBold, color: '#111827' },
+  priceLabel: { fontSize: 11, color: '#9ca3af', fontFamily: F.bodySemi },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 },
-  pill:  { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f0fdf4', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: '#bbf7d0' },
-  pillText: { fontSize: 11, color: '#166534', fontWeight: '600' },
-  btn:  { backgroundColor: NAVY, borderRadius: 12, paddingVertical: 12, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 },
-  btnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  pill:  { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f0fdf4', borderRadius: 20, paddingHorizontal: 9, paddingVertical: 4 },
+  pillText: { fontSize: 11, color: '#166534', fontFamily: F.bodySemi },
+  btn:  { backgroundColor: '#16a34a', borderRadius: 12, paddingVertical: 12, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 },
+  btnOutline: { backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#cbd5e1' },
+  btnText: { color: '#fff', fontFamily: F.bodyBold, fontSize: 14 },
+  btnTextOutline: { color: '#374151' },
 });
 
 // ─── Product section ─────────────────────────────────────────────────────────
@@ -462,7 +476,10 @@ function ProductSection({ product, onDetails }: { product: any; onDetails: (t: a
               ))}
             </View>
           )}
-          {tiers.map((t: any) => <TierCard key={t._id} tier={t} product={product} onDetails={onDetails} />)}
+          {tiers.map((t: any, i: number) => (
+            <TierCard key={t._id} tier={t} product={product} onDetails={onDetails}
+              popular={tiers.length >= 2 && i === 1} />
+          ))}
         </View>
       )}
     </View>
@@ -607,16 +624,16 @@ export default function CoverageScreen() {
         {/* ── Active enrollment ──────────────────────────────────────────────── */}
         {enrollment ? (
           <>
-            <View style={s.policyCard}>
+            <LinearGradient colors={[NAVY_DARK, NAVY]} start={{ x: 0, y: 0 }} end={{ x: 1.2, y: 1.2 }} style={s.policyCard}>
               <View style={s.cardTopRow}>
-                <Text style={s.cardEyebrow}>ACTIVE POLICY</Text>
+                <Text style={s.cardEyebrow}>POLICY NO. {enrollment?.enrollmentNumber || ''}</Text>
                 <View style={s.activePill}>
-                  <Ionicons name="checkmark-circle" size={12} color="#16a34a" />
-                  <Text style={s.activePillText}> ACTIVE</Text>
+                  <View style={s.activeDot} />
+                  <Text style={s.activePillText}>ACTIVE</Text>
                 </View>
               </View>
-              <Text style={s.planName}>{tier?.name || 'Standard Plan'}</Text>
-              <Text style={s.productName}>{product?.name || ''}</Text>
+              <Text style={s.planName}>{product?.name || 'My Plan'}</Text>
+              <Text style={s.productName}>{tier?.name ? `${tier.name} Tier` : ''}</Text>
 
               <View style={s.datesRow}>
                 <View style={s.dateItem}><Text style={s.dateLabel}>Start</Text><Text style={s.dateValue}>{startDate}</Text></View>
@@ -633,16 +650,13 @@ export default function CoverageScreen() {
 
               {enrollment.premium?.amount && (
                 <View style={s.premiumRow}>
-                  <Ionicons name="card-outline" size={14} color="#93c5fd" />
-                  <Text style={s.premiumText}>
-                    ETB {enrollment.premium.amount.toLocaleString()} / year
-                    {enrollment.premium.employeeShare > 0
-                      ? `  ·  Your share: ETB ${enrollment.premium.employeeShare.toLocaleString()}`
-                      : '  ·  Fully employer-covered'}
+                  <Text style={s.premiumLabel}>Annual Premium</Text>
+                  <Text style={s.premiumValue}>
+                    {enrollment.premium.amount.toLocaleString()} <Text style={s.premiumCur}>ETB</Text>
                   </Text>
                 </View>
               )}
-            </View>
+            </LinearGradient>
 
             {/* Usage tracker */}
             {tierCoverages.length > 0 && (
@@ -666,24 +680,26 @@ export default function CoverageScreen() {
               </View>
             )}
 
-            {/* Covered members */}
+            {/* Covered members — horizontal avatar row */}
             <View style={s.section}>
               <Text style={s.sectionTitle}>Covered Members</Text>
               {insuredPersons.length === 0 ? (
                 <View style={s.emptyBox}><Text style={s.emptyBoxText}>No members linked to this policy.</Text></View>
               ) : (
-                insuredPersons.map((p: any, i: number) => (
-                  <View key={i} style={s.memberRow}>
-                    <View style={[s.memberAvatar, { backgroundColor: i === 0 ? NAVY : '#7c3aed' }]}>
-                      <Text style={s.memberAvatarText}>{p.firstName?.[0]}{p.lastName?.[0]}</Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={s.memberName}>{p.firstName} {p.lastName}</Text>
-                      <Text style={s.memberEmail}>{p.email}</Text>
-                    </View>
-                    {i === 0 && <View style={s.primaryBadge}><Text style={s.primaryBadgeText}>PRIMARY</Text></View>}
-                  </View>
-                ))
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.membersRow}>
+                  {insuredPersons.map((p: any, i: number) => {
+                    const palette = [NAVY, '#7c3aed', '#0891b2', '#d97706', '#dc2626'];
+                    return (
+                      <View key={i} style={s.memberItem}>
+                        <View style={[s.memberCircle, { backgroundColor: palette[i % palette.length] }, i === 0 && s.memberCirclePrimary]}>
+                          <Text style={s.memberCircleText}>{p.firstName?.[0]}{p.lastName?.[0]}</Text>
+                        </View>
+                        <Text style={s.memberCircleName} numberOfLines={1}>{p.firstName}</Text>
+                        {i === 0 && <Text style={s.memberPrimaryTag}>PRIMARY</Text>}
+                      </View>
+                    );
+                  })}
+                </ScrollView>
               )}
             </View>
           </>
@@ -754,36 +770,39 @@ const s = StyleSheet.create({
   content: { padding: 16 },
   centered:{ flex: 1, justifyContent: 'center', alignItems: 'center' },
 
-  policyCard: { backgroundColor: NAVY, borderRadius: 20, padding: 20, marginBottom: 20, shadowColor: NAVY, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6 },
-  cardTopRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  cardEyebrow:    { fontSize: 10, color: '#93c5fd', fontWeight: '700', letterSpacing: 1.2 },
-  activePill:     { flexDirection: 'row', alignItems: 'center', backgroundColor: '#dcfce7', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
-  activePillText: { fontSize: 10, color: '#16a34a', fontWeight: '700' },
-  planName:       { fontSize: 24, fontWeight: '800', color: '#fff', marginBottom: 2 },
-  productName:    { fontSize: 13, color: '#93c5fd', marginBottom: 14 },
-  datesRow:    { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 12, marginBottom: 12 },
+  policyCard: { borderRadius: 20, padding: 20, marginBottom: 20, overflow: 'hidden', shadowColor: NAVY, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6 },
+  cardTopRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  cardEyebrow:    { fontSize: 10.5, color: '#8aa4cf', fontFamily: F.bodyBold, letterSpacing: 1.2 },
+  activePill:     { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(34,197,94,0.18)', paddingHorizontal: 9, paddingVertical: 4, borderRadius: 20 },
+  activeDot:      { width: 6, height: 6, borderRadius: 3, backgroundColor: GREEN },
+  activePillText: { fontSize: 10, color: '#86efac', fontFamily: F.bodyBold, letterSpacing: 0.5 },
+  planName:       { fontSize: 26, fontFamily: F.head, color: '#fff', marginBottom: 2, letterSpacing: -0.3 },
+  productName:    { fontSize: 13, color: '#8aa4cf', marginBottom: 14, fontFamily: F.body },
+  datesRow:    { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 12, marginBottom: 14 },
   dateItem:    { flex: 1, alignItems: 'center' },
-  dateLabel:   { fontSize: 10, color: '#94a3b8', marginBottom: 4, fontWeight: '600' },
-  dateValue:   { fontSize: 13, color: '#fff', fontWeight: '700' },
+  dateLabel:   { fontSize: 10, color: '#94a3b8', marginBottom: 4, fontFamily: F.bodySemi },
+  dateValue:   { fontSize: 13, color: '#fff', fontFamily: F.bodyBold },
   dateDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.15)' },
-  premiumRow:  { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  premiumText: { fontSize: 12, color: '#bfdbfe' },
+  premiumRow:  { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
+  premiumLabel: { fontSize: 12, color: '#8aa4cf', fontFamily: F.body },
+  premiumValue: { fontSize: 24, color: '#fff', fontFamily: F.bodyBold, letterSpacing: -0.5 },
+  premiumCur:   { fontSize: 13, color: GREEN, fontFamily: F.bodyBold },
 
   section:      { marginBottom: 24 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 4 },
+  sectionTitle: { fontSize: 19, fontFamily: F.head, color: '#111827', marginBottom: 4 },
   sectionSub:   { fontSize: 12, color: '#9ca3af', marginBottom: 14 },
   card:         { backgroundColor: '#fff', borderRadius: 16, padding: 18, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 },
 
   infoNote: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: '#f0f9ff', borderRadius: 10, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: '#bae6fd' },
   infoNoteText: { flex: 1, fontSize: 12, color: '#0c4a6e', lineHeight: 17 },
 
-  memberRow:        { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 8, shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 4, elevation: 1 },
-  memberAvatar:     { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
-  memberAvatarText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  memberName:       { fontSize: 14, fontWeight: '600', color: '#111827' },
-  memberEmail:      { fontSize: 12, color: '#6b7280', marginTop: 1 },
-  primaryBadge:     { backgroundColor: '#dbeafe', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  primaryBadgeText: { fontSize: 10, fontWeight: '700', color: '#1d4ed8' },
+  membersRow:        { gap: 18, paddingVertical: 4, paddingHorizontal: 2 },
+  memberItem:        { alignItems: 'center', width: 64 },
+  memberCircle:      { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  memberCirclePrimary: { borderWidth: 2.5, borderColor: GREEN },
+  memberCircleText:  { color: '#fff', fontFamily: F.bodyBold, fontSize: 17 },
+  memberCircleName:  { fontSize: 12, fontFamily: F.bodySemi, color: '#374151', marginTop: 6 },
+  memberPrimaryTag:  { fontSize: 8.5, fontFamily: F.bodyBold, color: '#16a34a', letterSpacing: 0.8, marginTop: 2 },
 
   noEnrollCard:  { alignItems: 'center', paddingVertical: 32, gap: 10, backgroundColor: '#fff', borderRadius: 20, marginBottom: 24, borderWidth: 1, borderColor: '#e5e7eb' },
   noEnrollTitle: { fontSize: 18, fontWeight: '700', color: '#374151' },
