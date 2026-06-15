@@ -8,8 +8,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import api from '../../lib/api';
-import { F } from '../../lib/theme';
+import { F, needsUnderwriting } from '../../lib/theme';
 
 const NAVY  = '#1e3a5f';
 const NAVY_DARK = '#0a1628';
@@ -376,7 +377,7 @@ const dm = StyleSheet.create({
 
 // ─── Tier card (browse) ──────────────────────────────────────────────────────
 
-function TierCard({ tier, product, onDetails, popular }: { tier: any; product: any; onDetails: (t: any, p: any) => void; popular?: boolean }) {
+function TierCard({ tier, product, onDetails, popular, underwritten }: { tier: any; product: any; onDetails: (t: any, p: any) => void; popular?: boolean; underwritten?: boolean }) {
   const coverageNames: string[] = (tier.coverages || [])
     .map((c: any) => c.coverage?.name || '').filter(Boolean);
 
@@ -414,7 +415,9 @@ function TierCard({ tier, product, onDetails, popular }: { tier: any; product: a
       )}
 
       <TouchableOpacity style={[tc.btn, !popular && tc.btnOutline]} onPress={() => onDetails(tier, product)} activeOpacity={0.85}>
-        <Text style={[tc.btnText, !popular && tc.btnTextOutline]}>View Details &amp; Enroll</Text>
+        <Text style={[tc.btnText, !popular && tc.btnTextOutline]}>
+          {underwritten ? 'Apply for Coverage' : 'View Details & Enroll'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -478,7 +481,8 @@ function ProductSection({ product, onDetails }: { product: any; onDetails: (t: a
           )}
           {tiers.map((t: any, i: number) => (
             <TierCard key={t._id} tier={t} product={product} onDetails={onDetails}
-              popular={tiers.length >= 2 && i === 1} />
+              popular={tiers.length >= 2 && i === 1}
+              underwritten={needsUnderwriting(product.productType)} />
           ))}
         </View>
       )}
@@ -501,6 +505,7 @@ const ps = StyleSheet.create({
 
 export default function CoverageScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   const [enrollment,  setEnrollment]  = useState<any>(null);
   const [claims,      setClaims]      = useState<any[]>([]);
@@ -555,6 +560,12 @@ export default function CoverageScreen() {
   }
 
   const openDetails = (tier: any, product: any) => {
+    // Underwritten products (life/health/disability) go through the application
+    // flow; simple products enroll instantly via the detail modal.
+    if (needsUnderwriting(product?.productType)) {
+      router.push(`/apply/${product._id}` as any);
+      return;
+    }
     setDetailTier(tier);
     setDetailProd(product);
   };
@@ -621,6 +632,18 @@ export default function CoverageScreen() {
         contentContainerStyle={[s.content, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 32 }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={NAVY} />}
       >
+        {/* My Applications shortcut */}
+        <TouchableOpacity onPress={() => router.push('/applications' as any)} activeOpacity={0.85} style={s.applyLink}>
+          <View style={s.applyLinkIcon}>
+            <Ionicons name="document-text" size={18} color={NAVY} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={s.applyLinkTitle}>My Applications</Text>
+            <Text style={s.applyLinkSub}>Track quote applications & accept offers</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
+        </TouchableOpacity>
+
         {/* ── Active enrollment ──────────────────────────────────────────────── */}
         {enrollment ? (
           <>
@@ -804,6 +827,10 @@ const s = StyleSheet.create({
   memberCircleName:  { fontSize: 12, fontFamily: F.bodySemi, color: '#374151', marginTop: 6 },
   memberPrimaryTag:  { fontSize: 8.5, fontFamily: F.bodyBold, color: '#16a34a', letterSpacing: 0.8, marginTop: 2 },
 
+  applyLink: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 16, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 },
+  applyLinkIcon: { width: 40, height: 40, borderRadius: 11, backgroundColor: '#eef4fb', alignItems: 'center', justifyContent: 'center' },
+  applyLinkTitle: { fontSize: 14.5, fontFamily: F.bodyBold, color: '#111827' },
+  applyLinkSub: { fontSize: 12, color: '#6b7280', marginTop: 1, fontFamily: F.body },
   noEnrollCard:  { alignItems: 'center', paddingVertical: 32, gap: 10, backgroundColor: '#fff', borderRadius: 20, marginBottom: 24, borderWidth: 1, borderColor: '#e5e7eb' },
   noEnrollTitle: { fontSize: 18, fontWeight: '700', color: '#374151' },
   noEnrollSub:   { fontSize: 14, color: '#9ca3af', textAlign: 'center', paddingHorizontal: 24, lineHeight: 20 },

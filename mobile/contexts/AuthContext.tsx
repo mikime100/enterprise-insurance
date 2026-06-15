@@ -11,6 +11,7 @@ type User = {
   phone?: string;
   mustChangePassword?: boolean;
   institutionId?: string;
+  linkedEntity?: { entityId?: string; entityType?: string };
 };
 
 type AuthContextType = {

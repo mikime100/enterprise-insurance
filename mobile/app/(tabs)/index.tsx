@@ -196,7 +196,7 @@ function InsuredHome({ user, router, insets }: any) {
               <ActionTile icon="add-circle" label="File Claim" color={C.green} onPress={() => router.push('/new-claim')} />
               <ActionTile icon="folder-open" label="My Claims" color={C.blue} onPress={() => router.push('/(tabs)/claims')} />
               <ActionTile icon="shield-checkmark" label="My Policy" color={C.purple} onPress={() => router.push('/(tabs)/coverage')} />
-              <ActionTile icon="person-circle" label="Profile" color={C.cyan} onPress={() => router.push('/(tabs)/profile')} />
+              <ActionTile icon="document-text" label="Apply" color={C.cyan} onPress={() => router.push('/applications' as any)} />
             </View>
           </FadeIn>
 

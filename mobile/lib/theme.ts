@@ -106,6 +106,28 @@ export const ALL_CLAIM_TYPES = Object.keys(CLAIM_TYPE_LABELS);
 
 export const THIRD_PARTY_TYPES = ['auto_accident', 'property_damage', 'liability'];
 
+// ─── Acquisition model ────────────────────────────────────────────────────────
+// Products that require underwriting go through the application (Quote) flow;
+// everything else can be bought instantly via self-enroll. See [[project_mobile_web_parity]].
+export const UNDERWRITTEN_TYPES = ['life', 'health', 'disability'];
+export const needsUnderwriting = (productType?: string) =>
+  UNDERWRITTEN_TYPES.includes(productType || '');
+
+// ─── Quote / application status config ────────────────────────────────────────
+export const QUOTE_STATUS: Record<string, { color: string; bg: string; label: string; icon: string; step: number }> = {
+  draft:        { color: '#6b7280', bg: '#f3f4f6', label: 'Draft',         icon: 'create-outline',   step: 0 },
+  submitted:    { color: '#1d4ed8', bg: '#dbeafe', label: 'Submitted',     icon: 'paper-plane',      step: 1 },
+  under_review: { color: '#d97706', bg: '#fef3c7', label: 'Under Review',  icon: 'search',           step: 2 },
+  approved:     { color: '#059669', bg: '#d1fae5', label: 'Offer Ready',   icon: 'pricetag',         step: 3 },
+  accepted:     { color: '#16a34a', bg: '#dcfce7', label: 'Accepted',      icon: 'checkmark-circle', step: 4 },
+  rejected:     { color: '#dc2626', bg: '#fee2e2', label: 'Rejected',      icon: 'close-circle',     step: 3 },
+  expired:      { color: '#6b7280', bg: '#f3f4f6', label: 'Expired',       icon: 'time',             step: 3 },
+};
+export const quoteCfg = (s?: string) =>
+  QUOTE_STATUS[s || ''] || { color: '#6b7280', bg: '#f3f4f6', label: (s || 'Unknown').replace(/_/g, ' '), icon: 'help-circle', step: 0 };
+
+export const QUOTE_STAGES = ['Apply', 'Review', 'Offer', 'Active'];
+
 export const DOC_TYPES = [
   { value: 'receipt',        label: 'Receipt / Invoice', icon: 'receipt' },
   { value: 'medical_report', label: 'Medical Report',    icon: 'medkit' },
