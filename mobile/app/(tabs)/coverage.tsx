@@ -9,8 +9,10 @@ import { StatusBar } from 'expo-status-bar';
 import { Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import * as DocumentPicker from 'expo-document-picker';
 import api from '../../lib/api';
 import { F, needsUnderwriting } from '../../lib/theme';
+import { EndorsementModal, PaymentProofModal, downloadPolicyDocument } from '../../components/PolicyActions';
 
 const NAVY  = '#1e3a5f';
 const NAVY_DARK = '#0a1628';
@@ -518,17 +520,26 @@ export default function CoverageScreen() {
   const [detailProd,  setDetailProd]  = useState<any>(null);
   const [paying,      setPaying]      = useState(false);
 
+  // Policy actions
+  const [endorsementOpen, setEndorsementOpen] = useState(false);
+  const [proofOpen,       setProofOpen]       = useState(false);
+  const [renewing,        setRenewing]        = useState(false);
+  const [downloading,     setDownloading]     = useState(false);
+
   const load = useCallback(async () => {
     try {
       const [enrRes, prodsRes] = await Promise.allSettled([
-        api.get('/enrollments', { params: { status: 'active' } }),
+        api.get('/enrollments'),
         api.get('/products', { params: { withTiers: 'true' } }),
       ]);
 
       if (enrRes.status === 'fulfilled') {
-        const list = enrRes.value.data.enrollments || [];
-        if (list.length > 0) {
-          const detail = await api.get(`/enrollments/${list[0]._id}`);
+        const all = enrRes.value.data.enrollments || [];
+        // Prefer an active/pending_renewal policy; fall back to the most recent.
+        const list = all.filter((e: any) => ['active', 'pending_renewal'].includes(e.status));
+        const chosen = list[0] || all[0];
+        if (chosen) {
+          const detail = await api.get(`/enrollments/${chosen._id}`);
           setEnrollment(detail.data.enrollment);
           const claimsRes = await api.get('/claims');
           setClaims((claimsRes.data.claims || []).filter((c: any) =>
@@ -545,6 +556,52 @@ export default function CoverageScreen() {
       setRefreshing(false);
     }
   }, []);
+
+  // ── Policy action handlers ──────────────────────────────────────────────────
+  const handleRenew = async () => {
+    if (!enrollment) return;
+    setRenewing(true);
+    try {
+      const renewRes = await api.post(`/enrollments/${enrollment._id}/renew`);
+      const enrId = renewRes.data?.enrollment?._id || enrollment._id;
+      const chapaRes = await api.post('/chapa/initialize', { enrollmentId: enrId });
+      const url = chapaRes.data?.checkout_url;
+      if (url) await Linking.openURL(url);
+      else Alert.alert('Renewal started', 'Could not open payment. Try again from this screen.');
+    } catch (e: any) {
+      Alert.alert('Error', e?.response?.data?.message || 'Could not start renewal.');
+    } finally { setRenewing(false); }
+  };
+
+  const handleDownload = async () => {
+    if (!enrollment) return;
+    setDownloading(true);
+    try {
+      await downloadPolicyDocument(enrollment._id, enrollment.enrollmentNumber);
+    } catch (e: any) {
+      Alert.alert('Download failed', e?.message || 'Could not download the policy document.');
+    } finally { setDownloading(false); }
+  };
+
+  // Upload a receipt file/photo and return its stored URL for payment proof
+  const pickReceipt = async (): Promise<{ url: string; name: string } | null> => {
+    try {
+      let file: { uri: string; name: string; mimeType: string } | null = null;
+      const doc = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'], copyToCacheDirectory: true });
+      if (!doc.canceled && doc.assets?.[0]) {
+        const a = doc.assets[0];
+        file = { uri: a.uri, name: a.name, mimeType: a.mimeType || 'application/octet-stream' };
+      }
+      if (!file) return null;
+      const fd = new FormData();
+      fd.append('file', { uri: file.uri, name: file.name, type: file.mimeType } as any);
+      const up = await api.post('/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      return { url: up.data.url, name: up.data.originalName || file.name };
+    } catch (e: any) {
+      Alert.alert('Upload failed', e?.response?.data?.message || 'Could not upload receipt.');
+      return null;
+    }
+  };
 
   useEffect(() => { load(); }, [load]);
   const onRefresh = () => { setRefreshing(true); load(); };
@@ -632,7 +689,7 @@ export default function CoverageScreen() {
         contentContainerStyle={[s.content, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 32 }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={NAVY} />}
       >
-        {/* My Applications shortcut */}
+        {/* Shortcuts */}
         <TouchableOpacity onPress={() => router.push('/applications' as any)} activeOpacity={0.85} style={s.applyLink}>
           <View style={s.applyLinkIcon}>
             <Ionicons name="document-text" size={18} color={NAVY} />
@@ -640,6 +697,16 @@ export default function CoverageScreen() {
           <View style={{ flex: 1 }}>
             <Text style={s.applyLinkTitle}>My Applications</Text>
             <Text style={s.applyLinkSub}>Track quote applications & accept offers</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/dependents' as any)} activeOpacity={0.85} style={s.applyLink}>
+          <View style={s.applyLinkIcon}>
+            <Ionicons name="people" size={18} color={NAVY} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={s.applyLinkTitle}>Dependents</Text>
+            <Text style={s.applyLinkSub}>Add or manage people on your policy</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
         </TouchableOpacity>
@@ -680,6 +747,53 @@ export default function CoverageScreen() {
                 </View>
               )}
             </LinearGradient>
+
+            {/* Renewal banner */}
+            {enrollment.status === 'pending_renewal' && (
+              <View style={s.renewBanner}>
+                <Ionicons name="refresh-circle" size={24} color="#b45309" />
+                <View style={{ flex: 1 }}>
+                  <Text style={s.renewTitle}>Renewal Due</Text>
+                  <Text style={s.renewSub}>Renew now to avoid a gap. Same plan and tier.</Text>
+                </View>
+                <TouchableOpacity onPress={handleRenew} disabled={renewing} style={s.renewBtn}>
+                  <Text style={s.renewBtnText}>{renewing ? '…' : 'Renew'}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Payment verification / submit proof */}
+            {enrollment.paymentVerification?.status === 'pending' ? (
+              <View style={[s.pvRow, { backgroundColor: '#fffbeb', borderColor: '#fde68a' }]}>
+                <Ionicons name="time" size={16} color="#b45309" />
+                <Text style={[s.pvText, { color: '#92400e' }]}>Payment proof is under verification.</Text>
+              </View>
+            ) : (enrollment.paymentVerification?.status === 'rejected' || enrollment.status === 'pending') ? (
+              <TouchableOpacity onPress={() => setProofOpen(true)} style={[s.pvRow, { backgroundColor: '#eff6ff', borderColor: '#bfdbfe' }]}>
+                <Ionicons name="receipt-outline" size={16} color={BLUE} />
+                <Text style={[s.pvText, { color: '#1e40af', flex: 1 }]}>
+                  {enrollment.paymentVerification?.status === 'rejected'
+                    ? 'Proof was rejected — submit a new receipt.'
+                    : 'Paid by bank transfer? Submit payment proof.'}
+                </Text>
+                <Ionicons name="chevron-forward" size={16} color={BLUE} />
+              </TouchableOpacity>
+            ) : null}
+
+            {/* Policy actions */}
+            <View style={s.actionsCard}>
+              <TouchableOpacity style={s.actionItem} onPress={handleDownload} disabled={downloading} activeOpacity={0.7}>
+                <View style={s.actionIcon}><Ionicons name="download-outline" size={19} color={NAVY} /></View>
+                <Text style={s.actionItemText}>{downloading ? 'Preparing…' : 'Download Policy Document'}</Text>
+                <Ionicons name="chevron-forward" size={16} color="#cbd5e1" />
+              </TouchableOpacity>
+              <View style={s.actionDivider} />
+              <TouchableOpacity style={s.actionItem} onPress={() => setEndorsementOpen(true)} activeOpacity={0.7}>
+                <View style={s.actionIcon}><Ionicons name="create-outline" size={19} color={NAVY} /></View>
+                <Text style={s.actionItemText}>Request a Change</Text>
+                <Ionicons name="chevron-forward" size={16} color="#cbd5e1" />
+              </TouchableOpacity>
+            </View>
 
             {/* Usage tracker */}
             {tierCoverages.length > 0 && (
@@ -774,6 +888,16 @@ export default function CoverageScreen() {
         )}
       </ScrollView>
 
+      {/* Policy action modals */}
+      {enrollment && (
+        <>
+          <EndorsementModal enrollment={enrollment} visible={endorsementOpen}
+            onClose={() => setEndorsementOpen(false)} onSubmitted={load} />
+          <PaymentProofModal enrollment={enrollment} visible={proofOpen}
+            onClose={() => setProofOpen(false)} onSubmitted={load} pickReceipt={pickReceipt} />
+        </>
+      )}
+
       {/* Plan details + agreement modal */}
       {detailTier && detailProd && (
         <PlanDetailModal
@@ -827,6 +951,18 @@ const s = StyleSheet.create({
   memberCircleName:  { fontSize: 12, fontFamily: F.bodySemi, color: '#374151', marginTop: 6 },
   memberPrimaryTag:  { fontSize: 8.5, fontFamily: F.bodyBold, color: '#16a34a', letterSpacing: 0.8, marginTop: 2 },
 
+  renewBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fffbeb', borderWidth: 1.5, borderColor: '#fde68a', borderRadius: 14, padding: 14, marginBottom: 12 },
+  renewTitle: { fontSize: 14.5, fontFamily: F.bodyBold, color: '#92400e' },
+  renewSub: { fontSize: 12, color: '#b45309', marginTop: 1, fontFamily: F.body },
+  renewBtn: { backgroundColor: '#d97706', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 9 },
+  renewBtnText: { color: '#fff', fontFamily: F.bodyBold, fontSize: 13 },
+  pvRow: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 12 },
+  pvText: { fontSize: 12.5, fontFamily: F.bodySemi },
+  actionsCard: { backgroundColor: '#fff', borderRadius: 16, marginBottom: 20, paddingHorizontal: 16, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 },
+  actionItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15 },
+  actionIcon: { width: 38, height: 38, borderRadius: 11, backgroundColor: '#eef4fb', alignItems: 'center', justifyContent: 'center' },
+  actionItemText: { flex: 1, fontSize: 14.5, fontFamily: F.bodySemi, color: '#111827' },
+  actionDivider: { height: 1, backgroundColor: '#f3f4f6' },
   applyLink: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 16, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 },
   applyLinkIcon: { width: 40, height: 40, borderRadius: 11, backgroundColor: '#eef4fb', alignItems: 'center', justifyContent: 'center' },
   applyLinkTitle: { fontSize: 14.5, fontFamily: F.bodyBold, color: '#111827' },

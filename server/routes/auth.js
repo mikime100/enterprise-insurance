@@ -173,6 +173,21 @@ router.get('/me', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// ── Update own profile (self-service) ────────────────────────────────────────
+router.patch('/me', requireAuth, async (req, res, next) => {
+  try {
+    // Only allow safe, self-editable fields — never role/email/password here.
+    const allowed = ['firstName', 'lastName', 'phone'];
+    const updates = {};
+    for (const f of allowed) if (req.body[f] !== undefined) updates[f] = req.body[f];
+
+    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true, runValidators: true })
+      .select('-password -emailVerificationOTP -emailVerificationExpiry -passwordResetToken -passwordResetExpiry');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ user });
+  } catch (err) { next(err); }
+});
+
 // ── Mobile JWT login ─────────────────────────────────────────────────────────
 router.post('/mobile/login', async (req, res, next) => {
   try {

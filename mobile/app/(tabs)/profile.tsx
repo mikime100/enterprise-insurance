@@ -1,14 +1,61 @@
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Linking } from 'react-native';
+import { useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Linking, Modal, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../contexts/AuthContext';
-import { C, R, SHADOW } from '../../lib/theme';
-import { FadeIn, Press } from '../../components/ui';
+import api from '../../lib/api';
+import { C, R, F, SHADOW } from '../../lib/theme';
+import { FadeIn, Press, Button } from '../../components/ui';
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const insets = useSafeAreaInsets();
+
+  // Edit profile
+  const [editOpen, setEditOpen] = useState(false);
+  const [form, setForm] = useState({ firstName: '', lastName: '', phone: '' });
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  // Change password
+  const [pwOpen, setPwOpen] = useState(false);
+  const [pw, setPw] = useState({ next: '', confirm: '' });
+  const [savingPw, setSavingPw] = useState(false);
+
+  const openEdit = () => {
+    setForm({ firstName: user?.firstName || '', lastName: user?.lastName || '', phone: user?.phone || '' });
+    setEditOpen(true);
+  };
+
+  const saveProfile = async () => {
+    if (!form.firstName.trim() || !form.lastName.trim()) {
+      Alert.alert('Required', 'First and last name are required.'); return;
+    }
+    setSavingProfile(true);
+    try {
+      await api.patch('/auth/me', {
+        firstName: form.firstName.trim(), lastName: form.lastName.trim(), phone: form.phone.trim(),
+      });
+      await refreshUser();
+      setEditOpen(false);
+      Alert.alert('Saved', 'Your profile has been updated.');
+    } catch (e: any) {
+      Alert.alert('Error', e?.response?.data?.message || 'Could not update profile.');
+    } finally { setSavingProfile(false); }
+  };
+
+  const savePassword = async () => {
+    if (pw.next.length < 8) { Alert.alert('Too short', 'Password must be at least 8 characters.'); return; }
+    if (pw.next !== pw.confirm) { Alert.alert('Mismatch', 'Passwords do not match.'); return; }
+    setSavingPw(true);
+    try {
+      await api.post('/auth/set-password', { newPassword: pw.next });
+      setPwOpen(false); setPw({ next: '', confirm: '' });
+      Alert.alert('Done', 'Your password has been changed.');
+    } catch (e: any) {
+      Alert.alert('Error', e?.response?.data?.message || 'Could not change password.');
+    } finally { setSavingPw(false); }
+  };
 
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -38,11 +85,34 @@ export default function ProfileScreen() {
         {/* Account info */}
         <FadeIn delay={80}>
           <View style={s.card}>
-            <Text style={s.cardTitle}>Account Information</Text>
+            <View style={s.cardTitleRow}>
+              <Text style={s.cardTitle}>Account Information</Text>
+              <TouchableOpacity onPress={openEdit} style={s.editChip} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Ionicons name="create-outline" size={14} color={C.blue} />
+                <Text style={s.editChipText}>Edit</Text>
+              </TouchableOpacity>
+            </View>
             <InfoRow icon="person" label="First Name" value={user?.firstName} />
             <InfoRow icon="person" label="Last Name" value={user?.lastName} />
             <InfoRow icon="mail" label="Email" value={user?.email} />
-            {!!user?.phone && <InfoRow icon="call" label="Phone" value={user.phone} />}
+            <InfoRow icon="call" label="Phone" value={user?.phone || '—'} />
+          </View>
+        </FadeIn>
+
+        {/* Security */}
+        <FadeIn delay={120}>
+          <View style={s.card}>
+            <Text style={s.cardTitle}>Security</Text>
+            <Press onPress={() => { setPw({ next: '', confirm: '' }); setPwOpen(true); }} style={s.linkRow}>
+              <View style={[s.linkIcon, { backgroundColor: '#fef3c7' }]}>
+                <Ionicons name="key" size={17} color="#d97706" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.linkTitle}>Change Password</Text>
+                <Text style={s.linkSub}>Update your account password</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={C.grayLight} />
+            </Press>
           </View>
         </FadeIn>
 
@@ -90,6 +160,50 @@ export default function ProfileScreen() {
           </Press>
         </FadeIn>
       </View>
+
+      {/* Edit profile modal */}
+      <Modal visible={editOpen} transparent animationType="slide" onRequestClose={() => setEditOpen(false)}>
+        <View style={s.backdrop}>
+          <View style={[s.sheet, { paddingBottom: insets.bottom + 16 }]}>
+            <View style={s.handle} />
+            <Text style={s.sheetTitle}>Edit Profile</Text>
+            <Text style={s.sheetLabel}>FIRST NAME</Text>
+            <TextInput style={s.input} value={form.firstName} placeholder="First name" placeholderTextColor={C.grayLight}
+              onChangeText={v => setForm(f => ({ ...f, firstName: v }))} />
+            <Text style={s.sheetLabel}>LAST NAME</Text>
+            <TextInput style={s.input} value={form.lastName} placeholder="Last name" placeholderTextColor={C.grayLight}
+              onChangeText={v => setForm(f => ({ ...f, lastName: v }))} />
+            <Text style={s.sheetLabel}>PHONE</Text>
+            <TextInput style={s.input} value={form.phone} placeholder="+251 9.." keyboardType="phone-pad" placeholderTextColor={C.grayLight}
+              onChangeText={v => setForm(f => ({ ...f, phone: v }))} />
+            <Text style={s.sheetNote}>Email and role can only be changed by your administrator.</Text>
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+              <Button label="Cancel" variant="outline" color={C.gray} onPress={() => setEditOpen(false)} style={{ flex: 1 }} />
+              <Button label="Save" icon="checkmark" onPress={saveProfile} loading={savingProfile} style={{ flex: 1.4 }} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Change password modal */}
+      <Modal visible={pwOpen} transparent animationType="slide" onRequestClose={() => setPwOpen(false)}>
+        <View style={s.backdrop}>
+          <View style={[s.sheet, { paddingBottom: insets.bottom + 16 }]}>
+            <View style={s.handle} />
+            <Text style={s.sheetTitle}>Change Password</Text>
+            <Text style={s.sheetLabel}>NEW PASSWORD</Text>
+            <TextInput style={s.input} value={pw.next} secureTextEntry placeholder="At least 8 characters" placeholderTextColor={C.grayLight}
+              onChangeText={v => setPw(p => ({ ...p, next: v }))} />
+            <Text style={s.sheetLabel}>CONFIRM PASSWORD</Text>
+            <TextInput style={s.input} value={pw.confirm} secureTextEntry placeholder="Repeat new password" placeholderTextColor={C.grayLight}
+              onChangeText={v => setPw(p => ({ ...p, confirm: v }))} />
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+              <Button label="Cancel" variant="outline" color={C.gray} onPress={() => setPwOpen(false)} style={{ flex: 1 }} />
+              <Button label="Update" icon="key" color={C.amber} onPress={savePassword} loading={savingPw} style={{ flex: 1.4 }} />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -126,6 +240,16 @@ const s = StyleSheet.create({
 
   card: { backgroundColor: '#fff', borderRadius: R.lg, padding: 17, marginBottom: 14, ...SHADOW.card },
   cardTitle: { fontSize: 12, fontWeight: '800', color: C.grayLight, marginBottom: 10, letterSpacing: 0.8, textTransform: 'uppercase' },
+  cardTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+  editChip: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#eff6ff', borderRadius: 16, paddingHorizontal: 10, paddingVertical: 5 },
+  editChipText: { fontSize: 12, fontFamily: F.bodyBold, color: C.blue },
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: C.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20 },
+  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#cbd5e1', alignSelf: 'center', marginBottom: 14 },
+  sheetTitle: { fontSize: 18, fontFamily: F.head, color: C.ink, marginBottom: 6 },
+  sheetLabel: { fontSize: 11, fontFamily: F.bodySemi, color: C.gray, letterSpacing: 0.8, marginTop: 14, marginBottom: 8 },
+  sheetNote: { fontSize: 12, color: C.grayLight, fontFamily: F.body, marginTop: 12, lineHeight: 17 },
+  input: { backgroundColor: '#fff', borderRadius: R.md, borderWidth: 1.5, borderColor: C.line, padding: 13, fontSize: 15, color: C.ink, fontFamily: F.body },
 
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: C.lineSoft },
   infoLeft: { flexDirection: 'row', alignItems: 'center' },
