@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>My Policy - Enterprise Insurance</title>
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&amp;family=Work+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#bbc7df",
+                        "on-secondary-container": "#007432",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#005321",
+                        "outline": "#74777f",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#6bff8f",
+                        "on-primary-fixed": "#001c3b",
+                        "inverse-primary": "#adc8f5",
+                        "surface-container": "#eceef1",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "tertiary": "#192437",
+                        "on-secondary-fixed": "#002109",
+                        "surface-container-high": "#e6e8eb",
+                        "on-tertiary-fixed": "#101c2e",
+                        "primary": "#022448",
+                        "surface-container-highest": "#e0e3e6",
+                        "surface-bright": "#f7f9fc",
+                        "secondary-container": "#6bff8f",
+                        "primary-fixed": "#d5e3ff",
+                        "surface-variant": "#e0e3e6",
+                        "on-background": "#191c1e",
+                        "primary-fixed-dim": "#adc8f5",
+                        "background": "#f7f9fc",
+                        "surface-container-low": "#f2f4f7",
+                        "on-primary-container": "#8aa4cf",
+                        "outline-variant": "#c4c6cf",
+                        "inverse-surface": "#2d3133",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#1e3a5f",
+                        "on-tertiary-fixed-variant": "#3c475b",
+                        "surface-dim": "#d8dadd",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-container": "#98a4bb",
+                        "tertiary-fixed": "#d7e3fc",
+                        "on-primary-fixed-variant": "#2d486d",
+                        "surface": "#f7f9fc",
+                        "secondary-fixed-dim": "#4ae176",
+                        "on-surface-variant": "#43474e",
+                        "inverse-on-surface": "#eff1f4",
+                        "on-secondary": "#ffffff",
+                        "tertiary-container": "#2f3a4e",
+                        "surface-tint": "#455f87",
+                        "secondary": "#006e2f",
+                        "on-surface": "#191c1e",
+                        "on-error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px",
+                        "card": "24px" // Added for the prompt's explicit requirement
+                    },
+                    "spacing": {
+                        "sm": "12px",
+                        "xs": "8px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "margin": "20px",
+                        "gutter": "16px",
+                        "md": "16px",
+                        "base": "4px",
+                        "safe": "env(safe-area-inset-bottom, 20px)"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Work Sans"],
+                        "headline-md": ["Archivo Narrow"],
+                        "currency-display": ["Work Sans"],
+                        "label-lg": ["Work Sans"],
+                        "headline-lg": ["Archivo Narrow"],
+                        "body-lg": ["Work Sans"],
+                        "display-lg": ["Archivo Narrow"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-md": ["20px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "headline-md-mobile": ["18px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "currency-display": ["28px", { "lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "label-lg": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-lg": ["32px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-lg-mobile": ["24px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #F6F8FB; /* Level 0 Background */
+        }
+        /* Hide scrollbar for horizontal lists */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, theme('colors.primary'), theme('colors.primary-container'));
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-gradient::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .glass-nav {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-surface antialiased bg-background pb-32">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 bg-surface shadow-sm">
+<div class="flex items-center justify-between px-margin py-base w-full h-[64px]">
+<div class="flex items-center gap-xs">
+<img alt="User Profile Avatar" class="w-8 h-8 rounded-full border border-outline-variant/30" data-alt="A professional headshot of a person looking forward, neutral lighting, corporate modern style, isolated on a light background. High quality, clear, serving as an avatar placeholder in a mobile application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3y_xlYIot9yP7l6e83flHdsz6eurYGMqWN7EtsHTtZZMSxb71YzE5j9IgaEC7UpaZfgPdGk4EYwLCz2xA31aI6OUQ6GNrKlpqRmGffK33uWMfR_tPzEPls9jrx2TMK6yi-gCMo93WcR90qnzrlVt2nK3CNBZZBqdD2ZmGCic5OV0kYUzZCBHNUCrG-0QtEbE0ejT7ETV5eSgOvRp93u9JgA9pUg2D9c_17A1HxmQcFV-HdCSB683DFLRCg6xT8XSmPmVjSd8Zbq-g"/>
+<span class="font-headline-md text-headline-md-mobile font-display-lg text-display-lg-mobile text-primary font-bold tracking-tight">Enterprise Insurance</span>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors active:scale-95 transition-transform text-on-surface-variant">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+</div>
+</header>
+<main class="flex flex-col gap-xl px-margin pt-margin">
+<!-- Active Policy Hero Card -->
+<section>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-sm">Active Policy</h2>
+<div class="hero-gradient rounded-card p-margin text-on-primary shadow-[0px_8px_30px_rgba(30,58,95,0.12)]">
+<div class="flex justify-between items-start mb-lg">
+<div>
+<p class="font-label-lg text-label-lg text-inverse-primary uppercase tracking-wider mb-base">Policy No. ET-99283-X</p>
+<h3 class="font-headline-lg text-headline-lg font-bold">Comprehensive Motor Insurance</h3>
+</div>
+<div class="bg-secondary/20 rounded-full px-sm py-1 border border-secondary/30 flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-secondary-fixed"></span>
+<span class="font-label-lg text-label-lg text-secondary-fixed">ACTIVE</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-sm mb-lg">
+<div>
+<p class="font-label-lg text-label-lg text-inverse-primary opacity-80 mb-1">Start Date</p>
+<p class="font-body-md text-body-md font-semibold">Jan 12, 2023</p>
+</div>
+<div>
+<p class="font-label-lg text-label-lg text-inverse-primary opacity-80 mb-1">Expiry Date</p>
+<p class="font-body-md text-body-md font-semibold">Jan 11, 2024</p>
+</div>
+</div>
+<div class="border-t border-white/20 pt-sm flex justify-between items-center">
+<p class="font-label-lg text-label-lg text-inverse-primary">Annual Premium</p>
+<p class="font-currency-display text-currency-display">12,500 <span class="text-lg opacity-80 font-normal">ETB</span></p>
+</div>
+</div>
+</section>
+<!-- Coverage Usage -->
+<section>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-sm">Coverage Usage</h2>
+<div class="bg-surface-container-lowest rounded-card p-margin shadow-[0px_4px_20px_rgba(0,0,0,0.04)] flex flex-col gap-md border border-outline-variant/20">
+<!-- Progress 1 -->
+<div>
+<div class="flex justify-between items-end mb-xs">
+<span class="font-body-md text-body-md font-semibold text-primary">Medical Expenses</span>
+<span class="font-label-lg text-label-lg text-on-surface-variant">3,200 / 15,000 ETB</span>
+</div>
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 21.33%;"></div>
+</div>
+</div>
+<!-- Progress 2 -->
+<div>
+<div class="flex justify-between items-end mb-xs">
+<span class="font-body-md text-body-md font-semibold text-primary">Third Party Liability</span>
+<span class="font-label-lg text-label-lg text-on-surface-variant">0 / 500,000 ETB</span>
+</div>
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 0%;"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Covered Family Members -->
+<section>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-sm">Covered Family Members</h2>
+<div class="flex gap-sm overflow-x-auto no-scrollbar pb-sm">
+<!-- Avatar 1 -->
+<div class="flex flex-col items-center gap-xs min-w-[72px]">
+<img alt="Sarah" class="w-14 h-14 rounded-full border-2 border-surface-container-lowest shadow-sm object-cover" data-alt="A headshot of a young woman with dark hair smiling gently. Professional lighting, clean white background, corporate modern aesthetic. Serving as a family member profile picture placeholder in a fintech app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCt0SncJmxMnz7QeMLljt0CwOh5yuqraCLR90JdI2dAw3gq0rxD8T0MDlePZmZFS5GBeOHGeb_qAYhxSiZ0H8tIqTlotiZeybQGck5CHh1zfoD1G2js3vzaZ4BiTSIZ8tSoB5XWsbVWsiWbkjl7KwC08C5z61fGOloNwsZoOhCTc-PbPZ88aiSdiVfGJIeaae9uUG2Yn0lWPsfUUTh5u0ttGfKGyNNa5Z5eYJX3HVL5XP1e9shrM8tvN_ImRALo28g371pKDF8579si"/>
+<span class="font-label-lg text-label-lg text-on-surface text-center">Sarah</span>
+</div>
+<!-- Avatar 2 -->
+<div class="flex flex-col items-center gap-xs min-w-[72px]">
+<img alt="Michael" class="w-14 h-14 rounded-full border-2 border-surface-container-lowest shadow-sm object-cover" data-alt="A headshot of an adult man with glasses, neutral expression. Professional lighting, clean white background, corporate modern aesthetic. Serving as a family member profile picture placeholder in a fintech app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZXLPVrry07f5MUnw840Aq_fnKiC54OV8sYzIGT84-oy_k50OaDSAl40t_DZctUVrTYB-k5n4tVW1awYrZyhYDb3-Jyi7wIWhjvj0p4lzlWaDYiGv_Xv7kWK5jRpVdCg1AQ7qjv5EoxIq5Flpqz3QE0qd2xbRNXU_mYDdMO3A90utdl-0sOjTo8b58l26zJpp-mJDglNSPVkAcMn9YjrX2n_tELWTSBuyHSm49cEBHnfKpVpS0Ano8i7GKFKDx7iCINXAJG8UytNmS"/>
+<span class="font-label-lg text-label-lg text-on-surface text-center">Michael</span>
+</div>
+<!-- Avatar 3 -->
+<div class="flex flex-col items-center gap-xs min-w-[72px]">
+<img alt="Emma" class="w-14 h-14 rounded-full border-2 border-surface-container-lowest shadow-sm object-cover" data-alt="A headshot of a teenage girl, brightly lit, soft shadow. Professional lighting, clean white background, corporate modern aesthetic. Serving as a family member profile picture placeholder in a fintech app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5JR-8JpPErPPUlxwEN1_WYk4xmyiAVJ090y_dRJLc5fB_B3CrfNu2_DuZ34LotQZ_ED_P1m0ce5azIjJZjQoeA8ZnQvWImkknT--h8wdHQfFh977iw-aUA1e4wZlKhPEx7x3CGQgisf6Jl5n0zsKYJY7fb8_ha8-Cdw9XaLIGiKbjGailrNW5tFfOF6zYewUn7zG6VIhdvx69yAMD7_my-LFg83UWEuaFvW-_VahdKl6CSoA4opae4NNkND-1js1zDsXq2_A1YK6a"/>
+<span class="font-label-lg text-label-lg text-on-surface text-center">Emma</span>
+</div>
+<!-- Avatar 4 -->
+<div class="flex flex-col items-center gap-xs min-w-[72px]">
+<img alt="David" class="w-14 h-14 rounded-full border-2 border-surface-container-lowest shadow-sm object-cover" data-alt="A headshot of a young boy smiling. Professional lighting, clean white background, corporate modern aesthetic. Serving as a family member profile picture placeholder in a fintech app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBll-74OhBmg45Y5N54l6YNV_kwu3iRJzMzZ2ooSfvF8obv5_uYorcKPAgzYNz5xe1oWOZYWPclP0OQxcmUgEN5VjAuZykRHE4N8Nzuotw2_PfBpLc00H6HF8hJytZJjvIbNSsyakwMStH9PajRDO1fZyWTiD8X1C5vpvRX_oUirmatGV6hV33VB0V2PK0p9hFDsh12RLUDq4bPxHsPcgwfHq5PjbRh-5MDBWkzUphTtSyX734JiMDTi0A0sp7XZbN_Q97f8qGoHUfE"/>
+<span class="font-label-lg text-label-lg text-on-surface text-center">David</span>
+</div>
+</div>
+</section>
+<!-- Explore Other Plans -->
+<section class="mb-xl">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-sm">Explore Other Plans</h2>
+<!-- Expanding Category: Home Insurance -->
+<div class="bg-surface-container-lowest rounded-card shadow-[0px_4px_20px_rgba(0,0,0,0.04)] border border-outline-variant/20 overflow-hidden">
+<!-- Category Header (Simulated Expanded State) -->
+<button class="w-full flex items-center justify-between p-md bg-surface-bright border-b border-outline-variant/20">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+</div>
+<span class="font-headline-md text-headline-md-mobile text-primary font-semibold">Home Insurance</span>
+</div>
+<span class="material-symbols-outlined text-outline transition-transform rotate-180">expand_more</span>
+</button>
+<!-- Expanded Content (Tier Cards) -->
+<div class="p-md flex flex-col gap-md bg-surface-container-lowest">
+<!-- Basic Tier -->
+<div class="border border-outline-variant/30 rounded-xl p-md">
+<div class="flex justify-between items-start mb-sm">
+<h4 class="font-body-lg text-body-lg font-bold text-primary">Basic</h4>
+<span class="font-body-md text-body-md font-semibold text-on-surface-variant">2,500 ETB/yr</span>
+</div>
+<div class="flex flex-wrap gap-2 mb-md">
+<span class="inline-flex items-center gap-1 bg-surface-container-low text-on-surface px-2 py-1 rounded-full font-label-lg text-label-lg border border-outline-variant/20">
+<span class="material-symbols-outlined text-[14px] text-secondary">check_circle</span> Fire
+                            </span>
+<span class="inline-flex items-center gap-1 bg-surface-container-low text-on-surface px-2 py-1 rounded-full font-label-lg text-label-lg border border-outline-variant/20">
+<span class="material-symbols-outlined text-[14px] text-secondary">check_circle</span> Theft
+                            </span>
+</div>
+<button class="w-full py-2 border border-primary text-primary font-body-md text-body-md font-semibold rounded-lg hover:bg-primary/5 transition-colors">View Details &amp; Enroll</button>
+</div>
+<!-- Standard Tier -->
+<div class="border-2 border-primary rounded-xl p-md relative shadow-sm">
+<div class="absolute -top-3 right-4 bg-primary text-on-primary font-label-lg text-label-lg px-2 py-1 rounded-full">POPULAR</div>
+<div class="flex justify-between items-start mb-sm">
+<h4 class="font-body-lg text-body-lg font-bold text-primary">Standard</h4>
+<span class="font-body-md text-body-md font-semibold text-on-surface-variant">5,000 ETB/yr</span>
+</div>
+<div class="flex flex-wrap gap-2 mb-md">
+<span class="inline-flex items-center gap-1 bg-surface-container-low text-on-surface px-2 py-1 rounded-full font-label-lg text-label-lg border border-outline-variant/20">
+<span class="material-symbols-outlined text-[14px] text-secondary">check_circle</span> Fire
+                            </span>
+<span class="inline-flex items-center gap-1 bg-surface-container-low text-on-surface px-2 py-1 rounded-full font-label-lg text-label-lg border border-outline-variant/20">
+<span class="material-symbols-outlined text-[14px] text-secondary">check_circle</span> Theft
+                            </span>
+<span class="inline-flex items-center gap-1 bg-surface-container-low text-on-surface px-2 py-1 rounded-full font-label-lg text-label-lg border border-outline-variant/20">
+<span class="material-symbols-outlined text-[14px] text-secondary">check_circle</span> Natural Disaster
+                            </span>
+</div>
+<button class="w-full py-2 bg-secondary text-on-secondary font-body-md text-body-md font-semibold rounded-lg shadow-sm hover:bg-secondary/90 transition-colors">View Details &amp; Enroll</button>
+</div>
+<!-- Premium Tier -->
+<div class="border border-outline-variant/30 rounded-xl p-md bg-gradient-to-br from-surface-container-lowest to-surface-container-low">
+<div class="flex justify-between items-start mb-sm">
+<h4 class="font-body-lg text-body-lg font-bold text-primary">Premium</h4>
+<span class="font-body-md text-body-md font-semibold text-on-surface-variant">8,500 ETB/yr</span>
+</div>
+<div class="flex flex-wrap gap-2 mb-md">
+<span class="inline-flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-full font-label-lg text-label-lg border border-primary/20">
+<span class="material-symbols-outlined text-[14px] text-primary">stars</span> All Risks
+                            </span>
+<span class="inline-flex items-center gap-1 bg-surface-container-low text-on-surface px-2 py-1 rounded-full font-label-lg text-label-lg border border-outline-variant/20">
+<span class="material-symbols-outlined text-[14px] text-secondary">check_circle</span> Accidental Damage
+                            </span>
+</div>
+<button class="w-full py-2 border border-primary text-primary font-body-md text-body-md font-semibold rounded-lg hover:bg-primary/5 transition-colors">View Details &amp; Enroll</button>
+</div>
+</div>
+</div>
+<!-- Collapsed Category Example -->
+<div class="bg-surface-container-lowest rounded-card shadow-[0px_4px_20px_rgba(0,0,0,0.04)] border border-outline-variant/20 mt-md">
+<button class="w-full flex items-center justify-between p-md bg-surface-bright rounded-card hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<span class="font-headline-md text-headline-md-mobile text-on-surface font-semibold">Life &amp; Health</span>
+</div>
+<span class="material-symbols-outlined text-outline">expand_more</span>
+</button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden glass-nav bg-white/80 dark:bg-inverse-surface/80 fixed bottom-0 w-full z-50 shadow-[0px_-8px_30px_rgba(30,58,95,0.12)]">
+<div class="flex justify-around items-center h-16 px-margin pb-safe">
+<!-- Inactive: Home -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline w-16 hover:bg-primary-container/10 transition-all active:scale-90 transition-transform duration-200 py-1 rounded-lg">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">home</span>
+<span class="font-label-lg text-label-lg">Home</span>
+</button>
+<!-- Active: Coverage (My Policy maps best here) -->
+<button class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold w-16 hover:bg-primary-container/10 transition-all active:scale-90 transition-transform duration-200 py-1 rounded-lg">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">shield</span>
+<span class="font-label-lg text-label-lg">Coverage</span>
+</button>
+<!-- Inactive: Claims -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline w-16 hover:bg-primary-container/10 transition-all active:scale-90 transition-transform duration-200 py-1 rounded-lg">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">assignment</span>
+<span class="font-label-lg text-label-lg">Claims</span>
+</button>
+<!-- Inactive: Profile -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline w-16 hover:bg-primary-container/10 transition-all active:scale-90 transition-transform duration-200 py-1 rounded-lg">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">person</span>
+<span class="font-label-lg text-label-lg">Profile</span>
+</button>
+</div>
+</nav>
+</body></html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>File a Claim - Step 2</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400..700;1,400..700&amp;family=Work+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#2d3133",
+                        "on-primary-fixed": "#001c3b",
+                        "surface-container-highest": "#e0e3e6",
+                        "tertiary-container": "#2f3a4e",
+                        "on-surface": "#191c1e",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#d5e3ff",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed-variant": "#005321",
+                        "surface-container": "#eceef1",
+                        "primary-fixed-dim": "#adc8f5",
+                        "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#007432",
+                        "surface-dim": "#d8dadd",
+                        "secondary-container": "#6bff8f",
+                        "on-error": "#ffffff",
+                        "surface": "#f7f9fc",
+                        "secondary-fixed": "#6bff8f",
+                        "surface-variant": "#e0e3e6",
+                        "surface-bright": "#f7f9fc",
+                        "outline": "#74777f",
+                        "on-primary-fixed-variant": "#2d486d",
+                        "background": "#f7f9fc",
+                        "primary": "#022448",
+                        "on-surface-variant": "#43474e",
+                        "on-background": "#191c1e",
+                        "outline-variant": "#c4c6cf",
+                        "inverse-primary": "#adc8f5",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#3c475b",
+                        "tertiary": "#192437",
+                        "surface-container-low": "#f2f4f7",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed-dim": "#bbc7df",
+                        "tertiary-fixed": "#d7e3fc",
+                        "surface-tint": "#455f87",
+                        "primary-container": "#1e3a5f",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e6e8eb",
+                        "secondary": "#006e2f",
+                        "secondary-fixed-dim": "#4ae176",
+                        "inverse-on-surface": "#eff1f4",
+                        "on-tertiary-container": "#98a4bb",
+                        "on-secondary-fixed": "#002109",
+                        "on-primary-container": "#8aa4cf",
+                        "on-tertiary-fixed": "#101c2e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px",
+                        "card": "20px"
+                    },
+                    "spacing": {
+                        "sm": "12px",
+                        "gutter": "16px",
+                        "xl": "32px",
+                        "margin": "20px",
+                        "base": "4px",
+                        "xs": "8px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "safe": "env(safe-area-inset-bottom)"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Work Sans"],
+                        "display-lg": ["Archivo Narrow"],
+                        "headline-md": ["Archivo Narrow"],
+                        "headline-lg": ["Archivo Narrow"],
+                        "label-lg": ["Work Sans"],
+                        "currency-display": ["Work Sans"],
+                        "body-md": ["Work Sans"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "display-lg": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["20px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "headline-lg": ["24px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "label-lg": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "currency-display": ["28px", {"lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        
+                        "body-lg-mobile": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "display-lg-mobile": ["28px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md-mobile": ["18px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["22px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "currency-display-mobile": ["24px", {"lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Custom Input Styles */
+        .input-field {
+            @apply w-full bg-white border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors;
+        }
+        .input-label {
+            @apply block font-label-lg text-label-lg text-on-surface-variant mb-2;
+        }
+        
+        /* Hide scrollbar for clean horizontal scrolling */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background min-h-screen text-on-background pb-[100px] font-sans antialiased flex flex-col">
+<!-- Top Navigation / Header -->
+<!-- Not rendering TopAppBar from JSON as this is a linear transactional flow, creating custom header based on prompt -->
+<header class="bg-primary text-on-primary w-full sticky top-0 z-50 shadow-sm">
+<div class="px-margin py-base flex items-center h-[64px]">
+<button aria-label="Go back" class="mr-4 text-on-primary active:scale-95 transition-transform p-2 rounded-full hover:bg-white/10">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-on-primary flex-1">Incident Details</h1>
+<span class="font-label-lg text-label-lg text-on-primary/80">Step 2 of 4</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full bg-primary-container h-1">
+<div class="bg-secondary h-full transition-all duration-300" style="width: 50%;"></div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 px-margin py-6 flex flex-col gap-xl max-w-2xl mx-auto w-full">
+<!-- Form Section -->
+<div class="flex flex-col gap-6">
+<!-- Date Selection -->
+<div>
+<label class="input-label">Date of Incident</label>
+<div class="flex gap-3 mb-3 overflow-x-auto no-scrollbar py-1">
+<button class="whitespace-nowrap px-4 py-2 rounded-full bg-primary text-on-primary font-label-lg text-label-lg shadow-sm">
+                        Today
+                    </button>
+<button class="whitespace-nowrap px-4 py-2 rounded-full bg-surface-container-high text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-variant transition-colors border border-outline-variant">
+                        Yesterday
+                    </button>
+<button class="whitespace-nowrap px-4 py-2 rounded-full bg-surface-container-high text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-variant transition-colors border border-outline-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">calendar_month</span> Custom Date
+                    </button>
+</div>
+</div>
+<!-- Amount Input -->
+<div class="bg-surface-container-lowest p-5 rounded-card shadow-[0px_4px_20px_rgba(0,0,0,0.04)] border border-outline-variant/30">
+<label class="input-label">Estimated Loss Amount</label>
+<div class="relative mt-2">
+<input class="w-full bg-white border-0 border-b-2 border-outline-variant rounded-none px-0 py-2 font-currency-display text-currency-display-mobile text-primary focus:outline-none focus:border-primary focus:ring-0 transition-colors bg-transparent placeholder-outline-variant/50" placeholder="0.00" type="number"/>
+<div class="absolute right-0 top-1/2 -translate-y-1/2 flex items-center">
+<span class="font-headline-md text-headline-md-mobile text-on-surface-variant mr-2">ETB</span>
+</div>
+</div>
+<p class="mt-2 text-label-lg font-label-lg text-outline">Provide your best estimate. This can be adjusted later.</p>
+</div>
+<!-- Description -->
+<div>
+<label class="input-label">Incident Description</label>
+<textarea class="input-field resize-none" placeholder="Briefly describe what happened..." rows="4"></textarea>
+</div>
+<!-- Location -->
+<div>
+<label class="input-label">Location of Incident</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">location_on</span>
+</div>
+<input class="input-field pl-10" placeholder="Enter address or tap to pin on map" type="text"/>
+<button class="absolute inset-y-0 right-0 pr-3 flex items-center text-primary font-label-lg text-label-lg hover:underline">
+                        Map
+                    </button>
+</div>
+</div>
+<!-- Police Report -->
+<div>
+<label class="input-label">Police Report Number (Optional)</label>
+<input class="input-field" placeholder="e.g. PR-2023-8472" type="text"/>
+</div>
+</div>
+<!-- Third Party Details Accordion -->
+<div class="bg-primary-container rounded-card overflow-hidden shadow-[0px_4px_20px_rgba(0,0,0,0.04)]" id="third-party-accordion">
+<button class="w-full px-5 py-4 flex items-center justify-between text-left focus:outline-none bg-primary-container/90 hover:bg-primary-container transition-colors" onclick="toggleAccordion()">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined text-[20px]">group</span>
+</div>
+<h3 class="font-headline-md text-headline-md-mobile text-on-primary">Third Party Details</h3>
+</div>
+<span class="material-symbols-outlined text-on-primary transition-transform duration-300" id="accordion-icon">expand_more</span>
+</button>
+<div class="px-5 pb-5 pt-2 hidden bg-surface-container-lowest" id="accordion-content">
+<p class="font-body-md text-body-lg-mobile text-on-surface-variant mb-4">If another person or vehicle was involved, please provide their details.</p>
+<div class="flex flex-col gap-4">
+<div>
+<label class="input-label">Full Name</label>
+<input class="input-field" placeholder="Enter their full name" type="text"/>
+</div>
+<div>
+<label class="input-label">Contact Number</label>
+<input class="input-field" placeholder="e.g. 0911 23 45 67" type="tel"/>
+</div>
+<div>
+<label class="input-label">License Plate (If vehicle involved)</label>
+<input class="input-field uppercase" placeholder="e.g. AA 12345" type="text"/>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Fixed Footer Navigation -->
+<!-- Suppressing BottomNavBar from JSON as this is a transactional flow -->
+<div class="fixed bottom-0 w-full z-50 bg-white border-t border-outline-variant/30 px-margin py-4 pb-safe shadow-[0px_-8px_30px_rgba(30,58,95,0.12)]">
+<div class="max-w-2xl mx-auto flex gap-4">
+<button class="flex-1 py-3 px-4 rounded-xl border-2 border-primary text-primary font-headline-md text-headline-md-mobile text-center active:scale-95 transition-transform hover:bg-surface-container-low">
+                Back
+            </button>
+<button class="flex-[2] py-3 px-4 rounded-xl bg-secondary text-on-secondary font-headline-md text-headline-md-mobile text-center active:scale-95 transition-transform hover:bg-secondary-container hover:text-on-secondary-container shadow-md">
+                Next Step
+            </button>
+</div>
+</div>
+<script>
+        function toggleAccordion() {
+            const content = document.getElementById('accordion-content');
+            const icon = document.getElementById('accordion-icon');
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                content.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+    </script>
+</body></html>

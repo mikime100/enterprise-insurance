@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Enterprise Insurance - File a Claim</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400..700;1,400..700&amp;family=Work+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-surface": "#2d3133",
+                      "on-primary-fixed": "#001c3b",
+                      "surface-container-highest": "#e0e3e6",
+                      "tertiary-container": "#2f3a4e",
+                      "on-surface": "#191c1e",
+                      "error-container": "#ffdad6",
+                      "primary-fixed": "#d5e3ff",
+                      "on-secondary": "#ffffff",
+                      "on-secondary-fixed-variant": "#005321",
+                      "surface-container": "#eceef1",
+                      "primary-fixed-dim": "#adc8f5",
+                      "error": "#ba1a1a",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary-container": "#007432",
+                      "surface-dim": "#d8dadd",
+                      "secondary-container": "#6bff8f",
+                      "on-error": "#ffffff",
+                      "surface": "#f7f9fc",
+                      "secondary-fixed": "#6bff8f",
+                      "surface-variant": "#e0e3e6",
+                      "surface-bright": "#f7f9fc",
+                      "outline": "#74777f",
+                      "on-primary-fixed-variant": "#2d486d",
+                      "background": "#f7f9fc",
+                      "primary": "#022448",
+                      "on-surface-variant": "#43474e",
+                      "on-background": "#191c1e",
+                      "outline-variant": "#c4c6cf",
+                      "inverse-primary": "#adc8f5",
+                      "on-error-container": "#93000a",
+                      "on-tertiary-fixed-variant": "#3c475b",
+                      "tertiary": "#192437",
+                      "surface-container-low": "#f2f4f7",
+                      "on-tertiary": "#ffffff",
+                      "tertiary-fixed-dim": "#bbc7df",
+                      "tertiary-fixed": "#d7e3fc",
+                      "surface-tint": "#455f87",
+                      "primary-container": "#1e3a5f",
+                      "on-primary": "#ffffff",
+                      "surface-container-high": "#e6e8eb",
+                      "secondary": "#006e2f",
+                      "secondary-fixed-dim": "#4ae176",
+                      "inverse-on-surface": "#eff1f4",
+                      "on-tertiary-container": "#98a4bb",
+                      "on-secondary-fixed": "#002109",
+                      "on-primary-container": "#8aa4cf",
+                      "on-tertiary-fixed": "#101c2e"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "12px",
+                      "gutter": "16px",
+                      "xl": "32px",
+                      "margin": "20px",
+                      "base": "4px",
+                      "xs": "8px",
+                      "md": "16px",
+                      "lg": "24px"
+              },
+              "fontFamily": {
+                      "body-lg": [
+                              "Work Sans"
+                      ],
+                      "display-lg": [
+                              "Archivo Narrow"
+                      ],
+                      "headline-md": [
+                              "Archivo Narrow"
+                      ],
+                      "headline-lg": [
+                              "Archivo Narrow"
+                      ],
+                      "label-lg": [
+                              "Work Sans"
+                      ],
+                      "currency-display": [
+                              "Work Sans"
+                      ],
+                      "body-md": [
+                              "Work Sans"
+                      ]
+              },
+              "fontSize": {
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-md": [
+                              "20px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-lg": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "currency-display": [
+                              "28px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .progress-bar-glow {
+            box-shadow: 0 0 10px rgba(107, 255, 143, 0.5);
+        }
+        .file-card-shadow {
+            box-shadow: 0px 4px 20px rgba(0,0,0,0.04);
+        }
+      </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-lg min-h-screen flex flex-col relative pb-32">
+<!-- Header Section (Transactional, no main nav) -->
+<header class="bg-primary w-full sticky top-0 z-50 rounded-b-2xl shadow-sm overflow-hidden">
+<div class="px-margin py-lg flex flex-col justify-end min-h-[120px] relative">
+<!-- Decorative Glow -->
+<div class="absolute top-[-50px] right-[-50px] w-48 h-48 bg-white/5 rounded-full blur-2xl"></div>
+<div class="flex items-center mb-md z-10">
+<button class="text-on-primary mr-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-lg text-headline-lg text-on-primary">Evidence &amp; Docs</h1>
+</div>
+<div class="flex items-center justify-between z-10 mb-xs">
+<span class="font-label-lg text-label-lg text-primary-fixed-dim uppercase">Step 3 of 4</span>
+<span class="font-label-lg text-label-lg text-primary-fixed-dim">75%</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full bg-primary-container h-2 rounded-full overflow-hidden z-10">
+<div class="bg-secondary-fixed h-full rounded-full w-[75%] progress-bar-glow transition-all duration-500 ease-out"></div>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 px-margin pt-xl pb-safe">
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-xl">
+            Please provide clear photos of the damage and any supporting documents like a police report or witness statements.
+        </p>
+<!-- Upload Actions -->
+<section class="mb-xl">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-md">Upload Source</h2>
+<div class="grid grid-cols-3 gap-sm">
+<!-- Camera Button -->
+<button class="flex flex-col items-center justify-center p-md border-2 border-dashed border-outline-variant rounded-[20px] bg-surface-container-lowest hover:border-primary hover:bg-surface transition-colors active:scale-95">
+<div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center mb-xs text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">photo_camera</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface-variant">Camera</span>
+</button>
+<!-- Gallery Button -->
+<button class="flex flex-col items-center justify-center p-md border-2 border-dashed border-outline-variant rounded-[20px] bg-surface-container-lowest hover:border-primary hover:bg-surface transition-colors active:scale-95">
+<div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center mb-xs text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">image</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface-variant">Gallery</span>
+</button>
+<!-- Files Button -->
+<button class="flex flex-col items-center justify-center p-md border-2 border-dashed border-outline-variant rounded-[20px] bg-surface-container-lowest hover:border-primary hover:bg-surface transition-colors active:scale-95">
+<div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center mb-xs text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">folder</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface-variant">Files</span>
+</button>
+</div>
+</section>
+<!-- File List -->
+<section>
+<div class="flex justify-between items-center mb-md">
+<h2 class="font-headline-md text-headline-md text-on-surface">Uploaded Files</h2>
+<span class="font-label-lg text-label-lg text-outline">2 Items</span>
+</div>
+<div class="flex flex-col gap-md">
+<!-- File Item 1 -->
+<div class="bg-surface-container-lowest rounded-[20px] p-md flex items-center justify-between file-card-shadow border border-surface-variant">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary overflow-hidden relative">
+<!-- Thumbnail representation -->
+<img alt="Damaged car photo" class="w-full h-full object-cover" data-alt="A close up photo of a damaged silver car bumper and headlight, indicating an accident. The lighting is overcast daylight. The style is a realistic, unedited documentation photo used for insurance evidence. The overall image has a slightly cool tone." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDKpFXUaaJoILmySWIwYXYlOrN8pEkRzsSl5fxSicvcxJmuIGehWHRBJ8dj-Ya71NU_db6uJ8nRR8kWYrbC-sLCcmaHLfJbrGpYgDym7zv3ThcJLrDsHhKTAqXcCcXUfSvFECAySWgjzLSpb-djlOkJXxR9xX937v-V_s7ggdYREBykca3ZvLjMkLyUWYeGmJEJqHsdKFDOkj3yYjOZJGoHv1lEaVXIc1G-hEaiKBrrHK7nw-6X4cSxaid3PlVerR6VNG4eMmenN86"/>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface font-semibold truncate max-w-[150px]">damaged_car_front.jpg</span>
+<div class="flex items-center mt-xs">
+<span class="bg-primary/10 text-primary px-2 py-1 rounded-full font-label-lg text-[10px] uppercase tracking-wider">PHOTO</span>
+<span class="text-outline text-[12px] ml-2">2.4 MB</span>
+</div>
+</div>
+</div>
+<button class="text-error hover:bg-error-container p-2 rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<!-- File Item 2 -->
+<div class="bg-surface-container-lowest rounded-[20px] p-md flex items-center justify-between file-card-shadow border border-surface-variant">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-tertiary-fixed flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface font-semibold truncate max-w-[150px]">police_report_final.pdf</span>
+<div class="flex items-center mt-xs">
+<span class="bg-tertiary/10 text-tertiary px-2 py-1 rounded-full font-label-lg text-[10px] uppercase tracking-wider">DOCUMENT</span>
+<span class="text-outline text-[12px] ml-2">845 KB</span>
+</div>
+</div>
+</div>
+<button class="text-error hover:bg-error-container p-2 rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Fixed Footer Navigation -->
+<footer class="fixed bottom-0 left-0 w-full bg-white/80 dark:bg-inverse-surface/80 backdrop-blur-md border-t border-outline-variant/30 px-margin py-md z-50 shadow-[0px_-8px_30px_rgba(30,58,95,0.12)]">
+<div class="flex justify-between items-center max-w-3xl mx-auto">
+<button class="px-xl py-sm rounded-xl font-label-lg text-label-lg text-primary border border-outline-variant bg-transparent hover:bg-surface transition-colors">
+                Back
+            </button>
+<button class="px-xl py-sm rounded-xl font-label-lg text-label-lg text-white bg-secondary hover:bg-secondary/90 transition-colors shadow-md">
+                Next Step
+            </button>
+</div>
+</footer>
+</body></html>

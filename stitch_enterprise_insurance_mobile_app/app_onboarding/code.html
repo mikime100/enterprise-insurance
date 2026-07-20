@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Enterprise Insurance Onboarding</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&amp;family=Work+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#002109",
+                        "on-primary-container": "#8aa4cf",
+                        "surface-container-low": "#f2f4f7",
+                        "surface-bright": "#f7f9fc",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#adc8f5",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#adc8f5",
+                        "on-background": "#191c1e",
+                        "surface-container": "#eceef1",
+                        "tertiary": "#192437",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed-dim": "#bbc7df",
+                        "surface": "#f7f9fc",
+                        "secondary-fixed": "#6bff8f",
+                        "primary": "#022448",
+                        "surface-tint": "#455f87",
+                        "primary-fixed": "#d5e3ff",
+                        "surface-dim": "#d8dadd",
+                        "secondary-container": "#6bff8f",
+                        "on-secondary-container": "#007432",
+                        "surface-variant": "#e0e3e6",
+                        "tertiary-fixed": "#d7e3fc",
+                        "primary-container": "#1e3a5f",
+                        "secondary": "#006e2f",
+                        "on-primary-fixed-variant": "#2d486d",
+                        "outline-variant": "#c4c6cf",
+                        "on-surface-variant": "#43474e",
+                        "surface-container-high": "#e6e8eb",
+                        "on-surface": "#191c1e",
+                        "outline": "#74777f",
+                        "inverse-surface": "#2d3133",
+                        "surface-container-highest": "#e0e3e6",
+                        "secondary-fixed-dim": "#4ae176",
+                        "inverse-on-surface": "#eff1f4",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed-variant": "#005321",
+                        "tertiary-container": "#2f3a4e",
+                        "on-tertiary-fixed": "#101c2e",
+                        "background": "#f7f9fc",
+                        "on-primary-fixed": "#001c3b",
+                        "on-tertiary-fixed-variant": "#3c475b",
+                        "on-tertiary-container": "#98a4bb",
+                        "brand-navy-grad": "#0a1628"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px",
+                        "2xl": "20px"
+                    },
+                    "spacing": {
+                        "sm": "12px",
+                        "margin": "20px",
+                        "xl": "32px",
+                        "md": "16px",
+                        "xs": "8px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Archivo Narrow"],
+                        "headline-lg": ["Archivo Narrow"],
+                        "label-lg": ["Work Sans"],
+                        "currency-display": ["Work Sans"],
+                        "body-md": ["Work Sans"],
+                        "display-lg": ["Archivo Narrow"],
+                        "body-lg": ["Work Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["20px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "headline-lg": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "label-lg": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "currency-display": ["28px", { "lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-lg": ["32px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .slide-gradient {
+            background: linear-gradient(to bottom, rgba(10, 22, 40, 0.2) 0%, rgba(10, 22, 40, 0.9) 100%);
+        }
+
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .animate-pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .7; transform: scale(1.05); }
+        }
+
+        .glass-stat {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0px 8px 30px rgba(30, 58, 95, 0.12);
+        }
+
+        .carousel-container {
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+        }
+
+        .carousel-slide {
+            scroll-snap-align: start;
+            flex: 0 0 100%;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md h-screen w-screen overflow-hidden flex flex-col items-center justify-center">
+<!-- Mobile Device Container -->
+<div class="relative w-full max-w-[414px] h-full max-h-[896px] bg-black shadow-2xl overflow-hidden sm:rounded-[40px] sm:border-[8px] sm:border-gray-900 mx-auto">
+<!-- Status Bar Space (Mock) -->
+<div class="absolute top-0 w-full h-10 z-50 flex items-center justify-between px-6 text-white text-xs font-medium">
+<span>9:41</span>
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-[14px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[14px]">wifi</span>
+<span class="material-symbols-outlined text-[14px] fill">battery_full</span>
+</div>
+</div>
+<!-- Carousel Container -->
+<div class="carousel-container w-full h-full flex overflow-x-auto hide-scrollbar relative" id="onboardingCarousel">
+<!-- Slide 1 -->
+<div class="carousel-slide relative w-full h-full" id="slide-0">
+<img alt="Protect What Matters Most" class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFr4oAdzcbN--1KrtNDqy-wR-RC9qF__FW6tFgAU7eMAr3HyLqzOhsSnV1oPXUczkV4-lc7DFFcpA1kwQ-ENCHGUrqykOERW0125xcxq7KRF3cbZrR4hgs2iuwL6JrwOQx3e6-rzMBdZvis4y1TyFW0kuS_8HihbksQiwayFPcIZUjRRy_0KWeXY0hwqGtLUYa4Ym_SqzpKzMc99kBGCF4Bnr9_2hkje_6Bc3FvGu5CD7-lVbWcRxeTexT2AVAguY8I8tWEduzdrmQ"/>
+<div class="absolute inset-0 slide-gradient z-10"></div>
+<div class="absolute inset-0 z-20 flex flex-col justify-center items-center px-margin pt-20">
+<!-- Glowing Icon -->
+<div class="w-24 h-24 rounded-full border-2 border-secondary-fixed flex items-center justify-center animate-pulse-ring mb-8 shadow-[0_0_30px_rgba(107,255,143,0.3)] bg-primary-container/30 backdrop-blur-sm">
+<span class="material-symbols-outlined text-4xl text-secondary-fixed">shield</span>
+</div>
+<!-- Glass Stat Chip -->
+<div class="glass-stat rounded-full px-6 py-3 flex items-center space-x-3 animate-float mb-auto">
+<span class="material-symbols-outlined text-secondary-fixed text-sm">verified_user</span>
+<span class="text-white font-label-lg tracking-wide uppercase">50,000+ People Protected</span>
+</div>
+</div>
+<div class="absolute bottom-[160px] left-0 w-full px-margin z-30 text-center">
+<h1 class="font-display-lg text-white mb-4">Protect What Matters Most</h1>
+<p class="font-body-lg text-tertiary-fixed-dim">Comprehensive home insurance tailored for Ethiopian families.</p>
+</div>
+</div>
+<!-- Slide 2 -->
+<div class="carousel-slide relative w-full h-full" id="slide-1">
+<img alt="Secure Your Enterprise" class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5bMJ5fWfoeirMc-ymIbSIujJrCVsxxa6ciK55voHqYm0I0EghgW-YDWa2nwISkZemfzXKblguoGP-DMx-OraLsghMU_LczSTj72kkJalnmoPzovAPSv8nYCD4jwzpAhq0xHn_zvPI28CsZWQ5wPtkz0BcEc9FuNTz81m9J8PcQj-LaKpe7HV-K4k-aO0dipEDmjFqdkxslOzMvkLa8AD1a5wnp27_wqdUZrVcllnGzPUiC8_pA4_M3YXsWkv4YEoyvGcuA2sgddxM"/>
+<div class="absolute inset-0 slide-gradient z-10"></div>
+<div class="absolute inset-0 z-20 flex flex-col justify-center items-center px-margin pt-20">
+<div class="w-24 h-24 rounded-full border-2 border-secondary-fixed flex items-center justify-center animate-pulse-ring mb-8 shadow-[0_0_30px_rgba(107,255,143,0.3)] bg-primary-container/30 backdrop-blur-sm">
+<span class="material-symbols-outlined text-4xl text-secondary-fixed">domain</span>
+</div>
+<div class="glass-stat rounded-full px-6 py-3 flex items-center space-x-3 animate-float mb-auto">
+<span class="material-symbols-outlined text-secondary-fixed text-sm">verified_user</span>
+<span class="text-white font-label-lg tracking-wide uppercase">50,000+ People Protected</span>
+</div>
+</div>
+<div class="absolute bottom-[160px] left-0 w-full px-margin z-30 text-center">
+<h1 class="font-display-lg text-white mb-4">Secure Your Enterprise</h1>
+<p class="font-body-lg text-tertiary-fixed-dim">Robust coverage for growing businesses across the nation.</p>
+</div>
+</div>
+<!-- Slide 3 -->
+<div class="carousel-slide relative w-full h-full" id="slide-2">
+<img alt="Fast, Secure Settlements" class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB96kNaveWQLUBr6tu8MQeQUdF96f0n2DnrZmMc-dhOTMEjasfB7xJUMLCRglYaoWQeuZWASNPwxrLCZfJ35iP6MtSZz1RKoclu2uBUVduULggLOwdtxNHKFI_K2ZIlY5lqzvTlWET3gP658bRwx-4iaX7buBu7WOTGxRc6iu44hXVg3SZYYCAgTTCM2aQEFPrs9j5uHJvQcWty0FWBQpYp-SE9oijawUOasrcwK8OGke3TU25XzL-r9Q34gIJiC3L0w8Mx8T9tWtXT"/>
+<div class="absolute inset-0 slide-gradient z-10"></div>
+<div class="absolute inset-0 z-20 flex flex-col justify-center items-center px-margin pt-20">
+<div class="w-24 h-24 rounded-full border-2 border-secondary-fixed flex items-center justify-center animate-pulse-ring mb-8 shadow-[0_0_30px_rgba(107,255,143,0.3)] bg-primary-container/30 backdrop-blur-sm">
+<span class="material-symbols-outlined text-4xl text-secondary-fixed">flash_on</span>
+</div>
+<div class="glass-stat rounded-full px-6 py-3 flex items-center space-x-3 animate-float mb-auto">
+<span class="material-symbols-outlined text-secondary-fixed text-sm">verified_user</span>
+<span class="text-white font-label-lg tracking-wide uppercase">50,000+ People Protected</span>
+</div>
+</div>
+<div class="absolute bottom-[160px] left-0 w-full px-margin z-30 text-center">
+<h1 class="font-display-lg text-white mb-4">Fast, Secure Settlements</h1>
+<p class="font-body-lg text-tertiary-fixed-dim">Digital claims processing in ETB, completed in hours, not days.</p>
+</div>
+</div>
+<!-- Slide 4 -->
+<div class="carousel-slide relative w-full h-full" id="slide-3">
+<div class="absolute inset-0 w-full h-full bg-primary" data-alt="A professional portrait of a diverse corporate team standing together in a modern, well-lit office environment. The lighting is bright and even, highlighting their confident and welcoming expressions. The scene conveys a sense of trust, unity, and expertise, aligned with a premium financial or insurance brand. The color palette incorporates subtle navy blues and warm neutrals." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAho-l0b_nlHRB4SNhMYCbTxnf-AyqfWSXCZDLxqaB-Y7G7GJUC3K2Fb4jZ_ZDpdQXBeP77g_jvTVL2AHpj6c0ZyGniAYR_ZPiLc3x0ULGDxdrUypeWLY4dhyqrOU0LRbHxHJ3FYiapJeK3TOr5hoaCZm9rSsJv54ub6IF-H2ymOy1mmdG2pGaYudu_1DLSdqbS2hFHntphwhm6JQnqw92V-_KbWGDZHlFgiFnpwKi1b_wK_vTPv56zrygJJ_EXb77KDqT6L3pwawZw'); background-size: cover; background-position: center;"></div>
+<div class="absolute inset-0 slide-gradient z-10"></div>
+<div class="absolute inset-0 z-20 flex flex-col justify-center items-center px-margin pt-20">
+<div class="w-24 h-24 rounded-full border-2 border-secondary-fixed flex items-center justify-center animate-pulse-ring mb-8 shadow-[0_0_30px_rgba(107,255,143,0.3)] bg-primary-container/30 backdrop-blur-sm">
+<span class="material-symbols-outlined text-4xl text-secondary-fixed">handshake</span>
+</div>
+<div class="glass-stat rounded-full px-6 py-3 flex items-center space-x-3 animate-float mb-auto">
+<span class="material-symbols-outlined text-secondary-fixed text-sm">verified_user</span>
+<span class="text-white font-label-lg tracking-wide uppercase">50,000+ People Protected</span>
+</div>
+</div>
+<div class="absolute bottom-[160px] left-0 w-full px-margin z-30 text-center">
+<h1 class="font-display-lg text-white mb-4">Your Partner in Every Journey</h1>
+<p class="font-body-lg text-tertiary-fixed-dim">Enterprise Insurance is here for you, every step of the way.</p>
+</div>
+</div>
+</div>
+<!-- Navigation Controls (Fixed) -->
+<div class="absolute bottom-0 left-0 w-full pb-10 pt-4 px-margin z-40 bg-gradient-to-t from-[#0a1628] to-transparent">
+<!-- Page Dots -->
+<div class="flex justify-center items-center space-x-2 mb-8" id="pagination-dots">
+<div class="w-2 h-2 rounded-full bg-secondary-fixed transition-all duration-300" id="dot-0"></div>
+<div class="w-2 h-2 rounded-full bg-white/30 transition-all duration-300" id="dot-1"></div>
+<div class="w-2 h-2 rounded-full bg-white/30 transition-all duration-300" id="dot-2"></div>
+<div class="w-2 h-2 rounded-full bg-white/30 transition-all duration-300" id="dot-3"></div>
+</div>
+<!-- Next Button -->
+<button class="w-full bg-secondary text-white font-headline-md py-4 rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition-transform" id="nextBtn">
+<span>Continue</span>
+<span class="material-symbols-outlined ml-2">arrow_forward</span>
+</button>
+<button class="w-full text-center mt-4 text-tertiary-fixed-dim font-label-lg uppercase tracking-wide">
+                Skip
+            </button>
+</div>
+</div>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const carousel = document.getElementById('onboardingCarousel');
+            const nextBtn = document.getElementById('nextBtn');
+            const dots = [
+                document.getElementById('dot-0'),
+                document.getElementById('dot-1'),
+                document.getElementById('dot-2'),
+                document.getElementById('dot-3')
+            ];
+            
+            let currentSlide = 0;
+            const totalSlides = 4;
+
+            // Update dots based on scroll position
+            carousel.addEventListener('scroll', () => {
+                const scrollPos = carousel.scrollLeft;
+                const slideWidth = carousel.offsetWidth;
+                
+                // Calculate current slide index based on scroll position
+                const index = Math.round(scrollPos / slideWidth);
+                
+                if (index !== currentSlide && index >= 0 && index < totalSlides) {
+                    currentSlide = index;
+                    updateDots(currentSlide);
+                    
+                    // Update button text on last slide
+                    if (currentSlide === totalSlides - 1) {
+                        nextBtn.querySelector('span:first-child').textContent = 'Get Started';
+                    } else {
+                        nextBtn.querySelector('span:first-child').textContent = 'Continue';
+                    }
+                }
+            });
+
+            function updateDots(activeIndex) {
+                dots.forEach((dot, index) => {
+                    if (index === activeIndex) {
+                        dot.classList.remove('bg-white/30');
+                        dot.classList.add('bg-secondary-fixed');
+                        dot.classList.add('w-6'); // Extend the active dot
+                    } else {
+                        dot.classList.remove('bg-secondary-fixed');
+                        dot.classList.remove('w-6');
+                        dot.classList.add('bg-white/30');
+                        dot.classList.add('w-2');
+                    }
+                });
+            }
+
+            // Next button functionality
+            nextBtn.addEventListener('click', () => {
+                if (currentSlide < totalSlides - 1) {
+                    // Scroll to next slide
+                    carousel.scrollTo({
+                        left: (currentSlide + 1) * carousel.offsetWidth,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // Action for final slide (e.g., redirect to login/home)
+                    console.log('Onboarding Complete - Proceed to App');
+                    // Add your logic to hide onboarding or redirect here
+                }
+            });
+            
+            // Initialize first dot as active (wide)
+            dots[0].classList.add('w-6');
+        });
+    </script>
+</body></html>

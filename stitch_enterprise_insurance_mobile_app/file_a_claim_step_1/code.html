@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>File a Claim - Step 1</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400..700;1,400..700&amp;family=Work+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-surface": "#2d3133",
+                    "on-primary-fixed": "#001c3b",
+                    "surface-container-highest": "#e0e3e6",
+                    "tertiary-container": "#2f3a4e",
+                    "on-surface": "#191c1e",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#d5e3ff",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-fixed-variant": "#005321",
+                    "surface-container": "#eceef1",
+                    "primary-fixed-dim": "#adc8f5",
+                    "error": "#ba1a1a",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-container": "#007432",
+                    "surface-dim": "#d8dadd",
+                    "secondary-container": "#6bff8f",
+                    "on-error": "#ffffff",
+                    "surface": "#f7f9fc",
+                    "secondary-fixed": "#6bff8f",
+                    "surface-variant": "#e0e3e6",
+                    "surface-bright": "#f7f9fc",
+                    "outline": "#74777f",
+                    "on-primary-fixed-variant": "#2d486d",
+                    "background": "#f7f9fc",
+                    "primary": "#022448",
+                    "on-surface-variant": "#43474e",
+                    "on-background": "#191c1e",
+                    "outline-variant": "#c4c6cf",
+                    "inverse-primary": "#adc8f5",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed-variant": "#3c475b",
+                    "tertiary": "#192437",
+                    "surface-container-low": "#f2f4f7",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-fixed-dim": "#bbc7df",
+                    "tertiary-fixed": "#d7e3fc",
+                    "surface-tint": "#455f87",
+                    "primary-container": "#1e3a5f",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#e6e8eb",
+                    "secondary": "#006e2f",
+                    "secondary-fixed-dim": "#4ae176",
+                    "inverse-on-surface": "#eff1f4",
+                    "on-tertiary-container": "#98a4bb",
+                    "on-secondary-fixed": "#002109",
+                    "on-primary-container": "#8aa4cf",
+                    "on-tertiary-fixed": "#101c2e"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "12px",
+                    "gutter": "16px",
+                    "xl": "32px",
+                    "margin": "20px",
+                    "base": "4px",
+                    "xs": "8px",
+                    "md": "16px",
+                    "lg": "24px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Work Sans"],
+                    "display-lg": ["Archivo Narrow"],
+                    "headline-md": ["Archivo Narrow"],
+                    "headline-lg": ["Archivo Narrow"],
+                    "label-lg": ["Work Sans"],
+                    "currency-display": ["Work Sans"],
+                    "body-md": ["Work Sans"]
+            },
+            "fontSize": {
+                    "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "display-lg": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md": ["20px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "headline-lg": ["24px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "label-lg": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "currency-display": ["28px", {"lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom Shadow from Style Guidance */
+        .shadow-level-1 { box-shadow: 0px 4px 20px rgba(0,0,0,0.04); }
+        .shadow-floating { box-shadow: 0px 8px 30px rgba(30, 58, 95, 0.12); }
+        
+        /* Interactive scale utility */
+        .active-scale { transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .active-scale:active { transform: scale(0.96); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background min-h-screen text-on-background font-body-md pb-32 antialiased selection:bg-secondary-container selection:text-on-secondary-container">
+<!-- Transactional Header -->
+<header class="bg-primary text-on-primary sticky top-0 z-50">
+<div class="px-margin py-md flex items-center justify-between">
+<button aria-label="Go back" class="p-xs -ml-xs rounded-full hover:bg-white/10 active-scale text-on-primary">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md text-on-primary flex-1 text-center pr-10">File a Claim</h1>
+<!-- Empty div to balance flex distribution -->
+<div class="w-10"></div>
+</div>
+<!-- Progress Bar -->
+<div class="w-full h-1 bg-surface-tint/30">
+<div class="h-full bg-secondary w-1/4 transition-all duration-500 ease-out"></div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="p-margin flex flex-col gap-xl">
+<!-- Section: Select Policy -->
+<section aria-labelledby="policy-section-title" class="flex flex-col gap-sm">
+<h2 class="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider" id="policy-section-title">Select Policy</h2>
+<!-- Hero Card Pattern -->
+<div class="bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-xl p-md relative overflow-hidden shadow-level-1 active-scale cursor-pointer group">
+<!-- Decorative background elements -->
+<div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/15 transition-colors"></div>
+<div class="absolute -left-12 -bottom-12 w-40 h-40 border border-white/10 rounded-full"></div>
+<div class="relative z-10 flex justify-between items-start">
+<div class="flex flex-col gap-xs">
+<span class="bg-white/10 text-on-primary font-label-lg text-label-lg px-xs py-base rounded-sm w-fit uppercase border border-white/20">Active</span>
+<h3 class="font-headline-md text-headline-md mt-base text-on-primary">Comprehensive Motor</h3>
+<p class="font-body-md text-body-md text-primary-fixed-dim font-mono">ET-99283-X</p>
+</div>
+<div class="p-sm bg-white/10 rounded-full backdrop-blur-sm border border-white/10">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">directions_car</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Select Claim Type -->
+<section aria-labelledby="claim-type-title" class="flex flex-col gap-sm">
+<h2 class="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider" id="claim-type-title">Select Claim Type</h2>
+<!-- Grid Layout -->
+<div aria-label="Claim Types" class="grid grid-cols-2 gap-md" role="radiogroup">
+<!-- Option 1 (Selected State Example) -->
+<label class="cursor-pointer active-scale">
+<input checked="" class="sr-only peer" name="claim_type" type="radio" value="auto_accident"/>
+<div class="bg-surface-container-lowest border-2 border-secondary bg-secondary-container/5 rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center shadow-level-1 transition-all h-full peer-checked:border-secondary peer-checked:bg-secondary-container/10">
+<span class="material-symbols-outlined text-secondary text-3xl" style="font-variation-settings: 'FILL' 1;">car_crash</span>
+<span class="font-headline-md text-headline-md text-on-surface text-sm">Auto Accident</span>
+</div>
+</label>
+<!-- Option 2 -->
+<label class="cursor-pointer active-scale">
+<input class="sr-only peer" name="claim_type" type="radio" value="property_damage"/>
+<div class="bg-surface-container-lowest border-2 border-transparent rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center shadow-level-1 transition-all h-full hover:border-outline-variant peer-checked:border-secondary peer-checked:bg-secondary-container/10">
+<span class="material-symbols-outlined text-primary text-3xl">house_siding</span>
+<span class="font-headline-md text-headline-md text-on-surface text-sm">Property Damage</span>
+</div>
+</label>
+<!-- Option 3 -->
+<label class="cursor-pointer active-scale">
+<input class="sr-only peer" name="claim_type" type="radio" value="liability"/>
+<div class="bg-surface-container-lowest border-2 border-transparent rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center shadow-level-1 transition-all h-full hover:border-outline-variant peer-checked:border-secondary peer-checked:bg-secondary-container/10">
+<span class="material-symbols-outlined text-primary text-3xl">gavel</span>
+<span class="font-headline-md text-headline-md text-on-surface text-sm">Liability</span>
+</div>
+</label>
+<!-- Option 4 -->
+<label class="cursor-pointer active-scale">
+<input class="sr-only peer" name="claim_type" type="radio" value="theft"/>
+<div class="bg-surface-container-lowest border-2 border-transparent rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center shadow-level-1 transition-all h-full hover:border-outline-variant peer-checked:border-secondary peer-checked:bg-secondary-container/10">
+<span class="material-symbols-outlined text-primary text-3xl">local_police</span>
+<span class="font-headline-md text-headline-md text-on-surface text-sm">Theft</span>
+</div>
+</label>
+<!-- Option 5 -->
+<label class="cursor-pointer active-scale">
+<input class="sr-only peer" name="claim_type" type="radio" value="medical"/>
+<div class="bg-surface-container-lowest border-2 border-transparent rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center shadow-level-1 transition-all h-full hover:border-outline-variant peer-checked:border-secondary peer-checked:bg-secondary-container/10">
+<span class="material-symbols-outlined text-primary text-3xl">medical_services</span>
+<span class="font-headline-md text-headline-md text-on-surface text-sm">Medical</span>
+</div>
+</label>
+<!-- Option 6 -->
+<label class="cursor-pointer active-scale">
+<input class="sr-only peer" name="claim_type" type="radio" value="other"/>
+<div class="bg-surface-container-lowest border-2 border-transparent rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center shadow-level-1 transition-all h-full hover:border-outline-variant peer-checked:border-secondary peer-checked:bg-secondary-container/10">
+<span class="material-symbols-outlined text-primary text-3xl">more_horiz</span>
+<span class="font-headline-md text-headline-md text-on-surface text-sm">Other</span>
+</div>
+</label>
+</div>
+</section>
+</main>
+<!-- Transactional Footer (Fixed Bottom) -->
+<footer class="fixed bottom-0 left-0 w-full bg-surface-container-lowest/90 backdrop-blur-md px-margin py-md shadow-floating border-t border-outline-variant/30 z-50 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+<button class="w-full bg-secondary text-on-secondary font-label-lg text-label-lg py-md rounded-xl active-scale shadow-sm flex items-center justify-center gap-xs uppercase tracking-wide">
+            Next Step
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</footer>
+<!-- Interactive Script for Radio Buttons (Optional enhancement) -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const radioButtons = document.querySelectorAll('input[name="claim_type"]');
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    // Reset all icons to outlined
+                    document.querySelectorAll('input[name="claim_type"] ~ div .material-symbols-outlined').forEach(icon => {
+                        icon.style.fontVariationSettings = "'FILL' 0";
+                        icon.classList.remove('text-secondary');
+                        icon.classList.add('text-primary');
+                    });
+                    
+                    // Set selected icon to filled and vibrant
+                    if(this.checked) {
+                        const selectedIcon = this.nextElementSibling.querySelector('.material-symbols-outlined');
+                        selectedIcon.style.fontVariationSettings = "'FILL' 1";
+                        selectedIcon.classList.remove('text-primary');
+                        selectedIcon.classList.add('text-secondary');
+                    }
+                });
+            });
+        });
+    </script>
+</body></html>
