@@ -1,39 +1,10 @@
-const nodemailer = require('nodemailer');
-
-function createTransport() {
-  // Prefer SendGrid SMTP if key provided, else fall back to generic SMTP / ethereal for dev
-  if (process.env.SENDGRID_API_KEY) {
-    return nodemailer.createTransport({
-      host:   'smtp.sendgrid.net',
-      port:   587,
-      secure: false,
-      auth: {
-        user: 'apikey',
-        pass: process.env.SENDGRID_API_KEY,
-      },
-    });
-  }
-  return nodemailer.createTransport({
-    host:   process.env.SMTP_HOST || 'smtp.gmail.com',
-    port:   parseInt(process.env.SMTP_PORT || '587', 10),
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER || '',
-      pass: process.env.SMTP_PASS || '',
-    },
-  });
-}
-
-const FROM = process.env.EMAIL_FROM || 'Enterprise Insurance <noreply@enterprise-insurance.et>';
-
-async function sendMail({ to, subject, html, text }) {
-  if (!process.env.SENDGRID_API_KEY && !process.env.SMTP_USER) {
-    console.log(`[mailer] No transport configured — skipping email to ${to}: ${subject}`);
-    return;
-  }
-  const transport = createTransport();
-  await transport.sendMail({ from: FROM, to, subject, html, text });
-}
+// Email templates only. The transport lives in services/email.js.
+//
+// This file used to own an SMTP transport via nodemailer. That path could never
+// work in production — Render blocks outbound SMTP ports — and it failed
+// quietly: when no credentials were configured it logged a line and returned as
+// though the mail had been sent. Renewal reminders looked healthy for months
+// while sending nothing. Do not reintroduce a transport here.
 
 // ── Templates ──────────────────────────────────────────────────────────────────
 
@@ -99,4 +70,4 @@ function renewalReminderHtml({ firstName, productName, tierName, enrollmentNumbe
 </html>`;
 }
 
-module.exports = { sendMail, renewalReminderHtml };
+module.exports = { renewalReminderHtml };

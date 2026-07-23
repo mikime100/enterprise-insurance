@@ -1,26 +1,63 @@
-const sgMail = require('@sendgrid/mail');
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+// Transport: Brevo's HTTP API.
+//
+// It must be HTTP, not SMTP. Render blocks outbound SMTP ports on the instances
+// we run on, which is why this moved off Gmail SMTP originally (65c0319) and off
+// SendGrid after the trial expired. Anything reintroducing nodemailer here will
+// appear to work locally and silently fail in production.
+//
+// No SDK: Node 22 has global fetch, and the API is a single POST.
+const BREVO_ENDPOINT = 'https://api.brevo.com/v3/smtp/email';
+const SEND_TIMEOUT_MS = 10_000;
 
-const FROM = process.env.SENDGRID_FROM || process.env.SMTP_USER || 'noreply@enterpriseinsurance.com';
+// Brevo will only accept a sender it has verified. There is deliberately no
+// default — a fabricated fallback address is what made the SendGrid failure hard
+// to read, since the rejection named an address nobody had configured.
+const FROM      = process.env.BREVO_FROM || '';
+const FROM_NAME = process.env.BREVO_FROM_NAME || 'Enterprise Insurance';
 
-// SendGrid reports the real reason in response.body.errors. The thrown Error
-// carries only "Forbidden" or "Unauthorized" on its own, which is not enough to
-// tell a revoked API key apart from an unverified sender address. Surface the
-// status, the detail, and the from/to actually used — the from matters because
-// it silently falls back to a domain we do not own when SENDGRID_FROM is unset.
-async function send(msg) {
-  if (!process.env.SENDGRID_API_KEY) {
-    throw new Error('SENDGRID_API_KEY is not set — no email can be sent');
+async function send({ to, subject, html, text }) {
+  if (!process.env.BREVO_API_KEY) {
+    throw new Error('BREVO_API_KEY is not set — no email can be sent');
   }
+  if (!FROM) {
+    throw new Error('BREVO_FROM is not set — Brevo requires a verified sender address');
+  }
+
+  let res;
   try {
-    await sgMail.send(msg);
+    res = await fetch(BREVO_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'api-key': process.env.BREVO_API_KEY,
+        'content-type': 'application/json',
+        accept: 'application/json',
+      },
+      body: JSON.stringify({
+        sender: { email: FROM, name: FROM_NAME },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+        ...(text ? { textContent: text } : {}),
+      }),
+      signal: AbortSignal.timeout(SEND_TIMEOUT_MS),
+    });
   } catch (e) {
-    const status = e?.code || e?.response?.statusCode;
-    const detail = e?.response?.body?.errors?.map(x => x.message).filter(Boolean).join('; ');
-    const err = new Error(
-      `SendGrid ${status || 'error'} sending to ${msg.to} as "${msg.from}" — ${detail || e.message}`
-    );
-    err.statusCode = status;
+    // Timeout or network failure — never let this hang a request thread.
+    const reason = e.name === 'TimeoutError' ? `no response in ${SEND_TIMEOUT_MS}ms` : e.message;
+    throw new Error(`Brevo unreachable sending to ${to} as "${FROM}" — ${reason}`);
+  }
+
+  if (!res.ok) {
+    // Brevo returns { code, message }. Keep the raw body if it is not JSON so a
+    // gateway error page still tells us something.
+    const body = await res.text();
+    let detail = body;
+    try {
+      const parsed = JSON.parse(body);
+      detail = parsed.message || parsed.code || body;
+    } catch { /* not JSON — fall through to the raw body */ }
+    const err = new Error(`Brevo ${res.status} sending to ${to} as "${FROM}" — ${detail}`);
+    err.statusCode = res.status;
     throw err;
   }
 }
@@ -60,7 +97,7 @@ async function sendOTPVerification(to, firstName, otp) {
     <p style="color:#6b7280;font-size:13px;text-align:center">This code expires in <strong>15 minutes</strong>.</p>
     <div class="note">If you did not create an account with Enterprise Insurance, please ignore this email.</div>
   `);
-  await send({ from: FROM, to, subject: 'Your Enterprise Insurance verification code', html });
+  await send({ to, subject: 'Your Enterprise Insurance verification code', html });
 }
 
 async function sendEmployeeInvitation(to, firstName, tempPassword, institutionName) {
@@ -76,7 +113,7 @@ async function sendEmployeeInvitation(to, firstName, tempPassword, institutionNa
     <a href="${loginUrl}" class="btn">Log In Now</a>
     <div class="note">You will be asked to change your password immediately after your first login. This temporary password expires in <strong>7 days</strong>.</div>
   `);
-  await send({ from: FROM, to, subject: `Your Enterprise Insurance account — ${institutionName}`, html });
+  await send({ to, subject: `Your Enterprise Insurance account — ${institutionName}`, html });
 }
 
 async function sendBrokerCustomerInvitation(to, firstName, tempPassword, brokerName) {
@@ -92,7 +129,7 @@ async function sendBrokerCustomerInvitation(to, firstName, tempPassword, brokerN
     <a href="${loginUrl}" class="btn">Access My Account</a>
     <div class="note">You will be required to set your own password on first login. This temporary password expires in <strong>7 days</strong>.</div>
   `);
-  await send({ from: FROM, to, subject: 'Your Enterprise Insurance account is ready', html });
+  await send({ to, subject: 'Your Enterprise Insurance account is ready', html });
 }
 
 async function sendBrokerApproval(to, firstName, approved) {
@@ -110,7 +147,15 @@ async function sendBrokerApproval(to, firstName, approved) {
         <p style="color:#374151">Please contact <a href="mailto:info@enterpriseinsurance.com">info@enterpriseinsurance.com</a> for more information.</p>
       `);
   const subject = approved ? 'Broker application approved — Enterprise Insurance' : 'Broker application update — Enterprise Insurance';
-  await send({ from: FROM, to, subject, html });
+  await send({ to, subject, html });
 }
 
-module.exports = { sendOTPVerification, sendEmployeeInvitation, sendBrokerCustomerInvitation, sendBrokerApproval };
+module.exports = {
+  // `sendMail` is the generic transport, exported so every sender in the app
+  // goes through the one path that actually works on Render.
+  sendMail: send,
+  sendOTPVerification,
+  sendEmployeeInvitation,
+  sendBrokerCustomerInvitation,
+  sendBrokerApproval,
+};

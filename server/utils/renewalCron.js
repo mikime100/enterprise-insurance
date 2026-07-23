@@ -2,7 +2,8 @@ const cron = require('node-cron');
 const PolicyEnrollment = require('../models/PolicyEnrollment');
 const InsuredPerson    = require('../models/InsuredPerson');
 const User             = require('../models/User');
-const { sendMail, renewalReminderHtml } = require('./mailer');
+const { sendMail }            = require('../services/email');
+const { renewalReminderHtml } = require('./mailer');
 
 const CLIENT_URL = () => process.env.CLIENT_URL || 'http://localhost:5173';
 
@@ -39,13 +40,19 @@ async function runRenewalCheck() {
       });
       const emailTo = person.email || (await User.findById(person.user).select('email'))?.email;
       if (emailTo) {
-        await sendMail({
-          to:      emailTo,
-          subject: `Action Required: Your ${enr.product?.name || 'insurance'} policy expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`,
-          html,
-          text:    `Your policy ${enr.enrollmentNumber} expires in ${daysLeft} days. Visit ${renewUrl} to renew.`,
-        });
-        console.log(`[renewal] Email sent to ${emailTo}`);
+        // The status change above is already committed, so a failed send must
+        // not abort the batch and strand the remaining enrollments.
+        try {
+          await sendMail({
+            to:      emailTo,
+            subject: `Action Required: Your ${enr.product?.name || 'insurance'} policy expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`,
+            html,
+            text:    `Your policy ${enr.enrollmentNumber} expires in ${daysLeft} days. Visit ${renewUrl} to renew.`,
+          });
+          console.log(`[renewal] Email sent to ${emailTo}`);
+        } catch (e) {
+          console.error(`[renewal] Email to ${emailTo} failed:`, e.message);
+        }
       }
     }
   }
