@@ -54,7 +54,7 @@ function ActionTile({ icon, label, color, onPress }: { icon: string; label: stri
       <View style={[st.actionIcon, { backgroundColor: `${color}14` }]}>
         <Ionicons name={icon as any} size={23} color={color} />
       </View>
-      <Text style={st.actionLabel}>{label}</Text>
+      <Text style={st.actionLabel} numberOfLines={1}>{label}</Text>
     </Press>
   );
 }

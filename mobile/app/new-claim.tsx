@@ -211,7 +211,8 @@ export default function NewClaimScreen() {
             ) : enrollments.map(e => {
               const sel = enrollment?._id === e._id;
               return (
-                <Press key={e._id} onPress={() => { setEnrollment(e); setClaimType(''); }}>
+                <Press key={e._id} onPress={() => { setEnrollment(e); setClaimType(''); }}
+                  style={s.policyShadow}>
                   <LinearGradient
                     colors={sel ? [C.navyDark, C.navy] : ['#fff', '#fff']}
                     start={{ x: 0, y: 0 }} end={{ x: 1.3, y: 1.3 }}
@@ -244,7 +245,9 @@ export default function NewClaimScreen() {
                       <Press key={t} onPress={() => setClaimType(t)}
                         style={[s.typeCard, sel && s.typeCardSel]}>
                         <Ionicons name={CLAIM_TYPE_ICONS[t] as any} size={26} color={sel ? C.greenDark : C.navy} />
-                        <Text style={[s.typeCardText, sel && { color: C.greenDark }]}>{CLAIM_TYPE_LABELS[t]}</Text>
+                        <Text style={[s.typeCardText, sel && { color: C.greenDark }]} numberOfLines={2}>
+                          {CLAIM_TYPE_LABELS[t]}
+                        </Text>
                       </Press>
                     );
                   })}
@@ -562,9 +565,14 @@ const s = StyleSheet.create({
   warnText: { flex: 1, color: '#92400e', fontSize: 13, lineHeight: 19, fontFamily: F.body },
 
   // Step 0 — policy gradient card (per Stitch step-1 design)
+  // The shadow lives on this outer layer, never on the clipping layer below.
+  // Android renders an empty elevated surface when `elevation`, `overflow:
+  // hidden` and a border radius are combined on one node — the card's children
+  // get clipped away and it draws as a blank rounded box.
+  policyShadow: { borderRadius: R.lg, marginBottom: 10, backgroundColor: '#fff', ...SHADOW.card },
   policyCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    borderRadius: R.lg, padding: 18, marginBottom: 10, overflow: 'hidden', ...SHADOW.card,
+    borderRadius: R.lg, padding: 18, overflow: 'hidden',
   },
   policyCardIdle: { borderWidth: 1.5, borderColor: C.line },
   policyDecor: {

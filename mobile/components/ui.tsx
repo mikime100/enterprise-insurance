@@ -26,6 +26,19 @@ export function FadeIn({ children, delay = 0, style, from = 18 }: {
   );
 }
 
+// Style props that size or position an element within its parent. These must be
+// applied to the Pressable, because that is the node the parent lays out — the
+// animated view inside it is not. Leaving `flex` or a percentage `width` on the
+// inner view silently does nothing: the row collapses to content width, and a
+// percentage resolves against an auto-sized parent instead of the real grid.
+const LAYOUT_PROPS = new Set([
+  'flex', 'flexGrow', 'flexShrink', 'flexBasis', 'alignSelf',
+  'width', 'minWidth', 'maxWidth', 'height', 'minHeight', 'maxHeight',
+  'margin', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight',
+  'marginHorizontal', 'marginVertical', 'marginStart', 'marginEnd',
+  'position', 'top', 'bottom', 'left', 'right', 'zIndex',
+]);
+
 // Pressable that springs down to 97% while pressed
 export function Press({ children, onPress, style, disabled }: {
   children: ReactNode; onPress?: () => void; style?: StyleProp<ViewStyle>; disabled?: boolean;
@@ -33,10 +46,25 @@ export function Press({ children, onPress, style, disabled }: {
   const scale = useRef(new Animated.Value(1)).current;
   const to = (v: number) =>
     Animated.spring(scale, { toValue: v, useNativeDriver: true, speed: 40, bounciness: 4 }).start();
+
+  // Split the caller's style: layout goes to the Pressable, everything visual
+  // (background, padding, border, shadow) stays on the animated view so the
+  // press-scale still transforms the card the user sees.
+  const flat = StyleSheet.flatten(style) as Record<string, any> | undefined;
+  const layout: Record<string, any> = {};
+  const visual: Record<string, any> = {};
+  if (flat) {
+    for (const key of Object.keys(flat)) {
+      (LAYOUT_PROPS.has(key) ? layout : visual)[key] = flat[key];
+    }
+  }
+
   return (
-    <Pressable onPress={onPress} disabled={disabled}
+    <Pressable onPress={onPress} disabled={disabled} style={layout}
       onPressIn={() => to(0.97)} onPressOut={() => to(1)}>
-      <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
+      {/* flexGrow fills the Pressable when siblings in a row stretch it taller,
+          so tiles in the same row end up visually equal height. */}
+      <Animated.View style={[visual, { flexGrow: 1, transform: [{ scale }] }]}>{children}</Animated.View>
     </Pressable>
   );
 }
