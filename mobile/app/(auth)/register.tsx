@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TextInput,
-  TouchableOpacity, ActivityIndicator, Alert, Platform,
+  TouchableOpacity, ActivityIndicator, Alert, Platform, KeyboardAvoidingView,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -84,9 +84,17 @@ export default function RegisterScreen() {
         </View>
       </View>
 
+      {/* Android already resizes the window (Expo's default softwareKeyboardLayoutMode
+          is "resize"), so a behavior there would apply the inset twice and make the
+          form jump. iOS needs padding. Matches app/new-claim.tsx. */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}
+        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 220 }]}
         keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
         showsVerticalScrollIndicator={false}
       >
         {/* Selected plan banner */}
@@ -211,6 +219,7 @@ export default function RegisterScreen() {
           <Text style={styles.loginLinkText}>Already have an account? Sign In</Text>
         </TouchableOpacity>
       </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
