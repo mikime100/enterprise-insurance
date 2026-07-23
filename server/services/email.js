@@ -3,6 +3,28 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const FROM = process.env.SENDGRID_FROM || process.env.SMTP_USER || 'noreply@enterpriseinsurance.com';
 
+// SendGrid reports the real reason in response.body.errors. The thrown Error
+// carries only "Forbidden" or "Unauthorized" on its own, which is not enough to
+// tell a revoked API key apart from an unverified sender address. Surface the
+// status, the detail, and the from/to actually used — the from matters because
+// it silently falls back to a domain we do not own when SENDGRID_FROM is unset.
+async function send(msg) {
+  if (!process.env.SENDGRID_API_KEY) {
+    throw new Error('SENDGRID_API_KEY is not set — no email can be sent');
+  }
+  try {
+    await sgMail.send(msg);
+  } catch (e) {
+    const status = e?.code || e?.response?.statusCode;
+    const detail = e?.response?.body?.errors?.map(x => x.message).filter(Boolean).join('; ');
+    const err = new Error(
+      `SendGrid ${status || 'error'} sending to ${msg.to} as "${msg.from}" — ${detail || e.message}`
+    );
+    err.statusCode = status;
+    throw err;
+  }
+}
+
 function baseTemplate(title, bodyHtml) {
   return `
 <!DOCTYPE html><html><head><meta charset="utf-8">
@@ -38,7 +60,7 @@ async function sendOTPVerification(to, firstName, otp) {
     <p style="color:#6b7280;font-size:13px;text-align:center">This code expires in <strong>15 minutes</strong>.</p>
     <div class="note">If you did not create an account with Enterprise Insurance, please ignore this email.</div>
   `);
-  await sgMail.send({ from: FROM, to, subject: 'Your Enterprise Insurance verification code', html });
+  await send({ from: FROM, to, subject: 'Your Enterprise Insurance verification code', html });
 }
 
 async function sendEmployeeInvitation(to, firstName, tempPassword, institutionName) {
@@ -54,7 +76,7 @@ async function sendEmployeeInvitation(to, firstName, tempPassword, institutionNa
     <a href="${loginUrl}" class="btn">Log In Now</a>
     <div class="note">You will be asked to change your password immediately after your first login. This temporary password expires in <strong>7 days</strong>.</div>
   `);
-  await sgMail.send({ from: FROM, to, subject: `Your Enterprise Insurance account — ${institutionName}`, html });
+  await send({ from: FROM, to, subject: `Your Enterprise Insurance account — ${institutionName}`, html });
 }
 
 async function sendBrokerCustomerInvitation(to, firstName, tempPassword, brokerName) {
@@ -70,7 +92,7 @@ async function sendBrokerCustomerInvitation(to, firstName, tempPassword, brokerN
     <a href="${loginUrl}" class="btn">Access My Account</a>
     <div class="note">You will be required to set your own password on first login. This temporary password expires in <strong>7 days</strong>.</div>
   `);
-  await sgMail.send({ from: FROM, to, subject: 'Your Enterprise Insurance account is ready', html });
+  await send({ from: FROM, to, subject: 'Your Enterprise Insurance account is ready', html });
 }
 
 async function sendBrokerApproval(to, firstName, approved) {
@@ -88,7 +110,7 @@ async function sendBrokerApproval(to, firstName, approved) {
         <p style="color:#374151">Please contact <a href="mailto:info@enterpriseinsurance.com">info@enterpriseinsurance.com</a> for more information.</p>
       `);
   const subject = approved ? 'Broker application approved — Enterprise Insurance' : 'Broker application update — Enterprise Insurance';
-  await sgMail.send({ from: FROM, to, subject, html });
+  await send({ from: FROM, to, subject, html });
 }
 
 module.exports = { sendOTPVerification, sendEmployeeInvitation, sendBrokerCustomerInvitation, sendBrokerApproval };

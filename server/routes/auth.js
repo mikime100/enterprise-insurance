@@ -82,9 +82,21 @@ router.post('/register', async (req, res, next) => {
     user.linkedEntity = { entityType: 'InsuredPerson', entityId: insured._id };
     await user.save();
 
-    try { await sendOTPVerification(email, firstName, otp); } catch (e) { console.error('Email send failed:', e.message); }
+    let emailSent = true;
+    try {
+      await sendOTPVerification(email, firstName, otp);
+    } catch (e) {
+      emailSent = false;
+      console.error('[OTP] register send failed:', e.message);
+    }
 
-    res.status(201).json({ message: 'Account created. Check your email for the verification code.', email });
+    res.status(201).json({
+      message: emailSent
+        ? 'Account created. Check your email for the verification code.'
+        : 'Account created, but we could not send the verification email. Tap resend to try again.',
+      email,
+      emailSent,
+    });
   } catch (err) { next(err); }
 });
 
@@ -132,8 +144,17 @@ router.post('/resend-otp', async (req, res, next) => {
     user.emailVerificationExpiry  = expiry;
     await user.save();
 
-    try { await sendOTPVerification(email, user.firstName, otp); } catch (e) { console.error('Email send failed:', e.message); }
-    res.json({ message: 'Verification code resent' });
+    // Resend is an explicit request for a code, so a failure here must not
+    // report success — the caller has no other way to learn nothing was sent.
+    // The reason stays in the log rather than the response body; a 502 is
+    // enough for a client (or an operator) to know the send itself failed.
+    try {
+      await sendOTPVerification(email, user.firstName, otp);
+    } catch (e) {
+      console.error('[OTP] resend send failed:', e.message);
+      return res.status(502).json({ message: 'Could not send the verification email. Please try again shortly.', emailSent: false });
+    }
+    res.json({ message: 'Verification code resent', emailSent: true });
   } catch (err) { next(err); }
 });
 
@@ -229,9 +250,21 @@ router.post('/broker-apply', async (req, res, next) => {
     });
     await user.save();
 
-    try { await sendOTPVerification(email, firstName, otp); } catch (e) { console.error('Email send failed:', e.message); }
+    let emailSent = true;
+    try {
+      await sendOTPVerification(email, firstName, otp);
+    } catch (e) {
+      emailSent = false;
+      console.error('[OTP] broker register send failed:', e.message);
+    }
 
-    res.status(201).json({ message: 'Application submitted. Check your email for the verification code.', email });
+    res.status(201).json({
+      message: emailSent
+        ? 'Application submitted. Check your email for the verification code.'
+        : 'Application submitted, but we could not send the verification email. Tap resend to try again.',
+      email,
+      emailSent,
+    });
   } catch (err) { next(err); }
 });
 
