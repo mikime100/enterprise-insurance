@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  ActivityIndicator, Alert, ScrollView,
+  ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { themedAlert } from '../../components/ThemedAlert';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,10 +23,10 @@ export default function ChangePasswordScreen() {
 
   const handleSubmit = async () => {
     if (password.length < 6) {
-      Alert.alert('Too Short', 'Password must be at least 6 characters.'); return;
+      themedAlert('Too Short', 'Password must be at least 6 characters.'); return;
     }
     if (password !== confirm) {
-      Alert.alert('Mismatch', 'Passwords do not match.'); return;
+      themedAlert('Mismatch', 'Passwords do not match.'); return;
     }
     setLoading(true);
     try {
@@ -35,14 +36,15 @@ export default function ChangePasswordScreen() {
       // @ts-ignore
       router.replace('/(tabs)');
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not update password.');
+      themedAlert('Error', e?.response?.data?.message || 'Could not update password.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
+    <KeyboardAvoidingView style={[styles.root, { paddingTop: insets.top }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <StatusBar style="dark" />
 
       {/* No back button — this screen is mandatory */}
@@ -138,7 +140,7 @@ export default function ChangePasswordScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

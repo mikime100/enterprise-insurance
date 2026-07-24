@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  ActivityIndicator, Alert,
-} from 'react-native';
+  ActivityIndicator, } from 'react-native';
+import { themedAlert } from '../../components/ThemedAlert';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -53,7 +53,7 @@ export default function VerifyOtpScreen() {
   const isComplete = fullOtp.length === OTP_LENGTH;
 
   const handleVerify = async () => {
-    if (!isComplete) { Alert.alert('Enter OTP', 'Please enter the 6-digit code.'); return; }
+    if (!isComplete) { themedAlert('Enter OTP', 'Please enter the 6-digit code.'); return; }
     setLoading(true);
     try {
       await axios.post(`${API_BASE}/auth/verify-email`, { email, otp: fullOtp });
@@ -72,7 +72,7 @@ export default function VerifyOtpScreen() {
         router.replace('/(auth)/login');
       }
     } catch (e: any) {
-      Alert.alert('Verification Failed', e?.response?.data?.message || 'Invalid or expired code.');
+      themedAlert('Verification Failed', e?.response?.data?.message || 'Invalid or expired code.');
     } finally {
       setLoading(false);
     }
@@ -86,9 +86,9 @@ export default function VerifyOtpScreen() {
       setResendCooldown(60);
       setOtp(Array(OTP_LENGTH).fill(''));
       inputs.current[0]?.focus();
-      Alert.alert('Code Sent', 'A new OTP has been sent to your email.');
+      themedAlert('Code Sent', 'A new OTP has been sent to your email.');
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not resend code.');
+      themedAlert('Error', e?.response?.data?.message || 'Could not resend code.');
     } finally {
       setResending(false);
     }

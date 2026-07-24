@@ -42,6 +42,27 @@ export default function ApplicationsScreen() {
   const approved = quotes.filter(q => q.status === 'approved').length;
   const accepted = quotes.filter(q => q.status === 'accepted').length;
 
+  // ── Dynamic "How it works" progress ──────────────────────────────────────
+  // Which stage (0-3: Apply/Review/Offer/Active) the user's furthest-progressed
+  // live application has reached. Rejected/expired apps don't advance the bar.
+  const STAGE_IDX: Record<string, number> = {
+    draft: 0, submitted: 1, under_review: 1, approved: 2, accepted: 3,
+  };
+  const liveQuotes  = quotes.filter(q => q.status in STAGE_IDX);
+  const reachedIdx  = liveQuotes.length
+    ? Math.max(...liveQuotes.map(q => STAGE_IDX[q.status]))
+    : -1; // no applications yet — render the generic explainer
+  const isActive    = liveQuotes.some(q => q.status === 'accepted');
+  const HOW_SUBS = [
+    'Complete your application with your personal details — it only takes a few minutes.',
+    'Your application is with our underwriters. They review your profile and prepare a personalised offer, usually within 1–3 business days.',
+    'Your offer is ready! Review the premium and accept it to continue to payment.',
+    'Offer accepted — submit your payment receipt and your coverage activates once it’s verified.',
+  ];
+  const howSub = reachedIdx < 0
+    ? 'Apply with your details, our underwriters review and send a personalised offer, then accept & pay to activate.'
+    : HOW_SUBS[reachedIdx];
+
   return (
     <View style={s.root}>
       <StatusBar style="light" />
@@ -90,20 +111,33 @@ export default function ApplicationsScreen() {
             </View>
           </View>
 
-          {/* How it works */}
+          {/* How it works — reflects the furthest stage your applications reached */}
           <View style={s.howCard}>
-            <Text style={s.howTitle}>How it works</Text>
+            <Text style={s.howTitle}>{reachedIdx < 0 ? 'How it works' : 'Your application progress'}</Text>
             <View style={s.howRow}>
-              {QUOTE_STAGES.map((label, i) => (
-                <View key={label} style={s.howStep}>
-                  <View style={s.howDot}><Text style={s.howDotText}>{i + 1}</Text></View>
-                  <Text style={s.howLabel}>{label}</Text>
-                </View>
-              ))}
+              {QUOTE_STAGES.map((label, i) => {
+                const done    = reachedIdx >= 0 && (i < reachedIdx || (i === reachedIdx && isActive));
+                const current = i === reachedIdx && !done;
+                return (
+                  <View key={label} style={s.howStep}>
+                    {i > 0 && (
+                      <View style={[s.howLine, (reachedIdx >= 0 && i <= reachedIdx) && { backgroundColor: C.green }]} />
+                    )}
+                    <View style={[
+                      s.howDot,
+                      done && { backgroundColor: C.greenDark },
+                      current && { backgroundColor: '#fff', borderWidth: 2, borderColor: C.greenDark },
+                    ]}>
+                      {done
+                        ? <Ionicons name="checkmark" size={15} color="#fff" />
+                        : <Text style={[s.howDotText, current && { color: C.greenDark }]}>{i + 1}</Text>}
+                    </View>
+                    <Text style={[s.howLabel, (done || current) && { color: C.greenDark, fontFamily: F.bodyBold }]}>{label}</Text>
+                  </View>
+                );
+              })}
             </View>
-            <Text style={s.howSub}>
-              Apply with your details, our underwriters review and send a personalised offer, then accept & pay to activate.
-            </Text>
+            <Text style={s.howSub}>{howSub}</Text>
           </View>
 
           {/* List */}
@@ -202,6 +236,7 @@ const s = StyleSheet.create({
   howTitle: { fontSize: 15, fontFamily: F.headSemi, color: C.ink, marginBottom: 14 },
   howRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
   howStep: { alignItems: 'center', flex: 1 },
+  howLine: { position: 'absolute', top: 14, right: '50%', width: '100%', height: 2, backgroundColor: '#e2e8f0' },
   howDot: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#eef4fb', alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
   howDotText: { color: C.navy, fontFamily: F.bodyBold, fontSize: 13 },
   howLabel: { fontSize: 11, color: C.slate, fontFamily: F.bodySemi },

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TextInput,
-  TouchableOpacity, ActivityIndicator, Alert, Platform,
+  TouchableOpacity, ActivityIndicator, Platform, KeyboardAvoidingView,
 } from 'react-native';
+import { themedAlert } from '../../components/ThemedAlert';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -38,7 +39,7 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     const err = validate();
-    if (err) { Alert.alert('Check your details', err); return; }
+    if (err) { themedAlert('Check your details', err); return; }
 
     setLoading(true);
     try {
@@ -63,14 +64,15 @@ export default function RegisterScreen() {
         params: { email: form.email.trim().toLowerCase() },
       });
     } catch (e: any) {
-      Alert.alert('Registration Failed', e?.response?.data?.message || 'Please try again.');
+      themedAlert('Registration Failed', e?.response?.data?.message || 'Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
+    <KeyboardAvoidingView style={[styles.root, { paddingTop: insets.top }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <StatusBar style="dark" />
 
       {/* Header */}
@@ -211,7 +213,7 @@ export default function RegisterScreen() {
           <Text style={styles.loginLinkText}>Already have an account? Sign In</Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

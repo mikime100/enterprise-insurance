@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import {
-  View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, Alert, Platform,
+  View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, Platform,
   KeyboardAvoidingView,
 } from 'react-native';
+import { themedAlert } from './ThemedAlert';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -24,7 +25,7 @@ export async function downloadPolicyDocument(enrollmentId: string, label?: strin
   if (await Sharing.isAvailableAsync()) {
     await Sharing.shareAsync(res.uri, { mimeType: 'application/pdf', dialogTitle: 'Policy Document', UTI: 'com.adobe.pdf' });
   } else {
-    Alert.alert('Downloaded', 'Saved to app storage.');
+    themedAlert('Downloaded', 'Saved to app storage.');
   }
 }
 
@@ -62,10 +63,10 @@ export function EndorsementModal({ enrollment, visible, onClose, onSubmitted }: 
     setSubmitting(true);
     try {
       await api.post('/endorsements', { enrollmentId: enrollment._id, type, details });
-      Alert.alert('Request Submitted', 'Your insurer will review this change shortly.');
+      themedAlert('Request Submitted', 'Your insurer will review this change shortly.');
       reset(); onSubmitted(); onClose();
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not submit request');
+      themedAlert('Error', e?.response?.data?.message || 'Could not submit request');
     } finally { setSubmitting(false); }
   };
 
@@ -167,16 +168,16 @@ export function PaymentProofModal({ enrollment, visible, onClose, onSubmitted, p
   const close = () => { setReceipt(null); setNote(''); onClose(); };
 
   const submit = async () => {
-    if (!receipt) { Alert.alert('Receipt required', 'Please attach your bank-transfer receipt.'); return; }
+    if (!receipt) { themedAlert('Receipt required', 'Please attach your bank-transfer receipt.'); return; }
     setSubmitting(true);
     try {
       let receiptUrl = receipt.url;
       if (receiptUrl && !receiptUrl.startsWith('http')) receiptUrl = `${SERVER_ROOT}${receiptUrl}`;
       await api.post(`/enrollments/${enrollment._id}/submit-payment-proof`, { receiptUrl, note: note.trim() });
-      Alert.alert('Proof Submitted', 'Your payment proof was sent for verification.');
+      themedAlert('Proof Submitted', 'Your payment proof was sent for verification.');
       setReceipt(null); setNote(''); onSubmitted(); onClose();
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not submit payment proof');
+      themedAlert('Error', e?.response?.data?.message || 'Could not submit payment proof');
     } finally { setSubmitting(false); }
   };
 

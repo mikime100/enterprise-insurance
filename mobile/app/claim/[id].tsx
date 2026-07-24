@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert,
-  TextInput, Linking, ActivityIndicator, RefreshControl,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Linking, ActivityIndicator, RefreshControl,
 } from 'react-native';
+import { themedAlert } from '../../components/ThemedAlert';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -54,7 +54,7 @@ export default function ClaimDetailScreen() {
         accepted, reason: accepted ? undefined : disputeText.trim(),
       });
       setDisputeOpen(false); setDisputeText('');
-      Alert.alert(
+      themedAlert(
         accepted ? 'Offer Accepted ✓' : 'Dispute Submitted',
         accepted
           ? 'Payment will be initiated shortly. You can track it on this screen.'
@@ -62,12 +62,12 @@ export default function ClaimDetailScreen() {
       );
       load();
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Failed to submit response');
+      themedAlert('Error', e?.response?.data?.message || 'Failed to submit response');
     } finally { setResponding(false); }
   };
 
   const confirmAccept = () => {
-    Alert.alert('Accept Settlement Offer', `Accept ${fmtMoney(claim.offeredAmount)} as final settlement?`, [
+    themedAlert('Accept Settlement Offer', `Accept ${fmtMoney(claim.offeredAmount)} as final settlement?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Accept Offer', onPress: () => respondToOffer(true) },
     ]);
@@ -80,10 +80,10 @@ export default function ClaimDetailScreen() {
     try {
       await api.post(`/claims/${id}/appeal`, { appealNote: appealText.trim() });
       setAppealOpen(false); setAppealText('');
-      Alert.alert('Appeal Submitted', 'We will review your appeal within 3 business days.');
+      themedAlert('Appeal Submitted', 'We will review your appeal within 3 business days.');
       load();
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Failed to submit appeal');
+      themedAlert('Error', e?.response?.data?.message || 'Failed to submit appeal');
     } finally { setAppealing(false); }
   };
 
@@ -117,10 +117,10 @@ export default function ClaimDetailScreen() {
         documents.push({ name: up.data.originalName || f.name, type: 'other', url: up.data.url });
       }
       await api.post(`/claims/${id}/add-documents`, { documents });
-      Alert.alert('Documents Submitted ✓', 'Your claim is back under review.');
+      themedAlert('Documents Submitted ✓', 'Your claim is back under review.');
       load();
     } catch (e: any) {
-      Alert.alert('Upload failed', e?.response?.data?.message || 'Could not upload documents.');
+      themedAlert('Upload failed', e?.response?.data?.message || 'Could not upload documents.');
     } finally { setUploadingDocs(false); }
   };
 

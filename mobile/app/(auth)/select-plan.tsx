@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Alert,
-} from 'react-native';
+  ActivityIndicator, } from 'react-native';
+import { themedAlert } from '../../components/ThemedAlert';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -60,7 +60,7 @@ export default function SelectPlanScreen() {
 
   const proceed = () => {
     const plan = products.find(p => p._id === selected);
-    if (!plan) { Alert.alert('Select a Plan', 'Please choose a plan to continue.'); return; }
+    if (!plan) { themedAlert('Select a Plan', 'Please choose a plan to continue.'); return; }
     router.push({
       pathname: '/(auth)/register' as any,
       params: { planId: plan._id, planName: plan.name, planType: plan.productType },

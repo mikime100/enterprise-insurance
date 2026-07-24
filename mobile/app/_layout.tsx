@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts, ArchivoNarrow_600SemiBold, ArchivoNarrow_700Bold } from '@expo-google-fonts/archivo-narrow';
 import { WorkSans_400Regular, WorkSans_600SemiBold, WorkSans_700Bold } from '@expo-google-fonts/work-sans';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { ThemedAlertHost } from '../components/ThemedAlert';
 
 // ─── Branded splash shown while AuthContext resolves ─────────────────────────
 // Prevents the (tabs) stack from rendering before we know if the user is
@@ -52,8 +53,9 @@ function RootGuard() {
       const onboarded  = stored === 'true';
       const everLoggedIn = hasLoggedIn === 'true';
 
-      const seg0 = segments[0] as string;
-      const seg1 = segments[1] as string | undefined;
+      const segs = segments as string[];
+      const seg0 = segs[0];
+      const seg1 = segs[1] as string | undefined;
       const inAuth       = seg0 === '(auth)';
       const inOnboarding = seg0 === 'onboarding';
 
@@ -109,6 +111,7 @@ function Inner() {
       <StatusBar style="auto" />
       <RootGuard />
       <Stack screenOptions={{ headerShown: false }} />
+      <ThemedAlertHost />
     </>
   );
 }

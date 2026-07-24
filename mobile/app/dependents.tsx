@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Modal, TextInput, Alert,
-  KeyboardAvoidingView, Platform,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Modal, TextInput, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { themedAlert } from '../components/ThemedAlert';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -62,10 +62,10 @@ export default function DependentsScreen() {
         },
       });
       setRemoveTarget(null); setRemoveReason('');
-      Alert.alert('Request Submitted', 'Your removal request was sent to the insurer for review.');
+      themedAlert('Request Submitted', 'Your removal request was sent to the insurer for review.');
       load();
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Failed to submit request');
+      themedAlert('Error', e?.response?.data?.message || 'Failed to submit request');
     } finally { setRemoving(false); }
   };
 

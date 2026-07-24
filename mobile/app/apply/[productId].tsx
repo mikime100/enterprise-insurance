@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TextInput, TouchableOpacity,
-  Alert, KeyboardAvoidingView, Platform, Animated, ActivityIndicator,
+  KeyboardAvoidingView, Platform, Animated, ActivityIndicator,
 } from 'react-native';
+import { themedAlert } from '../../components/ThemedAlert';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -56,7 +57,7 @@ export default function ApplyScreen() {
   useEffect(() => {
     api.get(`/products/${productId}`)
       .then(r => setProduct(r.data.product || r.data))
-      .catch(() => Alert.alert('Error', 'Could not load this plan.'))
+      .catch(() => themedAlert('Error', 'Could not load this plan.'))
       .finally(() => setLoadingProd(false));
   }, [productId]);
 
@@ -70,7 +71,7 @@ export default function ApplyScreen() {
         setDocs(prev => [...prev, { url: up.data.url, name: up.data.originalName || f.name, type: 'id_document' }]);
       }
     } catch (e: any) {
-      Alert.alert('Upload failed', e?.response?.data?.message || 'Could not upload file.');
+      themedAlert('Upload failed', e?.response?.data?.message || 'Could not upload file.');
     } finally { setUploading(false); }
   };
 
@@ -101,7 +102,7 @@ export default function ApplyScreen() {
 
   const next = () => {
     if (!stepValid()) {
-      Alert.alert('Missing information', step === 0
+      themedAlert('Missing information', step === 0
         ? 'Select your date of birth, and enter your national ID, gender, and phone.'
         : 'Enter your occupation and income range.');
       return;
@@ -111,7 +112,7 @@ export default function ApplyScreen() {
 
   const submit = async () => {
     const payerId = product?.payer?._id || product?.payer;
-    if (!payerId) { Alert.alert('Unavailable', 'This plan has no insurer assigned. Please contact support.'); return; }
+    if (!payerId) { themedAlert('Unavailable', 'This plan has no insurer assigned. Please contact support.'); return; }
     setSubmitting(true);
     try {
       const dob = new Date(form.dateOfBirth);
@@ -125,11 +126,11 @@ export default function ApplyScreen() {
         applicationData: { ...form },
         documents: docs,
       });
-      Alert.alert('Application Submitted ✓',
+      themedAlert('Application Submitted ✓',
         'An underwriter will review your application and prepare a personalised offer within 1–3 business days.',
         [{ text: 'Track in My Applications', onPress: () => router.replace('/applications' as any) }]);
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Failed to submit application');
+      themedAlert('Error', e?.response?.data?.message || 'Failed to submit application');
     } finally { setSubmitting(false); }
   };
 

@@ -2,8 +2,9 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   RefreshControl, ActivityIndicator, Modal, TextInput,
-  Alert, KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { themedAlert } from '../../components/ThemedAlert';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -60,9 +61,9 @@ function InviteModal({ visible, onClose, onSuccess }: {
 
   const handleSubmit = async () => {
     if (!form.firstName.trim() || !form.lastName.trim())
-      return Alert.alert('Missing', 'Enter first and last name.');
+      return themedAlert('Missing', 'Enter first and last name.');
     if (!form.email.trim() || !form.email.includes('@'))
-      return Alert.alert('Invalid', 'Enter a valid email address.');
+      return themedAlert('Invalid', 'Enter a valid email address.');
 
     setLoading(true);
     try {
@@ -73,12 +74,12 @@ function InviteModal({ visible, onClose, onSuccess }: {
         phone:     form.phone.trim(),
         ...(tierId ? { tierId } : {}),
       });
-      Alert.alert('Done', `Invitation sent to ${form.firstName}. They will receive login credentials by email.`);
+      themedAlert('Done', `Invitation sent to ${form.firstName}. They will receive login credentials by email.`);
       reset();
       onSuccess();
       onClose();
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not invite employee.');
+      themedAlert('Error', e?.response?.data?.message || 'Could not invite employee.');
     } finally {
       setLoading(false);
     }
@@ -234,7 +235,7 @@ export default function EmployeesScreen() {
       const res = await api.get('/institution/employees');
       setEmployees(res.data.employees || []);
     } catch {
-      Alert.alert('Error', 'Could not load employees.');
+      themedAlert('Error', 'Could not load employees.');
     } finally { setLoading(false); setRefreshing(false); }
   }, []);
 

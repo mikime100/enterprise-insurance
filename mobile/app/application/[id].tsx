@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, RefreshControl,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl,
 } from 'react-native';
+import { themedAlert } from '../../components/ThemedAlert';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -42,18 +43,18 @@ export default function ApplicationDetailScreen() {
       // Test-mode payment: the live Chapa gateway is skipped. The enrollment is
       // created pending; the insured submits their Chapa payment receipt from
       // My Policy, and a payer admin verifies it to activate coverage.
-      Alert.alert(
+      themedAlert(
         'Offer Accepted ✓',
-        'Your enrollment is created. Submit your Chapa payment receipt on My Policy so our team can verify and activate your coverage.',
-        [{ text: 'Go to My Policy', onPress: () => router.replace('/(tabs)/coverage' as any) }],
+        'Your enrollment is created. Next step: submit your Chapa payment receipt — the insurer reviews it and activates your coverage.',
+        [{ text: 'Submit Receipt Now', onPress: () => router.replace('/(tabs)/coverage?submitReceipt=1' as any) }],
       );
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not accept this offer.');
+      themedAlert('Error', e?.response?.data?.message || 'Could not accept this offer.');
     } finally { setAccepting(false); }
   };
 
   const confirmAccept = () => {
-    Alert.alert('Accept Offer', `Accept this policy at ${fmtMoney(bestPremium(quote))}/year and continue to payment?`, [
+    themedAlert('Accept Offer', `Accept this policy at ${fmtMoney(bestPremium(quote))}/year and continue to payment?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Accept & Continue', onPress: acceptAndPay },
     ]);

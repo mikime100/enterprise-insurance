@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Linking, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { themedAlert } from '../../components/ThemedAlert';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -29,7 +30,7 @@ export default function ProfileScreen() {
 
   const saveProfile = async () => {
     if (!form.firstName.trim() || !form.lastName.trim()) {
-      Alert.alert('Required', 'First and last name are required.'); return;
+      themedAlert('Required', 'First and last name are required.'); return;
     }
     setSavingProfile(true);
     try {
@@ -38,27 +39,27 @@ export default function ProfileScreen() {
       });
       await refreshUser();
       setEditOpen(false);
-      Alert.alert('Saved', 'Your profile has been updated.');
+      themedAlert('Saved', 'Your profile has been updated.');
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not update profile.');
+      themedAlert('Error', e?.response?.data?.message || 'Could not update profile.');
     } finally { setSavingProfile(false); }
   };
 
   const savePassword = async () => {
-    if (pw.next.length < 8) { Alert.alert('Too short', 'Password must be at least 8 characters.'); return; }
-    if (pw.next !== pw.confirm) { Alert.alert('Mismatch', 'Passwords do not match.'); return; }
+    if (pw.next.length < 8) { themedAlert('Too short', 'Password must be at least 8 characters.'); return; }
+    if (pw.next !== pw.confirm) { themedAlert('Mismatch', 'Passwords do not match.'); return; }
     setSavingPw(true);
     try {
       await api.post('/auth/set-password', { newPassword: pw.next });
       setPwOpen(false); setPw({ next: '', confirm: '' });
-      Alert.alert('Done', 'Your password has been changed.');
+      themedAlert('Done', 'Your password has been changed.');
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not change password.');
+      themedAlert('Error', e?.response?.data?.message || 'Could not change password.');
     } finally { setSavingPw(false); }
   };
 
   const handleLogout = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+    themedAlert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Sign Out', style: 'destructive', onPress: logout },
     ]);

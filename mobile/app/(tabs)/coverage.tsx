@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, ActivityIndicator,
-  RefreshControl, TouchableOpacity, Alert, Modal, TextInput,
+  RefreshControl, TouchableOpacity, Modal, TextInput,
   KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { themedAlert } from '../../components/ThemedAlert';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import api from '../../lib/api';
 import { F, needsUnderwriting } from '../../lib/theme';
@@ -509,7 +510,10 @@ export default function CoverageScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
+  const params = useLocalSearchParams<{ submitReceipt?: string }>();
+
   const [enrollment,  setEnrollment]  = useState<any>(null);
+  const [pendingList, setPendingList] = useState<any[]>([]);
   const [claims,      setClaims]      = useState<any[]>([]);
   const [products,    setProducts]    = useState<any[]>([]);
   const [loading,     setLoading]     = useState(true);
@@ -520,9 +524,9 @@ export default function CoverageScreen() {
   const [detailProd,  setDetailProd]  = useState<any>(null);
   const [paying,      setPaying]      = useState(false);
 
-  // Policy actions
+  // Policy actions — proofFor is the enrollment the receipt sheet is open for
   const [endorsementOpen, setEndorsementOpen] = useState(false);
-  const [proofOpen,       setProofOpen]       = useState(false);
+  const [proofFor,        setProofFor]        = useState<any>(null);
   const [renewing,        setRenewing]        = useState(false);
   const [downloading,     setDownloading]     = useState(false);
 
@@ -535,6 +539,9 @@ export default function CoverageScreen() {
 
       if (enrRes.status === 'fulfilled') {
         const all = enrRes.value.data.enrollments || [];
+        // Every pending enrollment needs a payment receipt — surface them all
+        // in the priority section, newest first (server sorts createdAt desc).
+        setPendingList(all.filter((e: any) => e.status === 'pending'));
         // Prefer an active/pending_renewal policy; fall back to the most recent.
         const list = all.filter((e: any) => ['active', 'pending_renewal'].includes(e.status));
         const chosen = list[0] || all[0];
@@ -563,14 +570,12 @@ export default function CoverageScreen() {
     setRenewing(true);
     try {
       const renewRes = await api.post(`/enrollments/${enrollment._id}/renew`);
-      const enrId = renewRes.data?.enrollment?._id || enrollment._id;
       // Test-mode payment: skip the live Chapa gateway and collect the payment
       // receipt for admin verification instead (see handlePay).
-      const detail = await api.get(`/enrollments/${enrId}`);
-      setEnrollment(detail.data.enrollment);
-      setProofOpen(true);
+      await load();
+      setProofFor(renewRes.data?.enrollment || enrollment);
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not start renewal.');
+      themedAlert('Error', e?.response?.data?.message || 'Could not start renewal.');
     } finally { setRenewing(false); }
   };
 
@@ -580,7 +585,7 @@ export default function CoverageScreen() {
     try {
       await downloadPolicyDocument(enrollment._id, enrollment.enrollmentNumber);
     } catch (e: any) {
-      Alert.alert('Download failed', e?.message || 'Could not download the policy document.');
+      themedAlert('Download failed', e?.message || 'Could not download the policy document.');
     } finally { setDownloading(false); }
   };
 
@@ -599,13 +604,23 @@ export default function CoverageScreen() {
       const up = await api.post('/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       return { url: up.data.url, name: up.data.originalName || file.name };
     } catch (e: any) {
-      Alert.alert('Upload failed', e?.response?.data?.message || 'Could not upload receipt.');
+      themedAlert('Upload failed', e?.response?.data?.message || 'Could not upload receipt.');
       return null;
     }
   };
 
   useEffect(() => { load(); }, [load]);
   const onRefresh = () => { setRefreshing(true); load(); };
+
+  // Arriving with ?submitReceipt=1 (e.g. right after accepting an offer):
+  // open the receipt sheet for the newest pending enrollment automatically.
+  useEffect(() => {
+    if (loading || params.submitReceipt !== '1') return;
+    const target = pendingList.find(e =>
+      !e.paymentVerification?.receiptUrl || e.paymentVerification?.status === 'rejected');
+    if (target) setProofFor(target);
+    router.setParams({ submitReceipt: undefined });
+  }, [loading, params.submitReceipt, pendingList]);
 
   function buildUsageMap(): Record<string, number> {
     const map: Record<string, number> = {};
@@ -645,20 +660,16 @@ export default function CoverageScreen() {
         productId: detailProd._id,
         tierId:    detailTier._id,
       });
-      const enrId = enrRes.data.enrollment._id;
-
       // Test-mode payment: the live Chapa gateway is skipped. We assume the user
       // has paid via Chapa and go straight to receipt verification — the user
       // submits their payment receipt and a payer admin approves it to activate
-      // the policy. Point the coverage screen at the new pending enrollment and
-      // open the receipt-submission sheet.
-      const detail = await api.get(`/enrollments/${enrId}`);
-      setEnrollment(detail.data.enrollment);
+      // the policy. Refresh so the priority card appears, then open the sheet.
       setDetailTier(null);
       setDetailProd(null);
-      setProofOpen(true);
+      await load();
+      setProofFor(enrRes.data.enrollment);
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Enrollment failed. Please try again.');
+      themedAlert('Error', e?.response?.data?.message || 'Enrollment failed. Please try again.');
     } finally {
       setPaying(false);
     }
@@ -685,6 +696,57 @@ export default function CoverageScreen() {
         contentContainerStyle={[s.content, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 32 }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={NAVY} />}
       >
+        {/* ── Priority: payment receipt needed / under review ─────────────── */}
+        {pendingList.map((e: any) => {
+          const pv          = e.paymentVerification;
+          const underReview = !!pv?.receiptUrl && pv?.status === 'pending';
+          const rejected    = pv?.status === 'rejected';
+          const payerName   = e.payer?.name || 'the insurer';
+          return (
+            <View key={e._id} style={[s.prioCard, rejected && { borderColor: '#fca5a5', backgroundColor: '#fef7f7' }]}>
+              <View style={s.prioHead}>
+                <View style={[s.prioIcon, rejected && { backgroundColor: '#fee2e2' }]}>
+                  <Ionicons name={underReview ? 'hourglass' : 'receipt'} size={18}
+                    color={rejected ? '#dc2626' : '#b45309'} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[s.prioTitle, rejected && { color: '#991b1b' }]}>
+                    {underReview ? 'Receipt under review' : rejected ? 'Receipt rejected — action needed' : 'Payment receipt required'}
+                  </Text>
+                  <Text style={s.prioMeta}>
+                    {e.product?.name} · ETB {e.premium?.amount?.toLocaleString()} / yr
+                  </Text>
+                </View>
+              </View>
+
+              {underReview ? (
+                <Text style={s.prioBody}>
+                  Your receipt was submitted{pv?.submittedAt ? ` on ${new Date(pv.submittedAt).toLocaleDateString()}` : ''}.{' '}
+                  {payerName} is reviewing it — your coverage activates as soon as it's approved, usually within 1 business day.
+                </Text>
+              ) : rejected ? (
+                <>
+                  {!!pv?.reviewNote && <Text style={[s.prioBody, { color: '#991b1b' }]}>Reason: {pv.reviewNote}</Text>}
+                  <Text style={s.prioBody}>Please upload a clearer or correct receipt so {payerName} can verify your payment.</Text>
+                </>
+              ) : (
+                <Text style={s.prioBody}>
+                  To activate this plan, upload your Chapa payment receipt (screenshot or PDF).{' '}
+                  {payerName} will review it and approve your coverage.
+                </Text>
+              )}
+
+              {!underReview && (
+                <TouchableOpacity style={[s.prioBtn, rejected && { backgroundColor: '#dc2626' }]}
+                  onPress={() => setProofFor(e)} activeOpacity={0.85}>
+                  <Ionicons name="cloud-upload" size={17} color="#fff" />
+                  <Text style={s.prioBtnText}>{rejected ? 'Resubmit Payment Receipt' : 'Submit Payment Receipt'}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          );
+        })}
+
         {/* Shortcuts */}
         <TouchableOpacity onPress={() => router.push('/applications' as any)} activeOpacity={0.85} style={s.applyLink}>
           <View style={s.applyLinkIcon}>
@@ -768,23 +830,7 @@ export default function CoverageScreen() {
               </View>
             )}
 
-            {/* Payment verification / submit proof */}
-            {enrollment.paymentVerification?.status === 'pending' ? (
-              <View style={[s.pvRow, { backgroundColor: '#fffbeb', borderColor: '#fde68a' }]}>
-                <Ionicons name="time" size={16} color="#b45309" />
-                <Text style={[s.pvText, { color: '#92400e' }]}>Payment proof is under verification.</Text>
-              </View>
-            ) : (enrollment.paymentVerification?.status === 'rejected' || enrollment.status === 'pending') ? (
-              <TouchableOpacity onPress={() => setProofOpen(true)} style={[s.pvRow, { backgroundColor: '#eff6ff', borderColor: '#bfdbfe' }]}>
-                <Ionicons name="receipt-outline" size={16} color={BLUE} />
-                <Text style={[s.pvText, { color: '#1e40af', flex: 1 }]}>
-                  {enrollment.paymentVerification?.status === 'rejected'
-                    ? 'Receipt was rejected — submit a new one.'
-                    : 'Submit your Chapa payment receipt to activate.'}
-                </Text>
-                <Ionicons name="chevron-forward" size={16} color={BLUE} />
-              </TouchableOpacity>
-            ) : null}
+            {/* Payment verification prompts live in the priority section above */}
 
             {/* Policy actions */}
             <View style={s.actionsCard}>
@@ -896,12 +942,12 @@ export default function CoverageScreen() {
 
       {/* Policy action modals */}
       {enrollment && (
-        <>
-          <EndorsementModal enrollment={enrollment} visible={endorsementOpen}
-            onClose={() => setEndorsementOpen(false)} onSubmitted={load} />
-          <PaymentProofModal enrollment={enrollment} visible={proofOpen}
-            onClose={() => setProofOpen(false)} onSubmitted={load} pickReceipt={pickReceipt} />
-        </>
+        <EndorsementModal enrollment={enrollment} visible={endorsementOpen}
+          onClose={() => setEndorsementOpen(false)} onSubmitted={load} />
+      )}
+      {proofFor && (
+        <PaymentProofModal enrollment={proofFor} visible={!!proofFor}
+          onClose={() => setProofFor(null)} onSubmitted={load} pickReceipt={pickReceipt} />
       )}
 
       {/* Plan details + agreement modal */}
@@ -962,8 +1008,24 @@ const s = StyleSheet.create({
   renewSub: { fontSize: 12, color: '#b45309', marginTop: 1, fontFamily: F.body },
   renewBtn: { backgroundColor: '#d97706', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 9 },
   renewBtnText: { color: '#fff', fontFamily: F.bodyBold, fontSize: 13 },
-  pvRow: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 12 },
-  pvText: { fontSize: 12.5, fontFamily: F.bodySemi },
+  // Priority payment-receipt card
+  prioCard: {
+    backgroundColor: '#fffbeb', borderWidth: 1.5, borderColor: '#fcd34d',
+    borderRadius: 16, padding: 16, marginBottom: 14,
+  },
+  prioHead: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
+  prioIcon: {
+    width: 40, height: 40, borderRadius: 12, backgroundColor: '#fef3c7',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  prioTitle: { fontSize: 15.5, fontFamily: F.bodyBold, color: '#92400e' },
+  prioMeta:  { fontSize: 12, fontFamily: F.body, color: '#a16207', marginTop: 2 },
+  prioBody:  { fontSize: 13, fontFamily: F.body, color: '#78350f', lineHeight: 19, marginBottom: 8 },
+  prioBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: '#d97706', borderRadius: 12, paddingVertical: 13, marginTop: 4,
+  },
+  prioBtnText: { color: '#fff', fontSize: 14.5, fontFamily: F.bodyBold },
   actionsCard: { backgroundColor: '#fff', borderRadius: 16, marginBottom: 20, paddingHorizontal: 16, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 },
   actionItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15 },
   actionIcon: { width: 38, height: 38, borderRadius: 11, backgroundColor: '#eef4fb', alignItems: 'center', justifyContent: 'center' },

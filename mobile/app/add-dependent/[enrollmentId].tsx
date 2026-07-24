@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TextInput, TouchableOpacity,
-  Alert, KeyboardAvoidingView, Platform, Animated, ActivityIndicator,
+  KeyboardAvoidingView, Platform, Animated, ActivityIndicator,
 } from 'react-native';
+import { themedAlert } from '../../components/ThemedAlert';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -62,7 +63,7 @@ export default function AddDependentScreen() {
         setDocs(prev => [...prev, { url: up.data.url, name: up.data.originalName || f.name, type: 'id_document' }]);
       }
     } catch (e: any) {
-      Alert.alert('Upload failed', e?.response?.data?.message || 'Could not upload file.');
+      themedAlert('Upload failed', e?.response?.data?.message || 'Could not upload file.');
     } finally { setUploading(false); }
   };
   const pickDoc = async () => {
@@ -86,7 +87,7 @@ export default function AddDependentScreen() {
   };
   const next = () => {
     if (!stepValid()) {
-      Alert.alert('Missing information',
+      themedAlert('Missing information',
         step === 0 ? 'Select the relationship.'
         : step === 1 ? 'Enter first name, last name, and select the date of birth.'
         : 'Select a qualifying event.');
@@ -117,10 +118,10 @@ export default function AddDependentScreen() {
           calculatedAge: calcAge(form.dateOfBirth),
         },
       });
-      Alert.alert('Request Submitted ✓', 'Your insurer will review the dependent addition within 1–3 business days.',
+      themedAlert('Request Submitted ✓', 'Your insurer will review the dependent addition within 1–3 business days.',
         [{ text: 'Done', onPress: () => router.replace('/dependents' as any) }]);
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Failed to submit request');
+      themedAlert('Error', e?.response?.data?.message || 'Failed to submit request');
     } finally { setSubmitting(false); }
   };
 

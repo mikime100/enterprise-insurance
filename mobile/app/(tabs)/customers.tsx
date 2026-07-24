@@ -2,8 +2,9 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   RefreshControl, ActivityIndicator, Modal, TextInput,
-  Alert, KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { themedAlert } from '../../components/ThemedAlert';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -38,9 +39,9 @@ function RegisterModal({ visible, onClose, onSuccess }: {
 
   const handleSubmit = async () => {
     if (!form.firstName.trim() || !form.lastName.trim())
-      return Alert.alert('Missing', 'Enter first and last name.');
+      return themedAlert('Missing', 'Enter first and last name.');
     if (!form.email.trim() || !form.email.includes('@'))
-      return Alert.alert('Invalid', 'Enter a valid email address.');
+      return themedAlert('Invalid', 'Enter a valid email address.');
 
     setLoading(true);
     try {
@@ -50,12 +51,12 @@ function RegisterModal({ visible, onClose, onSuccess }: {
         email:     form.email.trim().toLowerCase(),
         phone:     form.phone.trim(),
       });
-      Alert.alert('Done', `Account created for ${form.firstName}. A temporary password has been emailed to them.`);
+      themedAlert('Done', `Account created for ${form.firstName}. A temporary password has been emailed to them.`);
       reset();
       onSuccess();
       onClose();
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not register customer.');
+      themedAlert('Error', e?.response?.data?.message || 'Could not register customer.');
     } finally {
       setLoading(false);
     }
@@ -165,7 +166,7 @@ export default function CustomersScreen() {
       const res = await api.get('/broker/customers');
       setCustomers(res.data.customers || []);
     } catch (e: any) {
-      Alert.alert('Error', 'Could not load customers.');
+      themedAlert('Error', 'Could not load customers.');
     } finally { setLoading(false); setRefreshing(false); }
   }, []);
 

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TextInput, TouchableOpacity, Image,
-  Alert, KeyboardAvoidingView, Platform, Animated, ActivityIndicator,
+  KeyboardAvoidingView, Platform, Animated, ActivityIndicator,
 } from 'react-native';
+import { themedAlert } from '../components/ThemedAlert';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -90,7 +91,7 @@ export default function NewClaimScreen() {
         }]);
       }
     } catch (e: any) {
-      Alert.alert('Upload failed', e?.response?.data?.message || 'Could not upload file. Max size is 5 MB.');
+      themedAlert('Upload failed', e?.response?.data?.message || 'Could not upload file. Max size is 5 MB.');
     } finally { setUploading(false); }
   };
 
@@ -98,7 +99,7 @@ export default function NewClaimScreen() {
     const perm = camera
       ? await ImagePicker.requestCameraPermissionsAsync()
       : await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) { Alert.alert('Permission needed', 'Please allow access to continue.'); return; }
+    if (!perm.granted) { themedAlert('Permission needed', 'Please allow access to continue.'); return; }
     const res = camera
       ? await ImagePicker.launchCameraAsync({ quality: 0.7 })
       : await ImagePicker.launchImageLibraryAsync({ quality: 0.7, allowsMultipleSelection: true, selectionLimit: 5 });
@@ -136,7 +137,7 @@ export default function NewClaimScreen() {
 
   const next = () => {
     if (!stepValid()) {
-      Alert.alert('Missing information', step === 0
+      themedAlert('Missing information', step === 0
         ? 'Select your policy and the type of claim.'
         : 'Select the incident date, enter a valid amount, and a description.');
       return;
@@ -165,11 +166,11 @@ export default function NewClaimScreen() {
         submissionType: 'insured_reimbursement',
         documents: docs.map(d => ({ name: d.name, type: d.docType, url: d.url })),
       });
-      Alert.alert('Claim Submitted ✓', 'Your claim has been filed. You can track its progress in My Claims.', [
+      themedAlert('Claim Submitted ✓', 'Your claim has been filed. You can track its progress in My Claims.', [
         { text: 'View My Claims', onPress: () => router.replace('/(tabs)/claims') },
       ]);
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Failed to submit claim');
+      themedAlert('Error', e?.response?.data?.message || 'Failed to submit claim');
     } finally { setSubmitting(false); }
   };
 

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, ActivityIndicator, Alert, ScrollView,
+  KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView,
 } from 'react-native';
+import { themedAlert } from '../../components/ThemedAlert';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,7 +21,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Missing Fields', 'Please enter your email and password.');
+      themedAlert('Missing Fields', 'Please enter your email and password.');
       return;
     }
     setLoading(true);
@@ -28,7 +29,7 @@ export default function LoginScreen() {
       await login(email.trim().toLowerCase(), password);
       // RootGuard handles routing: mustChangePassword → change-password, else → tabs
     } catch (e: any) {
-      Alert.alert('Sign In Failed', e?.response?.data?.message || 'Invalid email or password.');
+      themedAlert('Sign In Failed', e?.response?.data?.message || 'Invalid email or password.');
     } finally {
       setLoading(false);
     }
