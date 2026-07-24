@@ -59,12 +59,20 @@ export function Press({ children, onPress, style, disabled }: {
     }
   }
 
+  // Fill the Pressable only when the caller asked for a sized or flexible box —
+  // a tile in a row, or a fixed-width cell in a grid. Those get stretched to the
+  // tallest sibling, and without this the visible card would not cover the space
+  // the Pressable occupies. Applying it unconditionally is wrong: a content-sized
+  // button (alignSelf: 'flex-start') then grows to fill whatever the parent offers,
+  // which is what turned the "Browse Plans" CTA into a full-height white slab.
+  const fills = layout.flex !== undefined || layout.flexGrow !== undefined || layout.width !== undefined;
+
   return (
     <Pressable onPress={onPress} disabled={disabled} style={layout}
       onPressIn={() => to(0.97)} onPressOut={() => to(1)}>
-      {/* flexGrow fills the Pressable when siblings in a row stretch it taller,
-          so tiles in the same row end up visually equal height. */}
-      <Animated.View style={[visual, { flexGrow: 1, transform: [{ scale }] }]}>{children}</Animated.View>
+      <Animated.View style={[visual, fills && { flexGrow: 1 }, { transform: [{ scale }] }]}>
+        {children}
+      </Animated.View>
     </Pressable>
   );
 }
