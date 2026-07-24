@@ -171,6 +171,7 @@ export default function ClaimDetailScreen() {
 
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 40 }}
+        keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.navy} />}
       >
         {/* ── SETTLEMENT OFFER — awaiting client approval ─────────────────── */}

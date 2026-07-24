@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Modal, TextInput, Alert,
+  KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -190,7 +191,7 @@ export default function DependentsScreen() {
 
       {/* Remove modal */}
       <Modal visible={!!removeTarget} transparent animationType="fade" onRequestClose={() => setRemoveTarget(null)}>
-        <View style={s.modalBackdrop}>
+        <KeyboardAvoidingView style={s.modalBackdrop} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={s.modalCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
               <Ionicons name="warning" size={20} color={C.amber} />
@@ -210,7 +211,7 @@ export default function DependentsScreen() {
               <Button label="Submit" icon="send" color={C.red} onPress={submitRemove} loading={removing} style={{ flex: 1.4 }} />
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );

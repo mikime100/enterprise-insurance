@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Linking, Modal, TextInput } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Linking, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -163,7 +163,7 @@ export default function ProfileScreen() {
 
       {/* Edit profile modal */}
       <Modal visible={editOpen} transparent animationType="slide" onRequestClose={() => setEditOpen(false)}>
-        <View style={s.backdrop}>
+        <KeyboardAvoidingView style={s.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={[s.sheet, { paddingBottom: insets.bottom + 16 }]}>
             <View style={s.handle} />
             <Text style={s.sheetTitle}>Edit Profile</Text>
@@ -182,12 +182,12 @@ export default function ProfileScreen() {
               <Button label="Save" icon="checkmark" onPress={saveProfile} loading={savingProfile} style={{ flex: 1.4 }} />
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Change password modal */}
       <Modal visible={pwOpen} transparent animationType="slide" onRequestClose={() => setPwOpen(false)}>
-        <View style={s.backdrop}>
+        <KeyboardAvoidingView style={s.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={[s.sheet, { paddingBottom: insets.bottom + 16 }]}>
             <View style={s.handle} />
             <Text style={s.sheetTitle}>Change Password</Text>
@@ -202,7 +202,7 @@ export default function ProfileScreen() {
               <Button label="Update" icon="key" color={C.amber} onPress={savePassword} loading={savingPw} style={{ flex: 1.4 }} />
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </ScrollView>
   );

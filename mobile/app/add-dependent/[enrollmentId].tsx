@@ -142,9 +142,9 @@ export default function AddDependentScreen() {
       </View>
 
       {loadingEnr ? (
-        <ActivityIndicator color={C.navy} style={{ marginTop: 40 }} />
+        <ActivityIndicator color={C.navy} style={{ flex: 1 }} />
       ) : (
-        <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 130 }]} keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 28 }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           {/* STEP 0 — Relationship */}
           {step === 0 && (
             <FadeIn key="d0">
@@ -393,5 +393,5 @@ const s = StyleSheet.create({
   noteBox: { flexDirection: 'row', gap: 8, backgroundColor: '#f0f9ff', borderWidth: 1, borderColor: '#bae6fd', borderRadius: R.md, padding: 13, marginTop: 14 },
   noteText: { flex: 1, fontSize: 12, color: '#0c4a6e', lineHeight: 18, fontFamily: F.body },
 
-  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', paddingHorizontal: 20, paddingTop: 14, borderTopWidth: 1, borderTopColor: C.line },
+  footer: { backgroundColor: '#fff', paddingHorizontal: 20, paddingTop: 14, borderTopWidth: 1, borderTopColor: C.line },
 });

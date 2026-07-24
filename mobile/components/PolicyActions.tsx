@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, Alert, Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -70,7 +71,7 @@ export function EndorsementModal({ enrollment, visible, onClose, onSubmitted }: 
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={close}>
-      <View style={s.backdrop}>
+      <KeyboardAvoidingView style={s.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={[s.sheet, { paddingBottom: insets.bottom + 16 }]}>
           <View style={s.handle} />
           <Text style={s.title}>Request a Policy Change</Text>
@@ -148,7 +149,7 @@ export function EndorsementModal({ enrollment, visible, onClose, onSubmitted }: 
               onPress={submit} loading={submitting} disabled={!valid()} style={{ flex: 1.6 }} />
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -181,7 +182,7 @@ export function PaymentProofModal({ enrollment, visible, onClose, onSubmitted, p
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={close}>
-      <View style={s.backdrop}>
+      <KeyboardAvoidingView style={s.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={[s.sheet, { paddingBottom: insets.bottom + 16 }]}>
           <View style={s.handle} />
           <Text style={s.title}>Submit Payment Receipt</Text>
@@ -212,7 +213,7 @@ export function PaymentProofModal({ enrollment, visible, onClose, onSubmitted, p
             <Button label="Submit Proof" icon="send" onPress={submit} loading={submitting} style={{ flex: 1.6 }} />
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

@@ -194,8 +194,8 @@ export default function NewClaimScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 130 }]}
-        keyboardShouldPersistTaps="handled">
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 28 }]}
+        keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
 
         {/* ── STEP 0 — Select policy & claim type ─────────────────────────── */}
         {step === 0 && (
@@ -707,7 +707,6 @@ const s = StyleSheet.create({
   disclaimer: { fontSize: 12, color: C.grayLight, textAlign: 'center', lineHeight: 18, fontFamily: F.body, marginTop: 18, paddingHorizontal: 20 },
 
   footer: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: '#fff', paddingHorizontal: 20, paddingTop: 14,
     borderTopWidth: 1, borderTopColor: C.line,
   },

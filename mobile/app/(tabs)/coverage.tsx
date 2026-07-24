@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, ActivityIndicator,
   RefreshControl, TouchableOpacity, Alert, Modal, TextInput,
+  KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -153,7 +154,7 @@ function PlanDetailModal({
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
       <StatusBar style="dark" />
-      <View style={[dm.root, { paddingTop: insets.top }]}>
+      <KeyboardAvoidingView style={[dm.root, { paddingTop: insets.top }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {/* Header */}
         <View style={dm.header}>
           <View style={{ flex: 1 }}>
@@ -165,7 +166,7 @@ function PlanDetailModal({
           </TouchableOpacity>
         </View>
 
-        <ScrollView contentContainerStyle={[dm.scroll, { paddingBottom: insets.bottom + 120 }]} showsVerticalScrollIndicator={false}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={[dm.scroll, { paddingBottom: insets.bottom + 120 }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
           {/* Pricing */}
           <View style={dm.section}>
@@ -312,7 +313,7 @@ function PlanDetailModal({
             <Text style={{ color: '#6b7280', fontSize: 14 }}>Cancel</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
