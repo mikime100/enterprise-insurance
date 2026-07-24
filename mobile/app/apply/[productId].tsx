@@ -13,7 +13,7 @@ import * as ImagePicker from 'expo-image-picker';
 import api from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { C, R, F, SHADOW } from '../../lib/theme';
-import { FadeIn, Press, Button } from '../../components/ui';
+import { FadeIn, Press, Button, DateField } from '../../components/ui';
 
 const STEP_TITLES = ['Your Details', 'Your Profile', 'Documents & Review'];
 
@@ -102,7 +102,7 @@ export default function ApplyScreen() {
   const next = () => {
     if (!stepValid()) {
       Alert.alert('Missing information', step === 0
-        ? 'Enter your date of birth (YYYY-MM-DD), national ID, gender, and phone.'
+        ? 'Select your date of birth, and enter your national ID, gender, and phone.'
         : 'Enter your occupation and income range.');
       return;
     }
@@ -159,8 +159,8 @@ export default function ApplyScreen() {
           {step === 0 && (
             <FadeIn key="a0">
               <Field label="DATE OF BIRTH *">
-                <TextInput style={s.input} value={form.dateOfBirth} placeholder="YYYY-MM-DD"
-                  placeholderTextColor={C.grayLight} onChangeText={v => set('dateOfBirth', v)} />
+                <DateField value={form.dateOfBirth} placeholder="Tap to select your date of birth"
+                  onChange={v => set('dateOfBirth', v)} minYear={1920} />
               </Field>
               <Field label="NATIONAL ID *">
                 <TextInput style={s.input} value={form.nationalId} placeholder="National ID number"

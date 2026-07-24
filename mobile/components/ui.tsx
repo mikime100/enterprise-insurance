@@ -1,8 +1,8 @@
 // ─── Shared animated UI primitives ────────────────────────────────────────────
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import {
   Animated, Easing, Pressable, Text, View, StyleSheet,
-  ActivityIndicator, ViewStyle, StyleProp,
+  ActivityIndicator, ViewStyle, StyleProp, Modal, ScrollView, TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { C, R, F, statusCfg, CLAIM_STAGES } from '../lib/theme';
@@ -169,6 +169,127 @@ export function EmptyState({ icon = 'file-tray-outline', title, sub }: { icon?: 
     </FadeIn>
   );
 }
+
+// ─── Date picker field ────────────────────────────────────────────────────────
+// A tap-to-open Day / Month / Year picker. Emits a zero-padded `YYYY-MM-DD`
+// string, so callers never have to parse free-form text or worry about the user
+// typing `2000-2-6`. Defaults to past dates (birth dates, incident dates).
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const pad2 = (n: number) => String(n).padStart(2, '0');
+
+// A single scrollable column of options. Defined at module scope so it keeps a
+// stable identity across re-renders — otherwise the ScrollView would remount on
+// every tap and jump back to the top.
+function PickerColumn({ items, sel, render, onSelect }: {
+  items: number[]; sel: number; render: (n: number) => string; onSelect: (n: number) => void;
+}) {
+  return (
+    <ScrollView style={dp.col} contentContainerStyle={{ paddingVertical: 6 }} showsVerticalScrollIndicator={false}>
+      {items.map(n => {
+        const active = n === sel;
+        return (
+          <TouchableOpacity key={n} style={[dp.opt, active && dp.optSel]} onPress={() => onSelect(n)} activeOpacity={0.7}>
+            <Text style={[dp.optText, active && dp.optTextSel]}>{render(n)}</Text>
+          </TouchableOpacity>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
+export function DateField({ value, onChange, placeholder = 'Select date', minYear, maxDate }: {
+  value?: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  minYear?: number;
+  maxDate?: Date;
+}) {
+  const today = new Date();
+  const maxD = maxDate ?? today;
+  const maxY = maxD.getFullYear();
+  const minY = minYear ?? maxY - 100;
+
+  const parse = (v?: string): [number, number, number] | null =>
+    v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? (v.split('-').map(Number) as [number, number, number]) : null;
+
+  const [open, setOpen] = useState(false);
+  const parsed = parse(value);
+  const [y, setY] = useState(parsed ? parsed[0] : 2000);
+  const [m, setM] = useState(parsed ? parsed[1] : 1); // 1-12
+  const [d, setD] = useState(parsed ? parsed[2] : 1);
+
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const dd = Math.min(d, daysInMonth); // keep the day valid as month/year change
+
+  const years = [];
+  for (let yy = maxY; yy >= minY; yy--) years.push(yy);
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+  const openPicker = () => {
+    const p = parse(value);
+    if (p) { setY(p[0]); setM(p[1]); setD(p[2]); }
+    setOpen(true);
+  };
+
+  const confirm = () => {
+    // Clamp to maxDate so a future birth/incident date can't be chosen.
+    let picked = new Date(y, m - 1, dd);
+    if (picked > maxD) picked = maxD;
+    onChange(`${picked.getFullYear()}-${pad2(picked.getMonth() + 1)}-${pad2(picked.getDate())}`);
+    setOpen(false);
+  };
+
+  const label = parsed ? `${parsed[2]} ${MONTHS[parsed[1] - 1]} ${parsed[0]}` : placeholder;
+
+  return (
+    <>
+      <TouchableOpacity style={dp.field} onPress={openPicker} activeOpacity={0.7}>
+        <Text style={[dp.fieldText, !parsed && dp.fieldPlaceholder]}>{label}</Text>
+        <Ionicons name="calendar-outline" size={18} color={C.gray} />
+      </TouchableOpacity>
+
+      <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
+        <View style={dp.backdrop}>
+          <View style={dp.sheet}>
+            <View style={dp.handle} />
+            <Text style={dp.title}>Select date</Text>
+            <View style={dp.cols}>
+              <PickerColumn items={days}   sel={dd} render={n => String(n)}          onSelect={setD} />
+              <PickerColumn items={[1,2,3,4,5,6,7,8,9,10,11,12]} sel={m} render={n => MONTHS[n - 1]} onSelect={setM} />
+              <PickerColumn items={years}  sel={y}  render={n => String(n)}          onSelect={setY} />
+            </View>
+            <View style={dp.actions}>
+              <Button label="Cancel" variant="outline" color={C.gray} onPress={() => setOpen(false)} style={{ flex: 1 }} />
+              <Button label="Confirm" icon="checkmark" onPress={confirm} style={{ flex: 1.6 }} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </>
+  );
+}
+
+const dp = StyleSheet.create({
+  field: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: '#fff', borderRadius: R.md, padding: 14,
+    borderWidth: 1, borderColor: '#e2e8f0',
+  },
+  fieldText: { fontSize: 15, color: C.ink, fontFamily: F.body },
+  fieldPlaceholder: { color: C.grayLight },
+
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: C.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 34 },
+  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#cbd5e1', alignSelf: 'center', marginBottom: 14 },
+  title: { fontSize: 18, fontFamily: F.head, color: C.ink, textAlign: 'center', marginBottom: 12 },
+  cols: { flexDirection: 'row', gap: 8, height: 220 },
+  col: { flex: 1, backgroundColor: '#fff', borderRadius: R.md, borderWidth: 1, borderColor: C.line },
+  opt: { paddingVertical: 11, alignItems: 'center', marginHorizontal: 6, borderRadius: R.sm },
+  optSel: { backgroundColor: '#f0fdf4' },
+  optText: { fontSize: 15, color: C.slate, fontFamily: F.body },
+  optTextSel: { color: C.greenDark, fontFamily: F.bodyBold },
+  actions: { flexDirection: 'row', gap: 10, marginTop: 16 },
+});
 
 const ui = StyleSheet.create({
   pill: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 20, alignSelf: 'flex-start' },

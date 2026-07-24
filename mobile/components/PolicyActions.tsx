@@ -184,8 +184,8 @@ export function PaymentProofModal({ enrollment, visible, onClose, onSubmitted, p
       <View style={s.backdrop}>
         <View style={[s.sheet, { paddingBottom: insets.bottom + 16 }]}>
           <View style={s.handle} />
-          <Text style={s.title}>Submit Payment Proof</Text>
-          <Text style={s.sub}>Paid by bank transfer? Upload your receipt and we'll verify and activate your policy.</Text>
+          <Text style={s.title}>Submit Payment Receipt</Text>
+          <Text style={s.sub}>Upload your Chapa payment receipt (photo or PDF). A payer admin will verify it and activate your policy — usually within 1 business day.</Text>
 
           {receipt ? (
             <View style={s.receiptRow}>

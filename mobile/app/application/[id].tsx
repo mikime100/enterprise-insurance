@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Linking, RefreshControl,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, RefreshControl,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -39,10 +39,14 @@ export default function ApplicationDetailScreen() {
       const res = await api.post(`/quotes/${id}/accept`);
       const enrollmentId = res.data?.enrollment?._id;
       if (!enrollmentId) throw new Error('No enrollment created');
-      const pay = await api.post('/chapa/initialize', { enrollmentId });
-      const url = pay.data?.checkout_url;
-      if (url) { await Linking.openURL(url); load(); }
-      else Alert.alert('Payment', 'Offer accepted. Could not open payment — check My Policy to pay.');
+      // Test-mode payment: the live Chapa gateway is skipped. The enrollment is
+      // created pending; the insured submits their Chapa payment receipt from
+      // My Policy, and a payer admin verifies it to activate coverage.
+      Alert.alert(
+        'Offer Accepted ✓',
+        'Your enrollment is created. Submit your Chapa payment receipt on My Policy so our team can verify and activate your coverage.',
+        [{ text: 'Go to My Policy', onPress: () => router.replace('/(tabs)/coverage' as any) }],
+      );
     } catch (e: any) {
       Alert.alert('Error', e?.response?.data?.message || 'Could not accept this offer.');
     } finally { setAccepting(false); }
@@ -51,7 +55,7 @@ export default function ApplicationDetailScreen() {
   const confirmAccept = () => {
     Alert.alert('Accept Offer', `Accept this policy at ${fmtMoney(bestPremium(quote))}/year and continue to payment?`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Accept & Pay', onPress: acceptAndPay },
+      { text: 'Accept & Continue', onPress: acceptAndPay },
     ]);
   };
 

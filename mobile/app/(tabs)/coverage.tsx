@@ -6,7 +6,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
@@ -305,7 +304,7 @@ function PlanDetailModal({
               ? <ActivityIndicator color="#fff" />
               : <>
                   <Ionicons name="card" size={18} color="#fff" />
-                  <Text style={dm.payBtnText}>Sign &amp; Pay with Chapa</Text>
+                  <Text style={dm.payBtnText}>Sign &amp; Continue to Payment</Text>
                 </>
             }
           </TouchableOpacity>
@@ -564,10 +563,11 @@ export default function CoverageScreen() {
     try {
       const renewRes = await api.post(`/enrollments/${enrollment._id}/renew`);
       const enrId = renewRes.data?.enrollment?._id || enrollment._id;
-      const chapaRes = await api.post('/chapa/initialize', { enrollmentId: enrId });
-      const url = chapaRes.data?.checkout_url;
-      if (url) await Linking.openURL(url);
-      else Alert.alert('Renewal started', 'Could not open payment. Try again from this screen.');
+      // Test-mode payment: skip the live Chapa gateway and collect the payment
+      // receipt for admin verification instead (see handlePay).
+      const detail = await api.get(`/enrollments/${enrId}`);
+      setEnrollment(detail.data.enrollment);
+      setProofOpen(true);
     } catch (e: any) {
       Alert.alert('Error', e?.response?.data?.message || 'Could not start renewal.');
     } finally { setRenewing(false); }
@@ -646,21 +646,16 @@ export default function CoverageScreen() {
       });
       const enrId = enrRes.data.enrollment._id;
 
-      // Open Chapa
-      const payRes = await api.post('/chapa/initialize', {
-        enrollmentId: enrId,
-        amount:       detailTier.annualPremium,
-        currency:     'ETB',
-        description:  `${detailTier.name} — ${detailProd.name}`,
-      });
-      const url = payRes.data.checkout_url;
-      if (url) {
-        setDetailTier(null);
-        setDetailProd(null);
-        await Linking.openURL(url);
-      } else {
-        Alert.alert('Payment Error', 'Could not initiate payment. Please try again.');
-      }
+      // Test-mode payment: the live Chapa gateway is skipped. We assume the user
+      // has paid via Chapa and go straight to receipt verification — the user
+      // submits their payment receipt and a payer admin approves it to activate
+      // the policy. Point the coverage screen at the new pending enrollment and
+      // open the receipt-submission sheet.
+      const detail = await api.get(`/enrollments/${enrId}`);
+      setEnrollment(detail.data.enrollment);
+      setDetailTier(null);
+      setDetailProd(null);
+      setProofOpen(true);
     } catch (e: any) {
       Alert.alert('Error', e?.response?.data?.message || 'Enrollment failed. Please try again.');
     } finally {
@@ -717,10 +712,20 @@ export default function CoverageScreen() {
             <LinearGradient colors={[NAVY_DARK, NAVY]} start={{ x: 0, y: 0 }} end={{ x: 1.2, y: 1.2 }} style={s.policyCard}>
               <View style={s.cardTopRow}>
                 <Text style={s.cardEyebrow}>POLICY NO. {enrollment?.enrollmentNumber || ''}</Text>
-                <View style={s.activePill}>
-                  <View style={s.activeDot} />
-                  <Text style={s.activePillText}>ACTIVE</Text>
-                </View>
+                {(() => {
+                  const st = enrollment.status;
+                  const pending = st === 'pending';
+                  const renewal = st === 'pending_renewal';
+                  const amber = pending || renewal;
+                  const dotColor = amber ? '#f59e0b' : GREEN;
+                  const label = pending ? 'PENDING PAYMENT' : renewal ? 'RENEWAL DUE' : 'ACTIVE';
+                  return (
+                    <View style={[s.activePill, amber && { backgroundColor: 'rgba(245,158,11,0.18)' }]}>
+                      <View style={[s.activeDot, { backgroundColor: dotColor }]} />
+                      <Text style={[s.activePillText, amber && { color: '#fcd34d' }]}>{label}</Text>
+                    </View>
+                  );
+                })()}
               </View>
               <Text style={s.planName}>{product?.name || 'My Plan'}</Text>
               <Text style={s.productName}>{tier?.name ? `${tier.name} Tier` : ''}</Text>
@@ -773,8 +778,8 @@ export default function CoverageScreen() {
                 <Ionicons name="receipt-outline" size={16} color={BLUE} />
                 <Text style={[s.pvText, { color: '#1e40af', flex: 1 }]}>
                   {enrollment.paymentVerification?.status === 'rejected'
-                    ? 'Proof was rejected — submit a new receipt.'
-                    : 'Paid by bank transfer? Submit payment proof.'}
+                    ? 'Receipt was rejected — submit a new one.'
+                    : 'Submit your Chapa payment receipt to activate.'}
                 </Text>
                 <Ionicons name="chevron-forward" size={16} color={BLUE} />
               </TouchableOpacity>

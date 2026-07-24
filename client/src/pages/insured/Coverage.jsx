@@ -640,10 +640,15 @@ export default function InsuredCoverage() {
     setRenewingId(enrollment._id);
     try {
       const renewRes = await api.post(`/enrollments/${enrollment._id}/renew`);
-      const chapaRes = await api.post('/chapa/initialize', { enrollmentId: renewRes.data.enrollment._id });
-      window.location.href = chapaRes.data.checkout_url;
+      // Test-mode payment: the live Chapa gateway is skipped. The renewal is
+      // created pending; the insured uploads their Chapa receipt and a payer
+      // admin verifies it to activate the new term.
+      await load();
+      setProofEnrollment(renewRes.data.enrollment);
+      message.success('Renewal started — upload your payment receipt to activate.', 5);
     } catch (err) {
       message.error(err.response?.data?.message || 'Could not start renewal. Please try again.');
+    } finally {
       setRenewingId(null);
     }
   };

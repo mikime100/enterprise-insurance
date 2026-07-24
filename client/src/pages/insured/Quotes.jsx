@@ -398,11 +398,12 @@ export default function InsuredQuotes() {
     }
     setAccepting(true);
     try {
-      const { data } = await api.post(`/quotes/${quote._id}/accept`);
-      const chapa = await api.post('/chapa/initialize', { enrollmentId: data.enrollment._id });
-      const url = chapa.data.checkout_url || chapa.data.data?.checkout_url;
-      if (url) window.location.href = url;
-      else { message.success('Enrollment confirmed!'); navigate('/insured/coverage'); }
+      await api.post(`/quotes/${quote._id}/accept`);
+      // Test-mode payment: the live Chapa gateway is skipped. The enrollment is
+      // created in a pending state; the insured then uploads their Chapa payment
+      // receipt on the Coverage page, and a payer admin verifies it to activate.
+      message.success('Offer accepted! Upload your payment receipt to activate your coverage.', 5);
+      navigate('/insured/coverage');
     } catch (err) {
       const raw = err?.response?.data?.message;
       const msg = typeof raw === 'string' ? raw
@@ -507,7 +508,7 @@ export default function InsuredQuotes() {
               { step: '1', label: 'Apply', desc: 'Select your coverage type and complete the detailed application form', color: BLUE },
               { step: '2', label: 'Underwriting', desc: 'Our team assesses your profile and prepares a personalised offer', color: AMBER },
               { step: '3', label: 'Review Offer', desc: 'See your approved premium and available tier options', color: '#059669' },
-              { step: '4', label: 'Accept & Pay', desc: 'Pay via Chapa to immediately activate your coverage', color: NAVY },
+              { step: '4', label: 'Accept & Pay', desc: 'Pay via Chapa, then upload your receipt to activate coverage', color: NAVY },
             ].map(s => (
               <div key={s.step} style={{ textAlign: 'center', padding: '12px 8px' }}>
                 <div style={{ width: 40, height: 40, borderRadius: '50%', background: `${s.color}15`, border: `2px solid ${s.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color, fontWeight: 800, fontSize: 18, margin: '0 auto 12px' }}>{s.step}</div>
@@ -675,7 +676,7 @@ export default function InsuredQuotes() {
                   <button onClick={() => handleAccept(detail)} disabled={accepting}
                     style={{ flex: 2, padding: '12px 0', background: accepting ? '#9ca3af' : GREEN, border: 'none', borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: 15, cursor: accepting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                     {accepting ? <LoadingOutlined /> : <CheckOutlined />}
-                    {accepting ? 'Processing...' : 'Accept Offer & Pay with Chapa'}
+                    {accepting ? 'Processing...' : 'Accept Offer & Continue to Payment'}
                   </button>
                 </div>
               </div>

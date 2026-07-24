@@ -15,7 +15,7 @@ import {
   C, R, F, SHADOW, CLAIM_TYPE_LABELS, CLAIM_TYPE_ICONS, CLAIM_TYPES_BY_PRODUCT,
   ALL_CLAIM_TYPES, THIRD_PARTY_TYPES, DOC_TYPES, fmtMoney,
 } from '../lib/theme';
-import { FadeIn, Press, Button } from '../components/ui';
+import { FadeIn, Press, Button, DateField } from '../components/ui';
 
 type Doc = { uri?: string; url: string; name: string; mimeType: string; docType: string; size?: number };
 
@@ -138,7 +138,7 @@ export default function NewClaimScreen() {
     if (!stepValid()) {
       Alert.alert('Missing information', step === 0
         ? 'Select your policy and the type of claim.'
-        : 'Fill the incident date (YYYY-MM-DD), a valid amount, and a description.');
+        : 'Select the incident date, enter a valid amount, and a description.');
       return;
     }
     if (step < 3) setStep(s => s + 1);
@@ -274,12 +274,9 @@ export default function NewClaimScreen() {
                   </TouchableOpacity>
                 );
               })}
-              <View style={[s.dateChip, { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }]}>
-                <Ionicons name="calendar-outline" size={14} color={C.gray} />
-                <TextInput
-                  style={s.dateInput} value={form.incidentDate}
-                  placeholder="YYYY-MM-DD" placeholderTextColor={C.grayLight}
-                  onChangeText={v => set('incidentDate', v)} />
+              <View style={{ flex: 1 }}>
+                <DateField value={form.incidentDate} placeholder="Pick another date"
+                  onChange={v => set('incidentDate', v)} minYear={2000} />
               </View>
             </View>
 

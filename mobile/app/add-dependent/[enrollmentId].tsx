@@ -12,7 +12,7 @@ import * as ImagePicker from 'expo-image-picker';
 import api from '../../lib/api';
 import { C, R, F, SHADOW } from '../../lib/theme';
 import { REL_META, REQUIRED_DOCS, QUALIFYING_EVENTS, CHRONIC_CONDITIONS, calcAge } from '../../lib/dependents';
-import { FadeIn, Press, Button } from '../../components/ui';
+import { FadeIn, Press, Button, DateField } from '../../components/ui';
 
 const STEP_TITLES = ['Relationship', 'Personal Details', 'Qualifying Event', 'Documents', 'Review'];
 const GENDERS = [{ v: 'male', l: 'Male' }, { v: 'female', l: 'Female' }];
@@ -88,7 +88,7 @@ export default function AddDependentScreen() {
     if (!stepValid()) {
       Alert.alert('Missing information',
         step === 0 ? 'Select the relationship.'
-        : step === 1 ? 'Enter first name, last name, and date of birth (YYYY-MM-DD).'
+        : step === 1 ? 'Enter first name, last name, and select the date of birth.'
         : 'Select a qualifying event.');
       return;
     }
@@ -183,7 +183,8 @@ export default function AddDependentScreen() {
                 </View>
               </View>
               <Text style={s.label}>DATE OF BIRTH *</Text>
-              <TextInput style={s.input} value={form.dateOfBirth} placeholder="YYYY-MM-DD" placeholderTextColor={C.grayLight} onChangeText={v => set('dateOfBirth', v)} />
+              <DateField value={form.dateOfBirth} placeholder="Tap to select date of birth"
+                onChange={v => set('dateOfBirth', v)} minYear={1920} />
               <Text style={s.label}>GENDER</Text>
               <View style={s.chipsRow}>
                 {GENDERS.map(g => {
